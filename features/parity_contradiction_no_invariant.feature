@@ -1,4 +1,3 @@
-@bc:shopsystem-knowledge
 Feature: A parity claim is contradicted by a neighbour's governed change with no pre-encoded invariant
   The tier-3-OPT-IN keystone of the adversarial pass. A decision is being
   authored that claims parity — an unchanged interface — over a surface whose
@@ -10,8 +9,7 @@ Feature: A parity claim is contradicted by a neighbour's governed change with no
   OPT-IN, never required. This proves the contradiction is caught from the
   neighbour's decision text alone, not from any stored baseline.
 
-  @bc:shopsystem-knowledge
-  @scenario_hash:f77904953e96124e
+  @scenario_hash:f77904953e96124e @bc:shopsystem-knowledge
   Scenario: a parity claim contradicted by a neighbour's governed change is caught with no pre-encoded invariant
     Given an existing decision whose decision text changes a governed interface
     And a draft decision being authored that claims parity or an unchanged interface over that same surface

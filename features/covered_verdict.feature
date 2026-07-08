@@ -1,4 +1,3 @@
-@bc:shopsystem-knowledge
 Feature: A draft already decided elsewhere is flagged covered
   The covered case of the adversarial pass. When a decision is being authored
   that decides a question the corpus has ALREADY decided the same way, the
@@ -10,8 +9,7 @@ Feature: A draft already decided elsewhere is flagged covered
   the shape-level adversarial pass answers for a stable neighbour the draft
   restates.
 
-  @bc:shopsystem-knowledge
-  @scenario_hash:3092efb62e739d3a
+  @scenario_hash:3092efb62e739d3a @bc:shopsystem-knowledge
   Scenario: a draft already decided elsewhere is flagged covered with a citation to the covering decision
     Given an existing accepted decision that already decides a question
     And a draft decision being authored that decides the same question the same way

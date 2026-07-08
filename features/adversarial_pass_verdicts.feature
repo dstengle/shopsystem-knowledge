@@ -1,4 +1,3 @@
-@bc:shopsystem-knowledge
 Feature: Adversarial pass assigns a verdict per surfaced neighbour
   The authoring-time discovery pass surfaces the existing decisions relevant to
   a draft; the adversarial pass is the coherence step that runs next. Over the
@@ -13,8 +12,7 @@ Feature: Adversarial pass assigns a verdict per surfaced neighbour
   corpus. The covered / contradict / supersede case behaviours build directly on
   this pass.
 
-  @bc:shopsystem-knowledge
-  @scenario_hash:bea7c4aa89633418
+  @scenario_hash:bea7c4aa89633418 @bc:shopsystem-knowledge
   Scenario: the discovery pass answers covered, contradicts and supersedes for each surfaced neighbour with a citation
     Given a draft decision being authored and a set of surfaced neighbours from the L0/L1 index
     When the knowledge context runs the adversarial pass over the draft against those neighbours

@@ -1,4 +1,3 @@
-@bc:shopsystem-knowledge
 Feature: Kind-parameterized projection accessor
   Projections are reached through a single accessor that is parameterized by
   document kind. A kind (for example the architecture-decision kind) is
@@ -8,8 +7,7 @@ Feature: Kind-parameterized projection accessor
   rather than silently defaulting to some other kind's corpus, so an
   unregistered kind can never be mistaken for the architecture-decision corpus.
 
-  @bc:shopsystem-knowledge
-  @scenario_hash:f4b64423b77dd3e2
+  @scenario_hash:f4b64423b77dd3e2 @bc:shopsystem-knowledge
   Scenario: the accessor is parameterized by kind and refuses an unregistered kind
     Given the knowledge context with the architecture-decision kind registered and no other kind registered
     When a caller requests projections for kind "architecture-decision"
