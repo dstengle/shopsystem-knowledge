@@ -62,9 +62,15 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable
+from typing import Iterable, Mapping
 
-from knowledge.discovery import DraftDecision, Neighbour, _topic_tokens
+from knowledge.discovery import (
+    DraftDecision,
+    Neighbour,
+    _topic_tokens,
+    build_l0l1_index,
+    run_authoring_discovery,
+)
 
 
 class VerdictKind(str, Enum):
@@ -279,3 +285,36 @@ def run_adversarial_pass(
     """
     verdicts = tuple(_classify(draft, neighbour) for neighbour in neighbours)
     return AdversarialResult(verdicts=verdicts)
+
+
+def authoring_time_review(
+    sources: Mapping[str, str], draft: DraftDecision
+) -> AdversarialResult:
+    """Run the authoring-time review of ``draft`` over the ``sources`` corpus.
+
+    A thin composition of the two existing passes — it introduces no new
+    classification logic. It projects the source corpus down to its L0/L1 index
+    (:func:`~knowledge.discovery.build_l0l1_index`), surfaces the neighbours
+    relevant to the draft (:func:`~knowledge.discovery.run_authoring_discovery`),
+    then runs the adversarial pass (:func:`run_adversarial_pass`) over the draft
+    and those surfaced neighbours. The result carries exactly one verdict per
+    surfaced neighbour, each citing that neighbour BY ID — so a draft that
+    restates a stable existing decision the same way is flagged COVERED, citing
+    the covering decision.
+
+    Parameters
+    ----------
+    sources:
+        The existing decision corpus — a mapping of document key to full source
+        text (the shape :func:`build_l0l1_index` consumes).
+    draft:
+        The decision being authored.
+
+    Returns
+    -------
+    AdversarialResult
+        One verdict per surfaced neighbour, citing each by id.
+    """
+    index = build_l0l1_index(sources)
+    discovery = run_authoring_discovery(index, draft)
+    return run_adversarial_pass(draft, discovery.neighbours)
