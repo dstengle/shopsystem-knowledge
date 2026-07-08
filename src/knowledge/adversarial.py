@@ -155,15 +155,34 @@ class Verdict:
 
 
 @dataclass(frozen=True)
+class SupersedeEdge:
+    """A typed supersede edge the draft owes to a prior decision it replaces.
+
+    Named on top of a SUPERSEDES verdict: the draft being authored (``from_``)
+    supersedes the prior decision (``to`` — the neighbour id the verdict cited),
+    under the relation ``edge_type`` (the constant ``"supersedes"``). It is a
+    thin, deterministic derivation from an existing SUPERSEDES verdict and the
+    pass's draft id — it introduces NO new classification and reads no baseline.
+    """
+
+    from_: str
+    to: str
+    edge_type: str = "supersedes"
+
+
+@dataclass(frozen=True)
 class AdversarialResult:
     """The outcome of one adversarial pass: exactly one verdict per neighbour.
 
     ``verdicts`` holds one :class:`Verdict` per surfaced neighbour, in the order
     the neighbours were supplied. Each cites a distinct neighbour id, so the set
-    of cited ids equals the set of surfaced neighbour ids.
+    of cited ids equals the set of surfaced neighbour ids. ``draft_id`` is the id
+    of the draft the pass reasoned over — the ``from_`` endpoint of any supersede
+    edge the draft owes (see :meth:`supersede_edges`).
     """
 
     verdicts: tuple[Verdict, ...]
+    draft_id: str = ""
 
     def cited_ids(self) -> tuple[str, ...]:
         """Return the cited neighbour ids, in verdict order."""
@@ -179,6 +198,21 @@ class AdversarialResult:
             if verdict.neighbour_id == neighbour_id:
                 return verdict
         raise KeyError(neighbour_id)
+
+    def supersede_edges(self) -> tuple[SupersedeEdge, ...]:
+        """Return the typed supersede edges the draft owes, in verdict order.
+
+        One :class:`SupersedeEdge` per SUPERSEDES verdict — nothing more. Each
+        edge is derived deterministically from a SUPERSEDES verdict: it runs
+        FROM the draft being authored (``draft_id``) TO the prior decision the
+        verdict cited (``neighbour_id``), typed ``"supersedes"``. It names the
+        edge the existing verdict already implies; it runs no new classification.
+        """
+        return tuple(
+            SupersedeEdge(from_=self.draft_id, to=verdict.neighbour_id)
+            for verdict in self.verdicts
+            if verdict.verdict == VerdictKind.SUPERSEDES
+        )
 
 
 def _classify(draft: DraftDecision, neighbour: Neighbour) -> Verdict:
@@ -284,7 +318,7 @@ def run_adversarial_pass(
         cited ids equals the set of surfaced neighbour ids.
     """
     verdicts = tuple(_classify(draft, neighbour) for neighbour in neighbours)
-    return AdversarialResult(verdicts=verdicts)
+    return AdversarialResult(verdicts=verdicts, draft_id=draft.id)
 
 
 def authoring_time_review(
