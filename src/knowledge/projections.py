@@ -14,11 +14,16 @@ architecture-decision projections:
 
 No projection introduces a fact that is not present in the single source, and
 generation is deterministic: it reads only ``source`` and emits no timestamps,
-hostnames, or absolute paths. Later sub-issues (convention-gating,
-byte-stability, idempotent regen, kind-parameterized accessor) extend this
-module, so frontmatter parsing and recognized-heading detection are factored
-into the named helpers :func:`parse_frontmatter`, :data:`RECOGNIZED_DECISION_HEADINGS`,
-and :func:`extract_decision_section`.
+hostnames, or absolute paths.
+
+Generation is **convention-gated**: a document whose body carries none of the
+:data:`RECOGNIZED_DECISION_HEADINGS` is reported as non-conforming — via
+:class:`NonConformingDocumentError` — rather than projected into a bundle with a
+silently empty L1 extract. Later sub-issues (byte-stability, idempotent regen,
+kind-parameterized accessor) extend this module, so frontmatter parsing and
+recognized-heading detection are factored into the named helpers
+:func:`parse_frontmatter`, :data:`RECOGNIZED_DECISION_HEADINGS`,
+:func:`has_recognized_decision_heading`, and :func:`extract_decision_section`.
 """
 
 from __future__ import annotations
@@ -37,6 +42,32 @@ RECOGNIZED_DECISION_HEADINGS: tuple[str, ...] = (
 
 # The frontmatter delimiter line (YAML front matter fence).
 _FRONTMATTER_FENCE = "---"
+
+
+class NonConformingDocumentError(ValueError):
+    """A source document lacks a recognized decision-section heading.
+
+    Convention-gating (this sub-issue): rather than silently emitting an empty
+    L1 extract, :func:`generate_projections` refuses to project a document whose
+    body carries none of the headings in :data:`RECOGNIZED_DECISION_HEADINGS`
+    and reports it as non-conforming, naming the missing convention.
+
+    The error carries the offending document's ``document_id`` (drawn from the
+    frontmatter ``id``, or ``None`` when absent) and a human-readable
+    ``reason`` so later sub-issues — notably the kind-parameterized accessor —
+    can surface *which* document was rejected and *why* without re-deriving the
+    recognition rule.
+    """
+
+    def __init__(self, document_id: str | None) -> None:
+        self.document_id = document_id
+        self.reason = "lacks a recognized decision heading"
+        which = document_id if document_id else "<unknown id>"
+        super().__init__(
+            f"document {which} is non-conforming: it {self.reason}; its body "
+            f"carries none of the recognized decision headings "
+            f"{list(RECOGNIZED_DECISION_HEADINGS)}"
+        )
 
 
 @dataclass(frozen=True)
@@ -101,6 +132,32 @@ def parse_frontmatter(source: str) -> dict[str, str]:
     return fields
 
 
+def _recognized_decision_heading_index(lines: list[str]) -> int | None:
+    """Return the index of the first recognized decision heading, or ``None``.
+
+    The single scan for a recognized heading lives here so both the
+    convention-gate (:func:`has_recognized_decision_heading`) and the extractor
+    (:func:`extract_decision_section`) consult exactly the same recognition
+    rule — the set named in :data:`RECOGNIZED_DECISION_HEADINGS` — without
+    duplicating it.
+    """
+    for index, line in enumerate(lines):
+        if line.strip() in RECOGNIZED_DECISION_HEADINGS:
+            return index
+    return None
+
+
+def has_recognized_decision_heading(source: str) -> bool:
+    """Return whether ``source``'s body carries a recognized decision heading.
+
+    This is the convention-gate predicate: it reuses the recognition rule in
+    :data:`RECOGNIZED_DECISION_HEADINGS` (via
+    :func:`_recognized_decision_heading_index`) rather than re-deriving it, so a
+    document is conforming exactly when it carries one of those headings.
+    """
+    return _recognized_decision_heading_index(source.splitlines()) is not None
+
+
 def extract_decision_section(source: str) -> str:
     """Return the verbatim body text of the recognized decision section.
 
@@ -123,13 +180,10 @@ def extract_decision_section(source: str) -> str:
     """
     lines = source.splitlines(keepends=True)
 
-    start = None
-    for index, line in enumerate(lines):
-        if line.strip() in RECOGNIZED_DECISION_HEADINGS:
-            start = index + 1
-            break
-    if start is None:
+    heading_index = _recognized_decision_heading_index(lines)
+    if heading_index is None:
         return ""
+    start = heading_index + 1
 
     end = len(lines)
     for index in range(start, len(lines)):
@@ -178,6 +232,12 @@ def generate_projections(source: str) -> ProjectionBundle:
         all derived from the single source, introducing no fact absent from it.
     """
     frontmatter = parse_frontmatter(source)
+
+    # Convention-gate: a document whose body carries none of the recognized
+    # decision headings is reported as non-conforming rather than projected into
+    # a bundle with a silently empty L1 extract.
+    if not has_recognized_decision_heading(source):
+        raise NonConformingDocumentError(document_id=frontmatter.get("id"))
 
     l0 = L0Card(
         id=frontmatter["id"],
