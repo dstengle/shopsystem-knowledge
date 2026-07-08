@@ -5,6 +5,22 @@ and both index entries deterministically from a single source decision
 document whose YAML frontmatter is the only machine truth.
 """
 
-from knowledge.projections import generate_projections
+from knowledge.projections import (
+    RECOGNIZED_DECISION_HEADINGS,
+    L0Card,
+    L1Extract,
+    ProjectionBundle,
+    extract_decision_section,
+    generate_projections,
+    parse_frontmatter,
+)
 
-__all__ = ["generate_projections"]
+__all__ = [
+    "RECOGNIZED_DECISION_HEADINGS",
+    "L0Card",
+    "L1Extract",
+    "ProjectionBundle",
+    "extract_decision_section",
+    "generate_projections",
+    "parse_frontmatter",
+]
