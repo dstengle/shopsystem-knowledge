@@ -13,3 +13,11 @@ Feature: Single-source projection generation
     And it emits an L2 projection that is the source document itself
     And it emits a machine index entry and a human index entry for that document, both derived from the same frontmatter
     And no projection introduces any fact that is not present in the single source
+
+  @bc:shopsystem-knowledge
+  @scenario_hash:dbd9846f04d8e22b
+  Scenario: L1 extraction is convention-gated and a document lacking a recognized decision heading is reported non-conforming
+    Given a decision document whose body carries none of the recognized decision headings
+    When the knowledge context generates the architecture-decision projections
+    Then it reports that document as non-conforming for lacking a recognized decision heading
+    And it does not emit a silently empty L1 extract for that document
