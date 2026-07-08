@@ -28,6 +28,7 @@ recognized-heading detection are factored into the named helpers
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Mapping
 
@@ -254,3 +255,100 @@ def generate_projections(source: str) -> ProjectionBundle:
         machine_index_entry=_render_machine_index_entry(frontmatter),
         human_index_entry=_render_human_index_entry(frontmatter),
     )
+
+
+# --- Corpus-level generation -------------------------------------------------
+#
+# The single-source :func:`generate_projections` above turns one document into a
+# structured :class:`ProjectionBundle`. Corpus-level generation lifts that to a
+# fixed set of documents and *serializes* every projection tier and both index
+# entries into a deterministic **byte manifest**: a mapping of relative output
+# path to the exact bytes that path should carry.
+#
+# The manifest is the pure, filesystem-free artifact later sub-issues build on:
+# the idempotent-regen sub-issue writes each ``path -> bytes`` pair to disk and
+# adds a check mode that compares the on-disk bytes against a freshly generated
+# manifest, and the kind-parameterized accessor selects manifest entries by
+# their leading ``kind/`` path segment. Because generation reads only the source
+# corpus — never the wall clock, the environment, the hostname, or the current
+# working directory — and every embedded path is relative, two regenerations of
+# the same corpus on different hosts at different times are byte-for-byte
+# identical.
+
+# The manifest path segment naming each projection kind. Kept as named
+# constants so the kind-parameterized accessor selects by exactly these
+# segments rather than re-deriving the layout.
+CORPUS_KIND_SEGMENTS: tuple[str, ...] = ("l0", "l1", "l2", "index")
+
+
+def _serialize_json(payload: object) -> bytes:
+    """Serialize ``payload`` to canonical, ambient-free JSON bytes.
+
+    ``sort_keys`` makes key order independent of insertion order, ``ensure_ascii``
+    keeps the byte encoding independent of locale, and the fixed indent plus a
+    single trailing newline make the byte layout fully determined by the payload
+    — no timestamp, hostname, or path is introduced.
+    """
+    text = json.dumps(payload, sort_keys=True, indent=2, ensure_ascii=True)
+    return (text + "\n").encode("utf-8")
+
+
+def _serialize_text(text: str) -> bytes:
+    """Serialize a text tier to bytes with a single normalized trailing newline."""
+    return (text.rstrip("\n") + "\n").encode("utf-8")
+
+
+def generate_corpus(sources: Mapping[str, str]) -> dict[str, bytes]:
+    """Generate the full projection set and index for a corpus as a byte manifest.
+
+    Parameters
+    ----------
+    sources:
+        A mapping of document id to that document's full source text. The corpus
+        is the single source of truth; nothing else is read.
+
+    Returns
+    -------
+    dict[str, bytes]
+        An ordered manifest mapping each relative output path to the exact bytes
+        that path should carry. Documents are visited in sorted id order, so the
+        manifest's path order — and therefore its serialized form — is stable.
+        Per document ``doc_id`` the manifest carries ``l0/<doc_id>.json`` (the
+        card), ``l1/<doc_id>.md`` (the verbatim extract) and ``l2/<doc_id>.md``
+        (the source), plus corpus-wide ``index/machine.json`` and
+        ``index/human.md`` entries covering every document in sorted id order.
+
+    Determinism
+    -----------
+    The manifest is a pure function of ``sources``: it embeds no timestamp, no
+    hostname, and no absolute filesystem path, and every manifest key is a
+    relative path. Two calls with the same corpus produce byte-for-byte
+    identical manifests regardless of host, time, environment, or working
+    directory.
+    """
+    ordered_ids = sorted(sources)
+
+    manifest: dict[str, bytes] = {}
+    bundles: dict[str, ProjectionBundle] = {}
+    for doc_id in ordered_ids:
+        bundle = generate_projections(sources[doc_id])
+        bundles[doc_id] = bundle
+        manifest[f"l0/{doc_id}.json"] = _serialize_json(
+            {
+                "id": bundle.l0.id,
+                "title": bundle.l0.title,
+                "status": bundle.l0.status,
+                "description": bundle.l0.description,
+            }
+        )
+        manifest[f"l1/{doc_id}.md"] = _serialize_text(bundle.l1.text)
+        manifest[f"l2/{doc_id}.md"] = _serialize_text(bundle.l2)
+
+    manifest["index/machine.json"] = _serialize_json(
+        [dict(bundles[doc_id].machine_index_entry) for doc_id in ordered_ids]
+    )
+    manifest["index/human.md"] = _serialize_text(
+        "\n".join(bundles[doc_id].human_index_entry for doc_id in ordered_ids)
+    )
+
+    return manifest
