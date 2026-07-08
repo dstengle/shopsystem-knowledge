@@ -1,0 +1,27 @@
+# Python build / cache artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+
+# Inter-shop message runtime artifacts (per-message YAML; not source).
+/inbox/
+/outbox/
+
+# Per-work_id BC role-subagent git worktrees (kept inside the project root)
+.worktrees/
+
+# Local environment secrets (AGENT_VAULT_MASTER_PASSWORD, AGENT_VAULT_TOKEN,
+# owner secrets) — never commit. The shipped .env.example scaffold stays
+# tracked via the negation (operators run `cp .env.example .env`).
+.env
+.env.*
+!.env.example

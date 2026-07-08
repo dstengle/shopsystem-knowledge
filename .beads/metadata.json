@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "shopsystem_knowledge",
+  "project_id": "3ae9b5f7-cd9d-44fa-9360-fb798ffc38fb"
+}
