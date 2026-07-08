@@ -5,6 +5,15 @@ and both index entries deterministically from a single source decision
 document whose YAML frontmatter is the only machine truth.
 """
 
+from knowledge.discovery import (
+    DiscoveryResult,
+    DraftDecision,
+    L0L1Index,
+    L0L1IndexEntry,
+    Neighbour,
+    build_l0l1_index,
+    run_authoring_discovery,
+)
 from knowledge.projections import (
     ARCHITECTURE_DECISION_KIND,
     RECOGNIZED_DECISION_HEADINGS,
@@ -27,16 +36,23 @@ __all__ = [
     "ARCHITECTURE_DECISION_KIND",
     "RECOGNIZED_DECISION_HEADINGS",
     "CheckResult",
+    "DiscoveryResult",
+    "DraftDecision",
     "KindProjections",
     "KnowledgeContext",
     "L0Card",
+    "L0L1Index",
+    "L0L1IndexEntry",
     "L1Extract",
+    "Neighbour",
     "ProjectionBundle",
     "WriteResult",
+    "build_l0l1_index",
     "check_corpus",
     "extract_decision_section",
     "generate_corpus",
     "generate_projections",
     "parse_frontmatter",
+    "run_authoring_discovery",
     "write_corpus",
 ]
