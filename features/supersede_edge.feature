@@ -1,4 +1,3 @@
-@bc:shopsystem-knowledge
 Feature: A draft that replaces a prior decision is flagged supersedes and names the supersede edge
   The supersedes case of the adversarial pass, carried one step further to name
   the typed edge the draft owes. When a decision is being authored that REPLACES
@@ -12,8 +11,7 @@ Feature: A draft that replaces a prior decision is flagged supersedes and names 
   baselines. This is the specific supersede-edge naming the shape-level
   adversarial pass answers for a prior decision the draft replaces.
 
-  @bc:shopsystem-knowledge
-  @scenario_hash:4f85b0b3af16073e
+  @scenario_hash:4f85b0b3af16073e @bc:shopsystem-knowledge
   Scenario: a draft that replaces a prior decision is flagged supersedes and names the supersede edge to write
     Given an existing accepted decision on a question
     And a draft decision being authored that replaces that prior decision
