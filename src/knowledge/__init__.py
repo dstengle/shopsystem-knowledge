@@ -7,20 +7,30 @@ document whose YAML frontmatter is the only machine truth.
 
 from knowledge.projections import (
     RECOGNIZED_DECISION_HEADINGS,
+    CheckResult,
     L0Card,
     L1Extract,
     ProjectionBundle,
+    WriteResult,
+    check_corpus,
     extract_decision_section,
+    generate_corpus,
     generate_projections,
     parse_frontmatter,
+    write_corpus,
 )
 
 __all__ = [
     "RECOGNIZED_DECISION_HEADINGS",
+    "CheckResult",
     "L0Card",
     "L1Extract",
     "ProjectionBundle",
+    "WriteResult",
+    "check_corpus",
     "extract_decision_section",
+    "generate_corpus",
     "generate_projections",
     "parse_frontmatter",
+    "write_corpus",
 ]

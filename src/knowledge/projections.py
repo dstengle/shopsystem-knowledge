@@ -29,7 +29,9 @@ recognized-heading detection are factored into the named helpers
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Mapping
 
 # The set of Markdown section headings recognized as the decision section whose
@@ -352,3 +354,143 @@ def generate_corpus(sources: Mapping[str, str]) -> dict[str, bytes]:
     )
 
     return manifest
+
+
+# --- Filesystem materialization and check mode -------------------------------
+#
+# ``generate_corpus`` above is a *pure* ``path -> bytes`` manifest: it touches no
+# filesystem. This section lifts that manifest onto disk and back.
+#
+# ``write_corpus`` materializes the manifest under an output directory, rewriting
+# only the files whose on-disk bytes differ from the manifest. Because generation
+# is deterministic, regenerating over an unchanged source produces a manifest
+# byte-identical to what is already on disk, so *no* file is rewritten and the
+# reported changed set is empty — regeneration is idempotent.
+#
+# ``check_corpus`` compares a freshly generated manifest against the on-disk
+# outputs without writing anything, reporting the drifted paths (and a
+# conventional non-zero exit status) when the outputs are stale, or no drift and
+# a success exit status when they are already current.
+
+
+@dataclass(frozen=True)
+class WriteResult:
+    """The outcome of materializing a corpus manifest under an output directory.
+
+    ``changed_paths`` holds the relative manifest paths whose on-disk bytes were
+    (re)written because they differed from the freshly generated manifest — an
+    empty tuple means the outputs already matched the source and nothing was
+    rewritten. Comparing desired manifest bytes to on-disk bytes and rewriting
+    only the differing files is what makes regeneration over an unchanged source
+    write zero changed bytes.
+    """
+
+    changed_paths: tuple[str, ...]
+
+    @property
+    def changed_count(self) -> int:
+        """The number of files (re)written — zero on an idempotent regeneration."""
+        return len(self.changed_paths)
+
+
+@dataclass(frozen=True)
+class CheckResult:
+    """The outcome of checking on-disk outputs against a freshly generated manifest.
+
+    ``drift`` holds the relative manifest paths whose on-disk bytes differ from
+    (or are missing against) the freshly generated manifest. ``has_drift`` and
+    ``exit_code`` surface the same fact for callers and a process exit
+    respectively: clean outputs yield ``drift == ()``, ``has_drift is False`` and
+    ``exit_code == 0`` (a success status).
+    """
+
+    drift: tuple[str, ...]
+
+    @property
+    def has_drift(self) -> bool:
+        """Whether any on-disk output has drifted from the manifest."""
+        return bool(self.drift)
+
+    @property
+    def exit_code(self) -> int:
+        """A conventional process exit status: ``0`` when clean, ``1`` on drift."""
+        return 1 if self.drift else 0
+
+
+def write_corpus(sources: Mapping[str, str], out_dir: str | os.PathLike[str]) -> WriteResult:
+    """Materialize the corpus manifest under ``out_dir``, rewriting only drift.
+
+    The manifest from :func:`generate_corpus` is written path-by-path under
+    ``out_dir``. A file is (re)written only when its on-disk bytes differ from
+    the manifest's bytes (or the file is absent); a file whose bytes already
+    match is left untouched — its mtime does not change. Because generation is
+    deterministic, a regeneration over an unchanged source yields a manifest
+    byte-identical to what is already on disk, so no file is rewritten and the
+    returned :class:`WriteResult` reports an empty ``changed_paths`` — the
+    "writes zero changed bytes" idempotence property.
+
+    Parameters
+    ----------
+    sources:
+        A mapping of document id to full source text — the single source of
+        truth passed straight through to :func:`generate_corpus`.
+    out_dir:
+        The output directory under which the manifest's relative paths are
+        materialized. It (and any needed parent directories) are created as
+        required. Only relative manifest paths are ever joined onto it.
+
+    Returns
+    -------
+    WriteResult
+        Carrying the relative paths that were (re)written, in manifest order.
+    """
+    base = Path(out_dir)
+    manifest = generate_corpus(sources)
+
+    changed: list[str] = []
+    for rel_path, data in manifest.items():
+        target = base / rel_path
+        if target.exists() and target.read_bytes() == data:
+            # Already current: leave the file (and its mtime) untouched.
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        changed.append(rel_path)
+
+    return WriteResult(changed_paths=tuple(changed))
+
+
+def check_corpus(sources: Mapping[str, str], out_dir: str | os.PathLike[str]) -> CheckResult:
+    """Check the on-disk outputs under ``out_dir`` against a fresh manifest.
+
+    A freshly generated manifest (see :func:`generate_corpus`) is compared
+    path-by-path against the bytes on disk under ``out_dir`` **without writing
+    anything**. A path drifts when its on-disk file is absent or its bytes differ
+    from the manifest. Over an unchanged source that has already been written,
+    every path matches, so the returned :class:`CheckResult` reports no drift and
+    a success exit status (``exit_code == 0``).
+
+    Parameters
+    ----------
+    sources:
+        The corpus source mapping, passed straight through to
+        :func:`generate_corpus`.
+    out_dir:
+        The output directory whose materialized outputs are checked.
+
+    Returns
+    -------
+    CheckResult
+        Carrying the drifted relative paths (empty when the outputs are current),
+        in manifest order.
+    """
+    base = Path(out_dir)
+    manifest = generate_corpus(sources)
+
+    drift: list[str] = []
+    for rel_path, data in manifest.items():
+        target = base / rel_path
+        if not target.exists() or target.read_bytes() != data:
+            drift.append(rel_path)
+
+    return CheckResult(drift=tuple(drift))
