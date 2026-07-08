@@ -6,8 +6,11 @@ document whose YAML frontmatter is the only machine truth.
 """
 
 from knowledge.projections import (
+    ARCHITECTURE_DECISION_KIND,
     RECOGNIZED_DECISION_HEADINGS,
     CheckResult,
+    KindProjections,
+    KnowledgeContext,
     L0Card,
     L1Extract,
     ProjectionBundle,
@@ -21,8 +24,11 @@ from knowledge.projections import (
 )
 
 __all__ = [
+    "ARCHITECTURE_DECISION_KIND",
     "RECOGNIZED_DECISION_HEADINGS",
     "CheckResult",
+    "KindProjections",
+    "KnowledgeContext",
     "L0Card",
     "L1Extract",
     "ProjectionBundle",
