@@ -81,11 +81,8 @@ from knowledge.typedefs import (
     write_typedef_set,
 )
 from knowledge.projections import (
-    ARCHITECTURE_DECISION_KIND,
     RECOGNIZED_DECISION_HEADINGS,
     CheckResult,
-    KindProjections,
-    KnowledgeContext,
     L0Card,
     L1Extract,
     ProjectionBundle,
@@ -99,7 +96,6 @@ from knowledge.projections import (
 )
 
 __all__ = [
-    "ARCHITECTURE_DECISION_KIND",
     "ARTIFACT_TYPES",
     "GOVERNED_DELTA_FIELD",
     "LIFECYCLE_CHECKS",
@@ -126,8 +122,6 @@ __all__ = [
     "Severity",
     "DiscoveryResult",
     "DraftDecision",
-    "KindProjections",
-    "KnowledgeContext",
     "L0Card",
     "L0L1Index",
     "L0L1IndexEntry",
