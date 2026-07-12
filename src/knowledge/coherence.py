@@ -48,6 +48,33 @@ class Severity(Enum):
     ADVISORY = "advisory"
 
 
+class GateMode(Enum):
+    """The mode a gate run operates in — what a finding is allowed to do.
+
+    In ``AUTHORING`` mode the gate warns and never blocks: every finding is
+    reported as a warning, the aggregate verdict always exits zero, and the gate
+    never prevents an author from committing. In ``DISTRIBUTION`` mode the gate
+    vetoes a blocking-severity finding (exiting non-zero) but still only warns on
+    an advisory-severity finding.
+    """
+
+    AUTHORING = "authoring"
+    DISTRIBUTION = "distribution"
+
+
+class ReportStatus(Enum):
+    """How a finding is *reported* under the run's mode — its doctor-form status.
+
+    A finding's intrinsic :class:`Severity` is fixed, but how it surfaces depends
+    on the mode: an authoring run reports every finding as a ``WARNING``; a
+    distribution run reports a blocking finding as ``BLOCKING`` and an advisory
+    one as ``WARNING``.
+    """
+
+    WARNING = "warning"
+    BLOCKING = "blocking"
+
+
 @dataclass(frozen=True)
 class Finding:
     """One coherence finding, reported in doctor form.
@@ -432,17 +459,20 @@ LIFECYCLE_CHECKS: tuple[Check, ...] = (
 
 @dataclass(frozen=True)
 class CoherenceReport:
-    """The aggregate outcome of one gate run: its findings and one verdict.
+    """The aggregate outcome of one gate run: its findings, mode, and verdict.
 
-    ``findings`` holds every finding, in check-registry order. The aggregate
-    verdict folds them by severity: a single :attr:`Severity.BLOCKING` finding
-    drives :attr:`exit_code` non-zero, while :attr:`Severity.ADVISORY` findings
-    are warnings that never by themselves block. :attr:`findings_for_check` and
-    :attr:`has_finding` select findings by check-id for a caller that acts on a
-    specific check.
+    ``findings`` holds every finding, in check-registry order, and ``mode`` is
+    the :class:`GateMode` the run was made under. The aggregate verdict folds the
+    findings by severity *under the mode*: an authoring run always exits zero and
+    never prevents a commit, while a distribution run exits non-zero exactly when
+    a :attr:`Severity.BLOCKING` finding is present. :attr:`reported_status`
+    surfaces how a given finding is reported (its doctor-form status) under the
+    mode, and :attr:`findings_for_check` / :attr:`has_finding` select findings by
+    check-id for a caller that acts on a specific check.
     """
 
     findings: tuple[Finding, ...]
+    mode: GateMode = GateMode.DISTRIBUTION
 
     @property
     def blocking_findings(self) -> tuple[Finding, ...]:
@@ -456,8 +486,32 @@ class CoherenceReport:
 
     @property
     def exit_code(self) -> int:
-        """``0`` when nothing blocks, ``1`` when any blocking finding is present."""
+        """The aggregate exit code under the run's mode.
+
+        Authoring mode never blocks (always ``0``); distribution mode exits
+        ``1`` exactly when a blocking finding is present, else ``0``. An advisory
+        finding never by itself drives the exit code non-zero.
+        """
+        if self.mode is GateMode.AUTHORING:
+            return 0
         return 1 if self.blocking_findings else 0
+
+    @property
+    def prevents_commit(self) -> bool:
+        """Whether this verdict prevents a commit (never so in authoring mode)."""
+        return self.exit_code != 0
+
+    def reported_status(self, finding: Finding) -> ReportStatus:
+        """How ``finding`` is reported under the run's mode.
+
+        Authoring reports every finding as a warning; distribution reports a
+        blocking finding as blocking and an advisory finding as a warning.
+        """
+        if self.mode is GateMode.AUTHORING:
+            return ReportStatus.WARNING
+        if finding.severity is Severity.BLOCKING:
+            return ReportStatus.BLOCKING
+        return ReportStatus.WARNING
 
     def findings_for_check(self, check_id: str) -> tuple[Finding, ...]:
         """Every finding carrying ``check_id``, in report order."""
@@ -471,17 +525,21 @@ class CoherenceReport:
 def run_coherence_gate(
     corpus: ArtifactCorpus,
     config: CoherenceConfig,
+    mode: GateMode = GateMode.DISTRIBUTION,
     checks: tuple[Check, ...] = LIFECYCLE_CHECKS,
 ) -> CoherenceReport:
     """Run every check in ``checks`` over ``corpus`` and fold into one report.
 
     The checks run in registry order; each returns its findings and the gate
-    concatenates them into a single :class:`CoherenceReport` whose aggregate
-    verdict folds by severity (any blocking finding drives the exit code
-    non-zero). Passing an explicit ``checks`` tuple is how a later wave runs its
-    own registry over the same corpus and reuses this fold.
+    concatenates them into a single :class:`CoherenceReport` under ``mode``,
+    whose aggregate verdict folds by severity under that mode (authoring never
+    blocks; distribution vetoes a blocking finding). Passing an explicit
+    ``checks`` tuple is how a later wave runs its own registry over the same
+    corpus and reuses this fold. The default mode is distribution, so a caller
+    that runs the lifecycle checks for their aggregate verdict gets the
+    blocking-drives-non-zero semantics without naming a mode.
     """
     findings: list[Finding] = []
     for check in checks:
         findings.extend(check(corpus, config))
-    return CoherenceReport(findings=tuple(findings))
+    return CoherenceReport(findings=tuple(findings), mode=mode)
