@@ -11,6 +11,16 @@ from knowledge.adversarial import (
     VerdictKind,
     run_adversarial_pass,
 )
+from knowledge.artifact_types import (
+    ARTIFACT_TYPES,
+    RECOGNIZED_ARTIFACT_TYPES,
+    SHARED_REQUIRED_FIELDS,
+    STORED_PROJECTION_FIELDS,
+    Artifact,
+    ArtifactType,
+    artifact_type,
+    parse_artifact,
+)
 from knowledge.discovery import (
     DiscoveryResult,
     DraftDecision,
@@ -19,6 +29,23 @@ from knowledge.discovery import (
     Neighbour,
     build_l0l1_index,
     run_authoring_discovery,
+)
+from knowledge.schema import (
+    ConformanceResult,
+    Diagnostic,
+    SectionCheckResult,
+    check_required_sections,
+    validate_frontmatter,
+)
+from knowledge.typedefs import (
+    TypedefDriftResult,
+    TypedefWriteResult,
+    check_typedef_drift,
+    generate_all_typedefs,
+    generate_typedef_set,
+    render_schema_fragment,
+    render_template,
+    write_typedef_set,
 )
 from knowledge.projections import (
     ARCHITECTURE_DECISION_KIND,
@@ -40,9 +67,17 @@ from knowledge.projections import (
 
 __all__ = [
     "ARCHITECTURE_DECISION_KIND",
+    "ARTIFACT_TYPES",
+    "RECOGNIZED_ARTIFACT_TYPES",
     "RECOGNIZED_DECISION_HEADINGS",
+    "SHARED_REQUIRED_FIELDS",
+    "STORED_PROJECTION_FIELDS",
     "AdversarialResult",
+    "Artifact",
+    "ArtifactType",
     "CheckResult",
+    "ConformanceResult",
+    "Diagnostic",
     "DiscoveryResult",
     "DraftDecision",
     "KindProjections",
@@ -53,16 +88,29 @@ __all__ = [
     "L1Extract",
     "Neighbour",
     "ProjectionBundle",
+    "SectionCheckResult",
+    "TypedefDriftResult",
+    "TypedefWriteResult",
     "Verdict",
     "VerdictKind",
     "WriteResult",
+    "artifact_type",
     "build_l0l1_index",
     "check_corpus",
+    "check_required_sections",
+    "check_typedef_drift",
     "extract_decision_section",
+    "generate_all_typedefs",
     "generate_corpus",
     "generate_projections",
+    "generate_typedef_set",
+    "parse_artifact",
     "parse_frontmatter",
+    "render_schema_fragment",
+    "render_template",
     "run_adversarial_pass",
     "run_authoring_discovery",
+    "validate_frontmatter",
     "write_corpus",
+    "write_typedef_set",
 ]
