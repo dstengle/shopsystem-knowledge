@@ -11,6 +11,11 @@ against the rules of its type, resolved from the single registry in
   non-conforming artifact is reported with a :class:`ConformanceResult` whose
   :class:`Diagnostic` entries each name the specific missing field, offending
   value, or expected pattern.
+* :func:`check_required_sections` — does the document's body carry every section
+  in its type's required-section set? The set is resolved per type from the
+  registry, so a pdr's set is never imposed on an intent-record. A document
+  missing a required section is reported with a :class:`SectionCheckResult`
+  naming the missing section.
 
 Every diagnosis is specific: it never merely says "non-conforming", it names
 *what* — the missing field, the offending value and its type's enum, or the
@@ -251,3 +256,60 @@ def validate_frontmatter(artifact: Artifact) -> ConformanceResult:
             )
 
     return ConformanceResult(diagnostics=tuple(diagnostics))
+
+
+@dataclass(frozen=True)
+class SectionCheckResult:
+    """The outcome of checking a document body against its required-section set.
+
+    ``missing_sections`` names the required sections absent from the body, in the
+    type's declared section order. The document is **conforming on body
+    structure** exactly when none are missing; :attr:`conforming` and
+    :attr:`exit_code` surface that verdict (``exit_code == 0`` when conforming).
+    :attr:`messages` renders one human diagnosis per missing section for
+    reporting.
+    """
+
+    missing_sections: tuple[str, ...]
+
+    @property
+    def conforming(self) -> bool:
+        """Whether the body carries every required section."""
+        return not self.missing_sections
+
+    @property
+    def exit_code(self) -> int:
+        """A conventional exit status: ``0`` when conforming, ``1`` otherwise."""
+        return 0 if self.conforming else 1
+
+    @property
+    def messages(self) -> tuple[str, ...]:
+        """A human diagnosis naming each missing required section."""
+        return tuple(
+            f"the required section '{name}' is missing from the document body"
+            for name in self.missing_sections
+        )
+
+
+def check_required_sections(artifact: Artifact) -> SectionCheckResult:
+    """Check ``artifact``'s body against its type's required-section set.
+
+    The required-section set is resolved per type from the single registry: the
+    document's ``## `` section headings (see
+    :attr:`~knowledge.artifact_types.Artifact.sections`) are compared against the
+    resolved type's ``required_sections``, and any required section absent from
+    the body is reported — in the type's declared section order — as missing.
+    Because the set is resolved from the artifact's *own* type, a pdr's set is
+    never imposed on an intent-record and vice versa.
+
+    A document whose ``type`` does not resolve to a recognized type imposes no
+    section set (that non-conformance is the frontmatter check's to report), so
+    this returns a conforming result with no missing sections.
+    """
+    atype = artifact_type(artifact.type) if isinstance(artifact.type, str) else None
+    if atype is None:
+        return SectionCheckResult(missing_sections=())
+
+    present = set(artifact.sections)
+    missing = tuple(name for name in atype.required_sections if name not in present)
+    return SectionCheckResult(missing_sections=missing)
