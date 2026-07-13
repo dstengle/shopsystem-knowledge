@@ -203,7 +203,9 @@ def _unincorporated_pdr(context: dict) -> None:
     context["decision_id"] = "pdr-001"
     context["artifacts"] = [
         _artifact(type="pdr", id="pdr-001", status="accepted"),
-        _artifact(type="charter", id="charter-001", status="ratified", incorporates=[]),
+        _artifact(
+            type="current-state", id="current-state-001", status="current", incorporates=[]
+        ),
     ]
 
 
@@ -216,7 +218,10 @@ def _incorporated_adr(context: dict) -> None:
     context["artifacts"] = [
         _artifact(type="adr", id="adr-001", status="accepted"),
         _artifact(
-            type="charter", id="charter-001", status="ratified", incorporates=["adr-001"]
+            type="current-state",
+            id="current-state-001",
+            status="current",
+            incorporates=["adr-001"],
         ),
     ]
 
