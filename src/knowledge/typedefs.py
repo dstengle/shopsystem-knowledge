@@ -56,6 +56,18 @@ GENERATED_TEMPLATE_MARKER = (
     "Regenerate from the typedef, do not hand-edit."
 )
 
+# The body marker a living-document (``document_shape == "living"``) template
+# carries, distinguishing a single stewarded record revised in place from an
+# append-only numbered-series instance. Emitted only for living typedefs, so its
+# presence is the observable "this is a living stewarded document" signal.
+LIVING_DOCUMENT_MARKER = (
+    "<!-- LIVING DOCUMENT — a single record stewarded in place; revise it as "
+    "decisions land rather than appending a numbered-series instance. -->"
+)
+
+# The document shape a living-in-place typedef declares.
+LIVING_SHAPE = "living"
+
 
 def _serialize_json(payload: object) -> bytes:
     """Serialize ``payload`` to canonical, ambient-free JSON bytes.
@@ -76,7 +88,14 @@ def render_template(atype: ArtifactType) -> bytes:
     type's required fields (shared then type-additional) with the ``type`` fixed
     to the type name, followed by one empty ``## `` heading per required section
     in the type's declared order. It is a pure function of the typedef.
+
+    A ``document_shape == "living"`` typedef (e.g. ``current-state``) renders a
+    single stewarded living document instead of an append-only numbered-series
+    instance: its type-additional fields (such as ``incorporates``) are rendered
+    as YAML lists it accumulates in place, and the body opens with the
+    :data:`LIVING_DOCUMENT_MARKER`.
     """
+    living = atype.document_shape == LIVING_SHAPE
     lines: list[str] = ["---", GENERATED_TEMPLATE_MARKER]
     for name in SHARED_REQUIRED_FIELDS:
         if name == "type":
@@ -84,9 +103,14 @@ def render_template(atype: ArtifactType) -> bytes:
         else:
             lines.append(f"{name}:")
     for name in atype.extra_required_fields:
-        lines.append(f"{name}:")
+        # A living document carries its type-additional fields as lists it
+        # accumulates in place; an instance leaves them as bare scalar stubs.
+        lines.append(f"{name}: []" if living else f"{name}:")
     lines.append("---")
     lines.append("")
+    if living:
+        lines.append(LIVING_DOCUMENT_MARKER)
+        lines.append("")
     for section in atype.required_sections:
         lines.append(f"## {section}")
         lines.append("")
@@ -106,6 +130,7 @@ def render_schema_fragment(atype: ArtifactType) -> bytes:
         "generated": True,
         "read_only": True,
         "type": atype.name,
+        "document_shape": atype.document_shape,
         "id_pattern": atype.id_pattern,
         "id_example": atype.id_example,
         "statuses": list(atype.statuses),

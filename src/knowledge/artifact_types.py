@@ -89,6 +89,15 @@ class ArtifactType:
         to nothing).
     required_sections:
         The body section headings a document of this type must carry.
+    document_shape:
+        The document shape the typedef generates. ``"instance"`` (the default)
+        is an append-only record — each artifact of the type is a new numbered
+        instance. ``"living"`` is a single stewarded document revised in place
+        (e.g. ``current-state``), whose generated template carries its
+        accumulating list fields (such as ``incorporates``) as YAML lists rather
+        than as a fresh numbered instance. The generator reads this to shape the
+        template and encodes it in the schema fragment, so the living-vs-instance
+        distinction is single-sourced from the typedef.
     """
 
     name: str
@@ -99,6 +108,7 @@ class ArtifactType:
     extra_required_fields: tuple[str, ...] = ()
     non_empty_fields: tuple[str, ...] = ()
     required_sections: tuple[str, ...] = ()
+    document_shape: str = "instance"
 
     @property
     def all_required_fields(self) -> tuple[str, ...]:
@@ -200,6 +210,7 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         statuses=("current", "superseded"),
         extra_required_fields=("incorporates",),
         required_sections=("Current decisions", "Stewardship"),
+        document_shape="living",
     ),
 )
 
