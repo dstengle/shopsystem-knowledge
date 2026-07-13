@@ -45,6 +45,26 @@ def context() -> dict:
 def test_typedef_set_covers_exactly_eight() -> None: ...
 
 
+@scenario(
+    "typedef_single_source.feature",
+    "each artifact type is single-sourced by its own typedef that drives the generator",
+)
+def test_each_type_single_sourced() -> None: ...
+
+
+@scenario(
+    "typedef_single_source.feature",
+    "every type's generated schema fragment requires the shared field set including description",
+)
+def test_every_fragment_requires_shared_fields() -> None: ...
+
+
+# The shared frontmatter field set every schema fragment must require.
+SHARED_FIELD_SET = frozenset(
+    {"type", "id", "title", "description", "status", "created", "updated", "authors"}
+)
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -95,3 +115,96 @@ def _no_typedef_outside_the_eight(context: dict) -> None:
     for name in context["names"]:
         assert name in recognized, f"typedef {name!r} declares an unrecognized type"
         assert name in EXPECTED_TYPEDEF_TYPES, f"typedef {name!r} is outside the eight"
+
+
+# --- Set-level format generation (scenarios 1afdfb1b, 3bcea617) --------------
+
+
+@when("the knowledge context runs the format generator over that typedef set")
+def _run_format_generator_over_set(context: dict) -> None:
+    from knowledge.typedefs import generate_format_set
+
+    context["format_set"] = generate_format_set(context["typedefs"])
+
+
+@when("the knowledge context runs the format generator over the typedef set")
+def _run_format_generator_over_the_set(context: dict) -> None:
+    from knowledge.typedefs import generate_format_set
+
+    context["format_set"] = generate_format_set(context["typedefs"])
+
+
+@then(parsers.parse('the set contains a typedef for the "{type_name}" artifact type'))
+def _set_contains_typedef(context: dict, type_name: str) -> None:
+    assert type_name in context["typedefs"], f"no typedef for {type_name!r}"
+    assert type_name in context["format_set"], f"format set missing {type_name!r}"
+
+
+@then(
+    parsers.parse(
+        'the generator emits a template and a schema fragment for "{type_name}" from its typedef'
+    )
+)
+def _emits_template_and_fragment(context: dict, type_name: str) -> None:
+    fmt = context["format_set"][type_name]
+    assert fmt.template.rel_path == f"templates/{type_name}.md"
+    assert fmt.schema_fragment.rel_path == f"schema/{type_name}.json"
+    assert fmt.template.data, "template bytes are empty"
+    assert fmt.schema_fragment.data, "schema fragment bytes are empty"
+
+
+@then(
+    parsers.parse(
+        'the generated template and schema fragment for "{type_name}" are marked generated and read-only'
+    )
+)
+def _marked_generated_read_only(context: dict, type_name: str) -> None:
+    fmt = context["format_set"][type_name]
+    for artifact in (fmt.template, fmt.schema_fragment):
+        assert artifact.generated is True, f"{artifact.rel_path} not marked generated"
+        assert artifact.read_only is True, f"{artifact.rel_path} not marked read-only"
+
+
+@then(
+    parsers.parse('the drift check covers the generated template and schema fragment for "{type_name}"')
+)
+def _drift_covers(context: dict, type_name: str) -> None:
+    from knowledge.artifact_types import artifact_type
+    from knowledge.typedefs import generate_typedef_set
+
+    fmt = context["format_set"][type_name]
+    # The drift check regenerates exactly this manifest and compares it byte for
+    # byte; covering a file means the file is in that manifest with these bytes.
+    drift_manifest = generate_typedef_set(artifact_type(type_name))
+    for artifact in (fmt.template, fmt.schema_fragment):
+        assert artifact.rel_path in drift_manifest, f"{artifact.rel_path} not drift-covered"
+        assert drift_manifest[artifact.rel_path] == artifact.data
+
+
+@then(
+    "every generated schema fragment requires the shared field set type, id, title, "
+    "description, status, created, updated and authors"
+)
+def _every_fragment_requires_shared_fields(context: dict) -> None:
+    import json
+
+    for type_name, fmt in context["format_set"].items():
+        assert SHARED_FIELD_SET <= set(fmt.required_fields), (
+            f"{type_name} required fields miss part of the shared set"
+        )
+        payload = json.loads(fmt.schema_fragment.data.decode("utf-8"))
+        assert set(payload["shared_required_fields"]) == SHARED_FIELD_SET, (
+            f"{type_name} schema fragment does not require exactly the shared field set"
+        )
+
+
+@then("no generated schema fragment omits description from its required set")
+def _no_fragment_omits_description(context: dict) -> None:
+    import json
+
+    for type_name, fmt in context["format_set"].items():
+        assert "description" in fmt.required_fields, f"{type_name} omits description"
+        payload = json.loads(fmt.schema_fragment.data.decode("utf-8"))
+        assert "description" in payload["shared_required_fields"], (
+            f"{type_name} schema fragment omits description"
+        )
