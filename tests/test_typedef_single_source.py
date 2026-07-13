@@ -59,6 +59,13 @@ def test_each_type_single_sourced() -> None: ...
 def test_every_fragment_requires_shared_fields() -> None: ...
 
 
+@scenario(
+    "typedef_single_source.feature",
+    "the current-state typedef generates a living stewarded document rather than an append-only instance",
+)
+def test_current_state_living_document() -> None: ...
+
+
 # The shared frontmatter field set every schema fragment must require.
 SHARED_FIELD_SET = frozenset(
     {"type", "id", "title", "description", "status", "created", "updated", "authors"}
@@ -208,3 +215,73 @@ def _no_fragment_omits_description(context: dict) -> None:
         assert "description" in payload["shared_required_fields"], (
             f"{type_name} schema fragment omits description"
         )
+
+
+# --- current-state living document (scenario d038584b) -----------------------
+
+
+@given(
+    "the current-state typedef, which declares a single living document stewarded "
+    "in place with an incorporates list rather than an append-only numbered-series "
+    "record"
+)
+def _current_state_typedef(context: dict) -> None:
+    from knowledge.artifact_types import artifact_type
+
+    atype = artifact_type("current-state")
+    assert atype is not None
+    # The typedef itself declares the living shape and its incorporates list.
+    assert atype.document_shape == "living", "current-state is not declared a living document"
+    assert "incorporates" in atype.extra_required_fields, "current-state declares no incorporates list"
+    context["current_state"] = atype
+
+
+@when("the knowledge context runs the format generator over the current-state typedef")
+def _run_generator_over_current_state(context: dict) -> None:
+    from knowledge.typedefs import generate_typedef_format
+
+    context["fmt"] = generate_typedef_format(context["current_state"])
+
+
+@then(
+    "it emits a current-state template shaped as a single stewarded living document "
+    "carrying an incorporates list"
+)
+def _living_template(context: dict) -> None:
+    from knowledge.typedefs import LIVING_DOCUMENT_MARKER
+
+    text = context["fmt"].template.data.decode("utf-8")
+    # Carries an incorporates list (a YAML list, not a bare scalar key).
+    assert "incorporates: []" in text, "template does not carry an incorporates list"
+    # Shaped as a single stewarded living document, not an append-only instance.
+    assert LIVING_DOCUMENT_MARKER in text, "template is not marked a living stewarded document"
+
+
+@then("it emits a schema fragment for current-state from the same typedef")
+def _current_state_fragment(context: dict) -> None:
+    import json
+
+    fmt = context["fmt"]
+    assert fmt.schema_fragment.rel_path == "schema/current-state.json"
+    payload = json.loads(fmt.schema_fragment.data.decode("utf-8"))
+    assert payload["type"] == "current-state"
+    # The living shape is single-sourced into the fragment too.
+    assert payload["document_shape"] == "living"
+
+
+@then(
+    "the generated current-state template and schema fragment are marked generated "
+    "and read-only under the same drift check as every other type"
+)
+def _current_state_marked_and_drift_covered(context: dict) -> None:
+    from knowledge.typedefs import generate_typedef_set
+
+    fmt = context["fmt"]
+    for artifact in (fmt.template, fmt.schema_fragment):
+        assert artifact.generated is True
+        assert artifact.read_only is True
+    # Same drift check as every other type: the bytes the drift check regenerates
+    # and compares are exactly these.
+    drift_manifest = generate_typedef_set(context["current_state"])
+    for artifact in (fmt.template, fmt.schema_fragment):
+        assert drift_manifest[artifact.rel_path] == artifact.data
