@@ -4,7 +4,7 @@ id: adr-0040
 title: Distribute only L0 and L1 projections across the boundary
 status: accepted
 description: Across the distribution boundary only L0 cards and the L1 digest cross, never L2 full documents.
-derives-from: [charter-0003]
+derives-from: [current-state-0003]
 ---
 
 # adr-0040: Distribute only L0 and L1 projections across the boundary

@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Mapping
 
 from knowledge.artifact_types import (
+    ARTIFACT_TYPES,
     SHARED_REQUIRED_FIELDS,
     ArtifactType,
 )
@@ -212,6 +213,21 @@ def check_typedef_drift(
             drift.append(rel_path)
 
     return TypedefDriftResult(drift=tuple(drift))
+
+
+def typedef_type_names(
+    atypes: Mapping[str, ArtifactType] = ARTIFACT_TYPES,
+) -> tuple[str, ...]:
+    """Enumerate the artifact type names that have a typedef, in registry order.
+
+    The set of per-type typedefs is exactly the registry in
+    :mod:`knowledge.artifact_types`: every entry is one type's typedef, and the
+    type it declares is its :attr:`~knowledge.artifact_types.ArtifactType.name`.
+    Enumerating those names is how a caller proves the typedef set covers exactly
+    the recognized types — no recognized type lacks a typedef, and no typedef
+    declares a type outside the recognized set.
+    """
+    return tuple(atype.name for atype in atypes.values())
 
 
 def generate_all_typedefs(atypes: Mapping[str, ArtifactType]) -> dict[str, bytes]:

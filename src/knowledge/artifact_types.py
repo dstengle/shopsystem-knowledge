@@ -112,23 +112,33 @@ def _pattern(prefix: str) -> str:
 
 
 # The eight recognized artifact types of the discovery-first knowledge context,
-# following the decision pipeline from an early exploration through to a settled
-# record:
+# following the decision pipeline from an early exploration through to the living
+# record of settled decisions (PDR-032 kind->type / ADR-059):
 #
-#   candidate          — an idea under exploration, not yet committed to.
 #   intent-record      — a captured statement of intent and its success signals.
+#   candidate          — an idea under exploration, not yet committed to.
+#   session-record     — a record of a working session and the work it produced
+#                        or revised.
+#   prioritization-record — a record of how work was ranked and why.
 #   brief              — a shaped brief handed on for a decision.
 #   pdr                — a product decision record: the decision-makers weigh
 #                        options and derive a decision from upstream artifacts.
 #   adr                — an architecture decision record anchored to (deriving
 #                        from) at least one upstream artifact.
-#   charter            — a standing charter fixing purpose and boundaries.
-#   mechanism-observation — a load-bearing observation about the mechanism.
-#   retro              — a retrospective on what happened and what was learned.
+#   current-state      — the single living stewarded document that incorporates
+#                        the settled decisions (see :mod:`knowledge.typedefs`).
 #
 # ``roadmap`` is intentionally absent: it is not one of the eight recognized
 # types, so a document typed ``roadmap`` is non-conforming.
 _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
+    ArtifactType(
+        name="intent-record",
+        id_prefix="intent",
+        id_pattern=_pattern("intent"),
+        id_example="intent-NNN",
+        statuses=("draft", "active", "fulfilled", "abandoned"),
+        required_sections=("Intent", "Signals of success"),
+    ),
     ArtifactType(
         name="candidate",
         id_prefix="cand",
@@ -138,12 +148,21 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         required_sections=("Context", "Open questions"),
     ),
     ArtifactType(
-        name="intent-record",
-        id_prefix="intent",
-        id_pattern=_pattern("intent"),
-        id_example="intent-NNN",
-        statuses=("draft", "active", "fulfilled", "abandoned"),
-        required_sections=("Intent", "Signals of success"),
+        name="session-record",
+        id_prefix="session",
+        id_pattern=_pattern("session"),
+        id_example="session-NNN",
+        statuses=("open", "closed"),
+        extra_required_fields=("produced", "revised"),
+        required_sections=("Summary", "Outcomes"),
+    ),
+    ArtifactType(
+        name="prioritization-record",
+        id_prefix="prio",
+        id_pattern=_pattern("prio"),
+        id_example="prio-NNN",
+        statuses=("draft", "active", "superseded"),
+        required_sections=("Ranking", "Rationale"),
     ),
     ArtifactType(
         name="brief",
@@ -174,28 +193,13 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         required_sections=("Context", "Decision", "Consequences"),
     ),
     ArtifactType(
-        name="charter",
-        id_prefix="charter",
-        id_pattern=_pattern("charter"),
-        id_example="charter-NNN",
-        statuses=("draft", "ratified", "retired"),
-        required_sections=("Purpose", "Boundaries"),
-    ),
-    ArtifactType(
-        name="mechanism-observation",
-        id_prefix="mob",
-        id_pattern=_pattern("mob"),
-        id_example="mob-NNN",
-        statuses=("open", "triaged", "actioned", "dismissed"),
-        required_sections=("Observation", "Impact"),
-    ),
-    ArtifactType(
-        name="retro",
-        id_prefix="retro",
-        id_pattern=_pattern("retro"),
-        id_example="retro-NNN",
-        statuses=("draft", "published"),
-        required_sections=("What happened", "What we learned"),
+        name="current-state",
+        id_prefix="current-state",
+        id_pattern=_pattern("current-state"),
+        id_example="current-state-NNN",
+        statuses=("current", "superseded"),
+        extra_required_fields=("incorporates",),
+        required_sections=("Current decisions", "Stewardship"),
     ),
 )
 
