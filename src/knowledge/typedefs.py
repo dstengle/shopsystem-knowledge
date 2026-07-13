@@ -44,6 +44,18 @@ from knowledge.artifact_types import (
 TEMPLATE_SEGMENT = "templates"
 SCHEMA_SEGMENT = "schema"
 
+# The generated/read-only mark carried in the bytes of every generated file so a
+# reader sees the file is generated and must not be hand-edited. In a template it
+# rides as a YAML frontmatter comment (ignored by the YAML loader, so the
+# template stays a usable document); in a schema fragment it is the
+# ``generated``/``read_only`` payload keys. This is what "marked generated and
+# read-only" means concretely — and, because the mark is a constant, it carries
+# no timestamp, hostname, or path and keeps generation byte-stable.
+GENERATED_TEMPLATE_MARKER = (
+    "# GENERATED — single-sourced from the typedef; read-only. "
+    "Regenerate from the typedef, do not hand-edit."
+)
+
 
 def _serialize_json(payload: object) -> bytes:
     """Serialize ``payload`` to canonical, ambient-free JSON bytes.
@@ -65,7 +77,7 @@ def render_template(atype: ArtifactType) -> bytes:
     to the type name, followed by one empty ``## `` heading per required section
     in the type's declared order. It is a pure function of the typedef.
     """
-    lines: list[str] = ["---"]
+    lines: list[str] = ["---", GENERATED_TEMPLATE_MARKER]
     for name in SHARED_REQUIRED_FIELDS:
         if name == "type":
             lines.append(f"type: {atype.name}")
@@ -91,6 +103,8 @@ def render_schema_fragment(atype: ArtifactType) -> bytes:
     function of the typedef.
     """
     payload = {
+        "generated": True,
+        "read_only": True,
         "type": atype.name,
         "id_pattern": atype.id_pattern,
         "id_example": atype.id_example,
@@ -228,6 +242,97 @@ def typedef_type_names(
     declares a type outside the recognized set.
     """
     return tuple(atype.name for atype in atypes.values())
+
+
+def _template_is_marked(data: bytes) -> bool:
+    """Whether ``data`` carries the generated/read-only template mark."""
+    return GENERATED_TEMPLATE_MARKER.encode("utf-8") in data
+
+
+def _fragment_is_marked(data: bytes) -> bool:
+    """Whether ``data`` is a schema fragment marked generated and read-only."""
+    payload = json.loads(data.decode("utf-8"))
+    return payload.get("generated") is True and payload.get("read_only") is True
+
+
+@dataclass(frozen=True)
+class GeneratedArtifact:
+    """One generated file for a typedef: its bytes and its generated/read-only marks.
+
+    ``generated`` and ``read_only`` are read back from the bytes themselves (a
+    template's YAML comment mark, a fragment's payload keys) rather than asserted
+    blindly — so a file that lost its mark reports ``generated is False`` and the
+    drift/single-source checks catch it.
+    """
+
+    rel_path: str
+    data: bytes
+    generated: bool
+    read_only: bool
+
+
+@dataclass(frozen=True)
+class TypedefFormat:
+    """The generated format for one typedef: its template and schema fragment.
+
+    ``required_fields`` is the full frontmatter requirement the schema fragment
+    encodes — the shared field set plus this type's own additions — surfaced so a
+    caller can prove every fragment requires the shared set (including
+    ``description``) without re-parsing the JSON.
+    """
+
+    type_name: str
+    template: GeneratedArtifact
+    schema_fragment: GeneratedArtifact
+    required_fields: tuple[str, ...]
+
+
+def generate_typedef_format(atype: ArtifactType) -> TypedefFormat:
+    """Generate the :class:`TypedefFormat` for one typedef.
+
+    The template and schema-fragment bytes are exactly those
+    :func:`generate_typedef_set` emits (and the drift check compares against), so
+    the format is single-sourced from the typedef: nothing about the generated
+    template or fragment is spelled anywhere but the typedef.
+    """
+    manifest = generate_typedef_set(atype)
+    tpl_path = f"{TEMPLATE_SEGMENT}/{atype.name}.md"
+    frag_path = f"{SCHEMA_SEGMENT}/{atype.name}.json"
+    tpl_bytes = manifest[tpl_path]
+    frag_bytes = manifest[frag_path]
+    template = GeneratedArtifact(
+        rel_path=tpl_path,
+        data=tpl_bytes,
+        generated=_template_is_marked(tpl_bytes),
+        read_only=_template_is_marked(tpl_bytes),
+    )
+    fragment = GeneratedArtifact(
+        rel_path=frag_path,
+        data=frag_bytes,
+        generated=_fragment_is_marked(frag_bytes),
+        read_only=_fragment_is_marked(frag_bytes),
+    )
+    required_fields = tuple(SHARED_REQUIRED_FIELDS) + tuple(atype.extra_required_fields)
+    return TypedefFormat(
+        type_name=atype.name,
+        template=template,
+        schema_fragment=fragment,
+        required_fields=required_fields,
+    )
+
+
+def generate_format_set(
+    atypes: Mapping[str, ArtifactType] = ARTIFACT_TYPES,
+) -> dict[str, TypedefFormat]:
+    """Run the format generator over the whole typedef set.
+
+    Returns a ``type name -> TypedefFormat`` mapping carrying every typedef's
+    generated template and schema fragment (each marked generated and read-only)
+    in registry order. This is the set-level counterpart to
+    :func:`generate_typedef_format`: it is how the context proves every
+    recognized type is single-sourced by its own typedef.
+    """
+    return {atype.name: generate_typedef_format(atype) for atype in atypes.values()}
 
 
 def generate_all_typedefs(atypes: Mapping[str, ArtifactType]) -> dict[str, bytes]:
