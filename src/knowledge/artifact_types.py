@@ -178,9 +178,13 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
     ),
     ArtifactType(
         name="session-record",
-        id_prefix="session",
-        id_pattern=_pattern("session"),
-        id_example="session-NNN",
+        id_prefix="sess",
+        # A chronological, human-readable id: a date plus a same-day
+        # disambiguating letter (e.g. ``sess-2026-07-16-a``). This is a custom
+        # pattern rather than the default ``<prefix>-NNN`` — real session-records
+        # are named by the day they happened, not a running counter.
+        id_pattern=r"sess-\d{4}-\d{2}-\d{2}-[a-z]",
+        id_example="sess-YYYY-MM-DD-x",
         statuses=("open", "closed"),
         extra_required_fields=("produced", "revised"),
         required_sections=("Outcome", "Open threads"),
