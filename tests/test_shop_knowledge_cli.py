@@ -117,6 +117,22 @@ def test_validate_missing_field() -> None: ...
 def test_validate_missing_type() -> None: ...
 
 
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge validate" on a document missing a required body section '
+    "reports the same named diagnosis the internal body-section check produces",
+)
+def test_validate_missing_section() -> None: ...
+
+
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge validate" reports every violation on a document that carries '
+    "more than one, not only the first",
+)
+def test_validate_every_violation() -> None: ...
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -185,6 +201,38 @@ def _doc_missing_type(context: dict) -> None:
     context["atype"] = atype
     # Omit the type field entirely: the document has no determinable type.
     context["source"] = _write_document(atype, omit_fields=["type"])
+
+
+@given(
+    parsers.re(
+        r"a document on disk at \"[^\"]+\" whose recognized type's frontmatter is otherwise "
+        r"conforming but whose body omits a section that type's required-section set demands"
+    )
+)
+def _doc_missing_section(context: dict) -> None:
+    atype = _base_type()
+    context["atype"] = atype
+    context["missing_section"] = atype.required_sections[-1]
+    # Frontmatter fully conforming; a single required section is dropped.
+    context["source"] = _write_document(atype, omit_sections=[context["missing_section"]])
+
+
+@given(
+    parsers.re(
+        r"a document on disk at \"[^\"]+\" whose frontmatter omits a required field AND "
+        r"whose body separately omits a required section, both for its recognized type"
+    )
+)
+def _doc_missing_field_and_section(context: dict) -> None:
+    atype = _base_type()
+    context["atype"] = atype
+    context["missing_field"] = "description"
+    context["missing_section"] = atype.required_sections[-1]
+    context["source"] = _write_document(
+        atype,
+        omit_fields=[context["missing_field"]],
+        omit_sections=[context["missing_section"]],
+    )
 
 
 # --- When --------------------------------------------------------------------
@@ -320,3 +368,35 @@ def _does_not_skip_type(context: dict) -> None:
     assert any(message in text for message in internal.messages), (
         f"stdout does not surface the internal type diagnosis: {text!r}"
     )
+
+
+def _assert_names_section(context: dict) -> None:
+    from knowledge.artifact_types import parse_artifact
+    from knowledge.schema import check_required_sections
+
+    section = context["missing_section"]
+    text = _stdout_text(context)
+    internal = check_required_sections(parse_artifact(context["source"]))
+    assert section in internal.missing_sections, "the internal check did not report this section missing"
+    assert section in text, f"stdout does not name the missing section {section!r}: {text!r}"
+
+
+@then("stdout names the missing required section by its section heading")
+def _names_missing_section(context: dict) -> None:
+    _assert_names_section(context)
+
+
+@then("stdout also names the missing required section by its section heading")
+def _also_names_missing_section(context: dict) -> None:
+    _assert_names_section(context)
+
+
+@then("stdout does not stop at the first violation found")
+def _does_not_stop_at_first(context: dict) -> None:
+    text = _stdout_text(context)
+    # Both the missing field and the missing section are named, and there is more
+    # than one violation line — the report did not halt after the first.
+    assert context["missing_field"] in text
+    assert context["missing_section"] in text
+    violation_lines = [line for line in text.splitlines() if line.strip().startswith("- ")]
+    assert len(violation_lines) >= 2, f"expected multiple violations, got: {text!r}"
