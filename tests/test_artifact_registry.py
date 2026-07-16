@@ -69,7 +69,7 @@ def test_candidate_type_rules() -> None:
     """The candidate type pins the cand-NNN id pattern and its status enum."""
     candidate = artifact_type("candidate")
     assert candidate is not None
-    assert candidate.statuses == ("exploring", "shaped", "briefed", "parked", "rejected")
+    assert candidate.statuses == ("exploring", "shaped", "briefed", "committed", "parked", "rejected")
     # The id pattern accepts cand-NNN and rejects a spelled-out prefix.
     assert re.fullmatch(candidate.id_pattern, "cand-001")
     assert not re.fullmatch(candidate.id_pattern, "candidate-1")

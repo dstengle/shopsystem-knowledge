@@ -163,7 +163,7 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         id_prefix="cand",
         id_pattern=_pattern("cand"),
         id_example="cand-NNN",
-        statuses=("exploring", "shaped", "briefed", "parked", "rejected"),
+        statuses=("exploring", "shaped", "briefed", "committed", "parked", "rejected"),
         required_sections=(
             "Verbatim anchors",
             "Problem",
