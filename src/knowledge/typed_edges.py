@@ -269,6 +269,8 @@ def check_unverifiable_legacy(
     for edge in resolve_edges(corpus):
         if edge.resolved:
             continue
+        if edge.target not in corpus.legacy_ids:
+            continue
         findings.append(
             Finding(
                 check_id="unverifiable-legacy",
