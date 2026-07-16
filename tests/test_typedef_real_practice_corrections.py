@@ -247,3 +247,109 @@ def _body_names_missing(context: dict, section: str) -> None:
         f"{section!r} not in missing {result.missing_sections}"
     )
     assert any(section in m for m in result.messages)
+
+
+# --- Shared frontmatter-validate When / Then legs (first defined here) -------
+
+
+@when("the knowledge context validates the artifact's frontmatter against the schema")
+def _validate_frontmatter(context: dict) -> None:
+    context["fm_result"] = validate_frontmatter(context["artifact"])
+
+
+@then("it reports the artifact as conforming")
+def _fm_conforming(context: dict) -> None:
+    result = context["fm_result"]
+    assert result.conforming is True, f"diagnostics: {result.messages}"
+    assert result.exit_code == 0
+
+
+@then("it does not report an unrecognized-status diagnosis")
+def _fm_no_unrecognized_status(context: dict) -> None:
+    assert context["fm_result"].by_code(UNRECOGNIZED_STATUS) == ()
+
+
+@then("it reports the artifact as non-conforming for an unrecognized status")
+def _fm_unrecognized_status(context: dict) -> None:
+    result = context["fm_result"]
+    assert result.conforming is False
+    assert result.by_code(UNRECOGNIZED_STATUS), "expected an unrecognized-status diagnostic"
+
+
+@then(parsers.parse('the diagnosis names the offending value "{value}"'))
+def _fm_names_offending_status(context: dict, value: str) -> None:
+    diags = context["fm_result"].by_code(UNRECOGNIZED_STATUS)
+    assert any(d.offending == value for d in diags), (
+        f"no unrecognized-status diagnostic names {value!r}: {[d.offending for d in diags]}"
+    )
+    assert any(value in d.message for d in diags)
+
+
+# =============================================================================
+# Behavior B — intent-record status enum is exactly "recorded"
+# =============================================================================
+
+
+@scenario(FEATURE, '"recorded" is a valid intent-record status value, matching every real instance')
+def test_intent_recorded_valid() -> None: ...
+
+
+@scenario(FEATURE, 'the intent-record status enum is exactly the single real-practice value "recorded"')
+def test_intent_enum_exactly_recorded() -> None: ...
+
+
+@scenario(
+    FEATURE,
+    "an intent-record artifact carrying a status value outside the real enum is "
+    "reported non-conforming and names the offending value",
+)
+def test_intent_draft_non_conforming() -> None: ...
+
+
+@given('an intent-record artifact whose frontmatter carries a status value of "recorded"')
+def _intent_status_recorded(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter=_full_frontmatter("intent-record", id_value="intent-001", status_value="recorded")
+    )
+
+
+@given(
+    "the intent-record typedef, whose currently generated status enum is draft, "
+    "active, fulfilled or abandoned — a set no real intent-record instance has "
+    "ever used"
+)
+def _intent_typedef_old_enum(context: dict) -> None:
+    context["type"] = "intent-record"
+
+
+@given(
+    "7 independently-authored intent-record instances (intent-001 through "
+    'intent-007), each carrying status "recorded" and none carrying draft, active, '
+    "fulfilled or abandoned"
+)
+def _intent_instances_recorded(context: dict) -> None:
+    context.setdefault("type", "intent-record")
+
+
+@then('the generated schema fragment\'s status enum for intent-record contains exactly one value, "recorded"')
+def _intent_enum_exactly_recorded() -> None:
+    assert _fragment("intent-record")["statuses"] == ["recorded"]
+
+
+@then('none of "draft", "active", "fulfilled" or "abandoned" is a member of the generated status enum')
+def _intent_enum_excludes_old() -> None:
+    statuses = set(_fragment("intent-record")["statuses"])
+    assert statuses.isdisjoint({"draft", "active", "fulfilled", "abandoned"})
+
+
+@given('an intent-record artifact whose frontmatter carries a status value of "draft"')
+def _intent_status_draft(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter=_full_frontmatter("intent-record", id_value="intent-001", status_value="draft")
+    )
+
+
+@given('"draft" is not a member of the intent-record status enum recorded')
+def _draft_not_in_recorded(context: dict) -> None:
+    # Rationale; the assertion is on the validation verdict in the Then leg.
+    pass
