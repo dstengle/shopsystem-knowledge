@@ -13,6 +13,9 @@ test = [
     "pytest-bdd>=8",
 ]
 
+[project.scripts]
+shop-knowledge = "knowledge.cli:run"
+
 [tool.pytest.ini_options]
 # Step-definition modules and unit tests live under tests/; Gherkin feature
 # files live under features/ and are resolved relative to bdd_features_base_dir.
