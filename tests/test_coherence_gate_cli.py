@@ -365,3 +365,85 @@ def _then_unverifiable_advisory(context: dict) -> None:
     # Under distribution mode (where blocking findings veto), the corpus still
     # exits zero: the unverifiable-legacy finding is advisory.
     assert _distribution_report(context).exit_code == 0
+
+
+# --- Behavior 5: current-state incorporates naming legacy decisions ----------
+
+
+@scenario(
+    FEATURE,
+    "a current-state incorporates claim naming a legacy decision is reported "
+    "unverifiable-legacy, not as an unincorporated-decision violation",
+)
+def test_current_state_incorporates_legacy() -> None: ...
+
+
+@given(
+    "a corpus root directory containing a current-state.md file whose frontmatter "
+    "declares incorporates: [pdr-032, pdr-033, adr-059]"
+)
+def _given_current_state_incorporates(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    _write(
+        root / "current-state.md",
+        _doc(
+            [
+                "type: current-state",
+                "id: current-state-001",
+                "title: The living record",
+                "status: current",
+                "created: 2026-07-01",
+                "updated: 2026-07-01",
+                "authors: [alice]",
+                "description: the settled decisions",
+                "incorporates: [pdr-032, pdr-033, adr-059]",
+            ]
+        ),
+    )
+    context["root"] = root
+    context["cs_id"] = "current-state-001"
+    context["legacy_targets"] = ["pdr-032", "pdr-033", "adr-059"]
+
+
+@given(
+    "pdr-032, pdr-033, and adr-059 are each present in the corpus root directory "
+    "as files carrying no YAML frontmatter"
+)
+def _given_three_legacy_files(context: dict) -> None:
+    root = context["root"]
+    for legacy in context["legacy_targets"]:
+        _write(root / f"{legacy}.md", f"# {legacy} (legacy)\n\nA decision recorded before the frontmatter convention.\n")
+
+
+@then(
+    "it reports each of the three incorporates edges as an unverifiable-legacy "
+    "finding naming current-state and the legacy target by id"
+)
+def _then_three_unverifiable(context: dict) -> None:
+    report = context["report"]
+    for target in context["legacy_targets"]:
+        assert _unverifiable_for(report, context["cs_id"], target), (
+            f"expected an unverifiable-legacy finding naming "
+            f"{context['cs_id']} and {target}"
+        )
+
+
+@then(
+    "it reports no unincorporated-decision finding for any of the three, because "
+    "their accepted status cannot yet be machine-read"
+)
+def _then_no_unincorporated(context: dict) -> None:
+    report = context["report"]
+    targets = set(context["legacy_targets"])
+    for finding in report.findings_for_check("unincorporated-decision"):
+        assert not (targets & set(finding.subjects)), (
+            f"unexpected unincorporated-decision finding for a legacy target: {finding}"
+        )
+
+
+@then(
+    "none of the three unverifiable-legacy findings by themselves drive the "
+    "aggregate verdict non-zero"
+)
+def _then_three_advisory(context: dict) -> None:
+    assert _distribution_report(context).exit_code == 0

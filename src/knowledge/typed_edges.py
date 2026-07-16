@@ -267,6 +267,8 @@ def check_unverifiable_legacy(
     """
     findings: list[Finding] = []
     for edge in resolve_edges(corpus):
+        if edge.link_field != "supersedes":
+            continue
         if edge.resolved:
             continue
         if edge.target not in corpus.legacy_ids:
