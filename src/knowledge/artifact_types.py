@@ -147,7 +147,16 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         id_pattern=_pattern("intent"),
         id_example="intent-NNN",
         statuses=("draft", "active", "fulfilled", "abandoned"),
-        required_sections=("Intent", "Signals of success"),
+        required_sections=(
+            "Verbatim anchors",
+            "The goal behind the ask",
+            "Who it serves",
+            "Constraints",
+            "Non-goals",
+            "Appetite signal",
+            "Failure conditions",
+            "Open threads",
+        ),
     ),
     ArtifactType(
         name="candidate",
