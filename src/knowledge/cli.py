@@ -1,0 +1,71 @@
+"""The ``shop-knowledge`` command-line distribution.
+
+A thin command-line surface over the single per-type typedef registry in
+:mod:`knowledge.artifact_types` and the generators/checks the context already
+owns — it *wraps* that machinery rather than re-deriving any of it:
+
+* ``template <type>`` writes :func:`knowledge.typedefs.render_template` for the
+  named recognized artifact type to stdout byte-for-byte.
+* ``schema <type>`` writes
+  :func:`knowledge.typedefs.render_schema_fragment` for the named type to stdout
+  byte-for-byte.
+* ``validate <path>`` parses a document's frontmatter type and runs the same
+  :func:`knowledge.schema.validate_frontmatter` and
+  :func:`knowledge.schema.check_required_sections` the context uses internally,
+  reporting the document conforming or naming every violation.
+
+:func:`main` writes raw bytes to the supplied binary ``stdout``/``stderr``
+streams (defaulting to the process buffers) and returns a conventional exit
+code, so the byte-for-byte template/schema output is exactly the generator's
+bytes with nothing re-encoded.
+"""
+
+from __future__ import annotations
+
+import sys
+from typing import BinaryIO, Sequence
+
+from knowledge.artifact_types import artifact_type
+from knowledge.typedefs import render_template
+
+
+def _cmd_template(type_name: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
+    """Run ``template`` for ``type_name``, writing the generated template bytes."""
+    atype = artifact_type(type_name)
+    stdout.write(render_template(atype))
+    return 0
+
+
+def main(
+    argv: Sequence[str] | None = None,
+    stdout: BinaryIO | None = None,
+    stderr: BinaryIO | None = None,
+) -> int:
+    """Run the ``shop-knowledge`` CLI over ``argv``; return an exit code."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    out = stdout if stdout is not None else sys.stdout.buffer
+    err = stderr if stderr is not None else sys.stderr.buffer
+
+    if not argv:
+        err.write(b"error: a subcommand is required (template, schema, validate)\n")
+        return 2
+
+    sub, rest = argv[0], argv[1:]
+
+    if sub == "template":
+        if len(rest) != 1:
+            err.write(b"error: 'template' takes exactly one artifact type\n")
+            return 2
+        return _cmd_template(rest[0], out, err)
+
+    err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
+    return 2
+
+
+def run() -> int:
+    """Console-script entry point: drive :func:`main` over ``sys.argv``."""
+    return main()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(run())
