@@ -31,7 +31,7 @@ from knowledge.artifact_types import (
     artifact_type,
     parse_artifact,
 )
-from knowledge.schema import validate_frontmatter
+from knowledge.schema import check_required_sections, validate_frontmatter
 from knowledge.typedefs import render_schema_fragment, render_template
 
 
@@ -70,15 +70,19 @@ def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
     """Run ``validate`` for the document at ``path``, reporting conformance.
 
     The document is parsed and run through the context's own frontmatter check
-    (:func:`knowledge.schema.validate_frontmatter`); every diagnosis it produces
-    — including a missing or unrecognized ``type`` — is surfaced verbatim, so the
-    CLI reports the same named diagnoses the internal check does rather than
-    re-deriving them.
+    (:func:`knowledge.schema.validate_frontmatter`) and required-section check
+    (:func:`knowledge.schema.check_required_sections`); every diagnosis they
+    produce — a missing or unrecognized ``type``, a missing required field, a
+    missing required section — is surfaced verbatim, so the CLI reports the same
+    named diagnoses the internal checks do rather than re-deriving them. Both
+    checks always run, so a document carrying more than one violation has every
+    one reported rather than only the first.
     """
     source = Path(path).read_text(encoding="utf-8")
     artifact = parse_artifact(source)
 
     violations = list(validate_frontmatter(artifact).messages)
+    violations += list(check_required_sections(artifact).messages)
 
     if not violations:
         stdout.write(f"conforming: {path}\n".encode("utf-8"))
