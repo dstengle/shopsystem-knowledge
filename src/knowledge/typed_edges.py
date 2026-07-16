@@ -213,11 +213,21 @@ def check_active_yet_superseded(
 def check_dangling_edge(
     corpus: ArtifactCorpus, config: CoherenceConfig
 ) -> list[Finding]:
-    """Every frontmatter link-field target must resolve to a present artifact."""
+    """Every frontmatter link-field target must resolve to a present artifact.
+
+    A target present in the corpus as a **legacy file** (an id in
+    :attr:`~knowledge.coherence.ArtifactCorpus.legacy_ids`) is *not* dangling —
+    it resolves to a real file, so it is the unverifiable-legacy check's job
+    (:func:`check_unverifiable_legacy`), not this one's. Only a target with no
+    file at all — absent from both the typed index and the legacy set — is
+    dangling.
+    """
     findings: list[Finding] = []
     for edge in resolve_edges(corpus):
         if edge.resolved:
             continue
+        if edge.target in corpus.legacy_ids:
+            continue  # present-but-untyped legacy: unverifiable, not dangling
         findings.append(
             Finding(
                 check_id="dangling-edge",
@@ -231,6 +241,51 @@ def check_dangling_edge(
                 remediation=(
                     f"add the missing artifact '{edge.target}' to the corpus, or "
                     f"remove the {edge.link_field} edge from '{edge.source}'"
+                ),
+            )
+        )
+    return findings
+
+
+def check_unverifiable_legacy(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A link-field target resolving to a present-but-untyped legacy file is advisory.
+
+    An edge whose target carries no YAML frontmatter (an id in
+    :attr:`~knowledge.coherence.ArtifactCorpus.legacy_ids`) resolves to a real
+    file, but the gate can read neither its type nor its back-edges — so the
+    edge cannot be verified for symmetry, incorporation, or any typed invariant.
+    This is reported as an **advisory** ``unverifiable-legacy`` finding naming
+    the source and the legacy target; it does not by itself drive the aggregate
+    verdict non-zero. Because the target is present, it is *not* a dangling edge
+    (:func:`check_dangling_edge` skips it); because the legacy file has no
+    frontmatter to carry a ``superseded-by`` back-edge, a legacy ``supersedes``
+    target is *not* an asymmetric-supersede finding either
+    (:func:`check_asymmetric_supersede` already skips a target absent from the
+    typed index).
+    """
+    findings: list[Finding] = []
+    for edge in resolve_edges(corpus):
+        if edge.resolved:
+            continue
+        if edge.target not in corpus.legacy_ids:
+            continue
+        findings.append(
+            Finding(
+                check_id="unverifiable-legacy",
+                check_name="link field targets a present-but-untyped legacy file",
+                severity=Severity.ADVISORY,
+                subjects=(edge.source, edge.target),
+                message=(
+                    f"artifact '{edge.source}' declares a {edge.link_field} edge "
+                    f"to '{edge.target}', which is present as a legacy file "
+                    f"carrying no frontmatter, so the edge cannot be verified"
+                ),
+                remediation=(
+                    f"add YAML frontmatter to legacy file '{edge.target}' so its "
+                    f"type and back-edges can be verified, or remove the "
+                    f"{edge.link_field} edge from '{edge.source}'"
                 ),
             )
         )
@@ -393,6 +448,7 @@ TYPED_EDGE_CHECKS: tuple[Check, ...] = (
     check_asymmetric_supersede,
     check_active_yet_superseded,
     check_dangling_edge,
+    check_unverifiable_legacy,
     check_supersede_cycle,
     check_governed_delta_tripwire,
 )

@@ -14,6 +14,12 @@ The loader is deliberately forgiving about *shape*, never about *content*:
   that type — not a loader error — so a corpus that has never authored a
   prioritization-record still loads and reports a verdict.
 * A file that parses to **non-empty** frontmatter is a typed artifact.
+* A file that carries **no** YAML frontmatter is a *present-but-untyped legacy
+  file*: its id (the filename stem) is recorded in the corpus's
+  :attr:`~knowledge.coherence.ArtifactCorpus.legacy_ids`, so an edge target
+  resolving to it is reported unverifiable-legacy rather than dangling. It is
+  distinct from a typed artifact (it enters no ``by_id`` index) and from an
+  absent id (there is no file at all).
 """
 
 from __future__ import annotations
@@ -47,7 +53,8 @@ def load_corpus(root: str | Path) -> ArtifactCorpus:
     :class:`~knowledge.artifact_types.Artifact`.
     """
     root_path = Path(root)
-    artifacts = []
+    artifacts: list = []
+    legacy_ids: set[str] = set()
 
     for subdir_name in SUBDIR_TYPES:
         subdir = root_path / subdir_name
@@ -55,18 +62,27 @@ def load_corpus(root: str | Path) -> ArtifactCorpus:
             continue  # absent typed-artifact directory: zero instances, not error
         for file_path in sorted(subdir.iterdir()):
             if file_path.is_file():
-                _ingest(file_path, artifacts)
+                _ingest(file_path, artifacts, legacy_ids)
 
     if root_path.is_dir():
         for file_path in sorted(root_path.iterdir()):
             if file_path.is_file():
-                _ingest(file_path, artifacts)
+                _ingest(file_path, artifacts, legacy_ids)
 
-    return ArtifactCorpus.from_artifacts(artifacts)
+    return ArtifactCorpus(
+        artifacts=tuple(artifacts), legacy_ids=frozenset(legacy_ids)
+    )
 
 
-def _ingest(path: Path, artifacts: list) -> None:
-    """Parse ``path`` and append it to ``artifacts`` when it is a typed artifact."""
+def _ingest(path: Path, artifacts: list, legacy_ids: set) -> None:
+    """Sort ``path`` into a typed artifact or a present-but-untyped legacy id.
+
+    A file that parses to non-empty frontmatter is a typed artifact; one that
+    carries no YAML frontmatter is recorded as a legacy id (its filename stem),
+    so an edge target that resolves to it is unverifiable-legacy, not dangling.
+    """
     artifact = parse_artifact(path.read_text(encoding="utf-8"))
     if artifact.frontmatter:
         artifacts.append(artifact)
+    else:
+        legacy_ids.add(path.stem)
