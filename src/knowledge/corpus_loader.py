@@ -51,6 +51,8 @@ def load_corpus(root: str | Path) -> ArtifactCorpus:
 
     for subdir_name in SUBDIR_TYPES:
         subdir = root_path / subdir_name
+        if not subdir.is_dir():
+            continue  # absent typed-artifact directory: zero instances, not error
         for file_path in sorted(subdir.iterdir()):
             if file_path.is_file():
                 _ingest(file_path, artifacts)
