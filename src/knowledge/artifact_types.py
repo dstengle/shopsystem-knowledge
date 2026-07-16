@@ -183,7 +183,7 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         id_example="session-NNN",
         statuses=("open", "closed"),
         extra_required_fields=("produced", "revised"),
-        required_sections=("Summary", "Outcomes"),
+        required_sections=("Outcome", "Open threads"),
     ),
     ArtifactType(
         name="prioritization-record",
