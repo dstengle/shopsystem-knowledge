@@ -255,3 +255,113 @@ def _then_zero_prioritizations(context: dict) -> None:
 
     corpus = load_corpus(str(context["root"]))
     assert corpus.of_type("prioritization-record") == ()
+
+
+# --- Behavior 4: supersedes to a no-frontmatter file is unverifiable-legacy --
+
+
+def _distribution_report(context: dict):
+    """Re-run the gate over the same root in distribution mode."""
+    from knowledge.coherence import GateMode
+    from knowledge.coherence_cli import load_and_run
+
+    return load_and_run(str(context["root"]), mode=GateMode.DISTRIBUTION)
+
+
+def _unverifiable_for(report, source: str, target: str) -> bool:
+    return any(
+        source in f.subjects and target in f.subjects
+        for f in report.findings_for_check("unverifiable-legacy")
+    )
+
+
+@scenario(
+    FEATURE,
+    "a supersedes edge to a target file with no YAML frontmatter is reported "
+    "unverifiable-legacy, not dangling or asymmetric",
+)
+def test_unverifiable_legacy_supersede() -> None: ...
+
+
+@given(
+    "a corpus root directory containing a pdr file whose frontmatter declares "
+    "supersedes: [pdr-032]"
+)
+def _given_pdr_supersedes_legacy(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    _write(
+        root / "pdrs" / "pdr-500.md",
+        _doc(
+            [
+                "type: pdr",
+                "id: pdr-500",
+                "title: The superseding decision",
+                "status: proposed",
+                "created: 2026-07-01",
+                "updated: 2026-07-01",
+                "authors: [alice]",
+                "description: supersedes a legacy record",
+                "decision-makers: [alice]",
+                "derives-from: []",
+                "supersedes: [pdr-032]",
+            ]
+        ),
+    )
+    context["root"] = root
+    context["source"] = "pdr-500"
+    context["legacy"] = "pdr-032"
+
+
+@given(
+    "a file named pdr-032 present in the corpus root directory carrying no YAML "
+    "frontmatter at all"
+)
+def _given_legacy_file(context: dict) -> None:
+    root = context["root"]
+    _write(root / "pdr-032.md", "# PDR-032 (legacy)\n\nA decision recorded before the frontmatter convention.\n")
+
+
+@then(
+    "it reports the edge as an unverifiable-legacy finding naming the pdr and "
+    "pdr-032 by id"
+)
+def _then_unverifiable_legacy(context: dict) -> None:
+    report = context["report"]
+    assert _unverifiable_for(report, context["source"], context["legacy"]), (
+        "expected an unverifiable-legacy finding naming "
+        f"{context['source']} and {context['legacy']}"
+    )
+
+
+@then(
+    "it reports no dangling-edge finding for that edge, because pdr-032 resolves "
+    "to a real file"
+)
+def _then_no_dangling_for_legacy(context: dict) -> None:
+    report = context["report"]
+    for finding in report.findings_for_check("dangling-edge"):
+        assert context["legacy"] not in finding.subjects, (
+            f"unexpected dangling-edge finding for legacy target: {finding}"
+        )
+
+
+@then(
+    "it reports no asymmetric-supersede finding for that edge, because pdr-032 "
+    "has no frontmatter that could carry a superseded-by field"
+)
+def _then_no_asymmetric_for_legacy(context: dict) -> None:
+    report = context["report"]
+    for finding in report.findings_for_check("asymmetric-supersede"):
+        assert context["legacy"] not in finding.subjects, (
+            f"unexpected asymmetric-supersede finding for legacy target: {finding}"
+        )
+
+
+@then(
+    "the unverifiable-legacy finding does not by itself drive the aggregate "
+    "verdict non-zero"
+)
+def _then_unverifiable_advisory(context: dict) -> None:
+    # Under distribution mode (where blocking findings veto), the corpus still
+    # exits zero: the unverifiable-legacy finding is advisory.
+    assert _distribution_report(context).exit_code == 0
