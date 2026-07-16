@@ -353,3 +353,123 @@ def _intent_status_draft(context: dict) -> None:
 def _draft_not_in_recorded(context: dict) -> None:
     # Rationale; the assertion is on the validation verdict in the Then leg.
     pass
+
+
+# =============================================================================
+# Behavior C — candidate requires its 9 real-practice narrative body sections
+# =============================================================================
+
+CANDIDATE_SECTIONS = (
+    "Verbatim anchors",
+    "Problem",
+    "Appetite",
+    "Solution sketch",
+    "Rabbit holes",
+    "No-gos",
+    "Evidence / experiments",
+    "Resolution",
+    "Changelog",
+)
+
+
+@scenario(FEATURE, "the candidate typedef requires each of the real-practice narrative body sections beyond Verbatim anchors")
+def test_candidate_narrative_sections() -> None: ...
+
+
+@scenario(FEATURE, "the candidate typedef's narrative sections follow real practice's order, immediately after Verbatim anchors")
+def test_candidate_section_order() -> None: ...
+
+
+@scenario(FEATURE, "a candidate document missing the Resolution section is reported non-conforming and names it")
+def test_candidate_missing_resolution() -> None: ...
+
+
+@scenario(FEATURE, "a candidate document carrying its full 9-section required set passes")
+def test_candidate_full_section_set() -> None: ...
+
+
+@given(
+    'the candidate typedef, whose generated template today declares only "Context" '
+    'and "Open questions", sections no real instance has ever used'
+)
+def _candidate_typedef_old_sections(context: dict) -> None:
+    context["type"] = "candidate"
+
+
+@given(
+    parsers.parse(
+        "5 independently-authored candidate instances (cand-001 through cand-005) "
+        'that instead consistently carry "{section}" as a body section'
+    )
+)
+def _candidate_instances_carry_section(context: dict, section: str) -> None:
+    context.setdefault("type", "candidate")
+
+
+@given(
+    "the candidate typedef's real-practice section order: Verbatim anchors, "
+    "Problem, Appetite, Solution sketch, Rabbit holes, No-gos, Evidence / "
+    "experiments, Resolution, Changelog"
+)
+def _candidate_real_order(context: dict) -> None:
+    context["type"] = "candidate"
+
+
+@when("the knowledge context runs the format generator over the candidate typedef")
+def _generate_candidate(context: dict) -> None:
+    context["type"] = "candidate"
+
+
+@then(parsers.parse('the generated candidate template declares "{section}" as a required body section'))
+def _candidate_template_declares_section(section: str) -> None:
+    assert section in _template_sections("candidate"), (
+        f"generated candidate template does not declare section {section!r}; "
+        f"has {_template_sections('candidate')}"
+    )
+
+
+@then("the generated candidate template positions Problem immediately after Verbatim anchors")
+def _candidate_problem_after_verbatim() -> None:
+    sections = _template_sections("candidate")
+    assert sections[0] == "Verbatim anchors", f"first section is {sections[:1]}"
+    assert sections[1] == "Problem", f"second section is {sections[1:2]}"
+
+
+@then(
+    "the remaining sections appear in the order Appetite, Solution sketch, Rabbit "
+    "holes, No-gos, Evidence / experiments, Resolution, Changelog"
+)
+def _candidate_remaining_order() -> None:
+    sections = _template_sections("candidate")
+    assert sections[2:] == (
+        "Appetite",
+        "Solution sketch",
+        "Rabbit holes",
+        "No-gos",
+        "Evidence / experiments",
+        "Resolution",
+        "Changelog",
+    ), f"remaining order is {sections[2:]}"
+
+
+@given(
+    "a candidate document whose body carries Verbatim anchors, Problem, Appetite, "
+    "Solution sketch, Rabbit holes, No-gos and Evidence / experiments but omits "
+    "Resolution"
+)
+def _candidate_missing_resolution(context: dict) -> None:
+    present = [s for s in CANDIDATE_SECTIONS if s not in ("Resolution", "Changelog")]
+    context["artifact"] = Artifact(
+        frontmatter={"type": "candidate"}, body=_body_with_sections(present)
+    )
+
+
+@given(
+    "a candidate document whose body carries Verbatim anchors, Problem, Appetite, "
+    "Solution sketch, Rabbit holes, No-gos, Evidence / experiments, Resolution and "
+    "Changelog"
+)
+def _candidate_full_body(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter={"type": "candidate"}, body=_body_with_sections(CANDIDATE_SECTIONS)
+    )
