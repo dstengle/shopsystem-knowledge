@@ -31,6 +31,7 @@ from knowledge.artifact_types import (
     artifact_type,
     parse_artifact,
 )
+from knowledge.schema import validate_frontmatter
 from knowledge.typedefs import render_schema_fragment, render_template
 
 
@@ -66,11 +67,26 @@ def _cmd_generate(kind: str, type_name: str, stdout: BinaryIO, stderr: BinaryIO)
 
 
 def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
-    """Run ``validate`` for the document at ``path``, reporting conformance."""
+    """Run ``validate`` for the document at ``path``, reporting conformance.
+
+    The document is parsed and run through the context's own frontmatter check
+    (:func:`knowledge.schema.validate_frontmatter`); every diagnosis it produces
+    — including a missing or unrecognized ``type`` — is surfaced verbatim, so the
+    CLI reports the same named diagnoses the internal check does rather than
+    re-deriving them.
+    """
     source = Path(path).read_text(encoding="utf-8")
-    parse_artifact(source)
-    stdout.write(f"conforming: {path}\n".encode("utf-8"))
-    return 0
+    artifact = parse_artifact(source)
+
+    violations = list(validate_frontmatter(artifact).messages)
+
+    if not violations:
+        stdout.write(f"conforming: {path}\n".encode("utf-8"))
+        return 0
+
+    lines = [f"non-conforming: {path}"] + [f"  - {message}" for message in violations]
+    stdout.write(("\n".join(lines) + "\n").encode("utf-8"))
+    return 1
 
 
 def main(
