@@ -549,3 +549,76 @@ def _candidate_status_in_progress(context: dict) -> None:
 def _in_progress_not_in_enum(context: dict) -> None:
     # Rationale; the assertion is on the validation verdict in the Then leg.
     pass
+
+
+# =============================================================================
+# Behavior E — session-record requires Outcome and Open threads body sections
+# =============================================================================
+
+
+@scenario(FEATURE, "the session-record typedef requires an Outcome section and an Open threads section, not Summary and Outcomes")
+def test_session_sections() -> None: ...
+
+
+@scenario(FEATURE, "a session-record document missing the Open threads section is reported non-conforming and names it")
+def test_session_missing_open_threads() -> None: ...
+
+
+@scenario(FEATURE, "a session-record document carrying Outcome and Open threads passes conformance")
+def test_session_full_section_set() -> None: ...
+
+
+@given(
+    'the session-record typedef, whose currently generated template declares "Summary" '
+    'and "Outcomes" as its two body sections, headings no real instance has ever used'
+)
+def _session_typedef_old_sections(context: dict) -> None:
+    context["type"] = "session-record"
+
+
+@given(
+    "5 independently-authored session-record instances that instead consistently "
+    'carry "Outcome" and "Open threads" as their two body sections'
+)
+def _session_instances_carry_sections(context: dict) -> None:
+    context.setdefault("type", "session-record")
+
+
+@when("the knowledge context runs the format generator over the session-record typedef")
+def _generate_session(context: dict) -> None:
+    context["type"] = "session-record"
+
+
+@then("the generated session-record template declares Outcome and Open threads as its required body sections")
+def _session_template_declares_sections() -> None:
+    sections = _template_sections("session-record")
+    assert "Outcome" in sections, f"template sections are {sections}"
+    assert "Open threads" in sections, f"template sections are {sections}"
+
+
+@then("it does not declare Summary or Outcomes as required body sections")
+def _session_template_omits_old() -> None:
+    sections = _template_sections("session-record")
+    assert "Summary" not in sections, f"template still declares Summary: {sections}"
+    assert "Outcomes" not in sections, f"template still declares Outcomes: {sections}"
+
+
+@given(
+    "a session-record document whose body carries Outcome but omits the Open threads "
+    "section its type's required-section set now demands"
+)
+def _session_missing_open_threads(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter={"type": "session-record"}, body=_body_with_sections(["Outcome"])
+    )
+
+
+@given(
+    "a session-record document whose body carries Outcome and Open threads, its "
+    "type's full required-section set"
+)
+def _session_full_body(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter={"type": "session-record"},
+        body=_body_with_sections(["Outcome", "Open threads"]),
+    )
