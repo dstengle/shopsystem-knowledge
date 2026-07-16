@@ -14,8 +14,10 @@ ambiguity.
 from __future__ import annotations
 
 import io
+from pathlib import Path
 
 import pytest
+import yaml
 from pytest_bdd import given, parsers, scenario, then, when
 
 # The literal on-disk path the validate scenarios name.
@@ -25,6 +27,47 @@ ARTIFACT_PATH = "/tmp/example-artifact.md"
 @pytest.fixture
 def context() -> dict:
     return {}
+
+
+# --- Document builder for the validate scenarios ----------------------------
+
+
+def _write_document(atype, *, omit_fields=(), omit_sections=(), override=None) -> str:
+    """Render and write a document of ``atype`` to the literal artifact path.
+
+    The document is conforming by construction — every shared and type-additional
+    required field present (with an id matching the type's pattern, a status in
+    its enum, non-empty anchors), and every required section in the body — except
+    for the fields in ``omit_fields``, the sections in ``omit_sections``, and any
+    ``override`` frontmatter values. That lets each scenario introduce exactly the
+    violation(s) it exercises and nothing else.
+    """
+    frontmatter: dict[str, object] = {
+        "type": atype.name,
+        "id": atype.id_example.replace("NNN", "001"),
+        "title": "Example artifact",
+        "status": atype.statuses[0],
+        "created": "2026-01-01",
+        "updated": "2026-01-02",
+        "authors": ["someone"],
+        "description": "An example artifact for validation.",
+    }
+    for name in atype.extra_required_fields:
+        frontmatter[name] = ["anchor-001"]
+    if override:
+        frontmatter.update(override)
+    for name in omit_fields:
+        frontmatter.pop(name, None)
+
+    fm_text = yaml.safe_dump(frontmatter, sort_keys=False)
+    body_lines: list[str] = []
+    for section in atype.required_sections:
+        if section in omit_sections:
+            continue
+        body_lines += [f"## {section}", "", "Content.", ""]
+    source = "---\n" + fm_text + "---\n\n" + "\n".join(body_lines) + "\n"
+    Path(ARTIFACT_PATH).write_text(source, encoding="utf-8")
+    return source
 
 
 # --- Scenario bindings -------------------------------------------------------
@@ -51,6 +94,13 @@ def test_schema_recognized() -> None: ...
 def test_reject_unrecognized() -> None: ...
 
 
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge validate" reports a conforming document as conforming',
+)
+def test_validate_conforming() -> None: ...
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -61,6 +111,41 @@ def _installed_distribution(context: dict) -> None:
     from knowledge.cli import main
 
     context["main"] = main
+
+
+# --- Given: validate documents ----------------------------------------------
+#
+# The validate scenarios all build a candidate document (shared frontmatter set
+# plus the Context / Open questions section pair) and introduce exactly the
+# violation each scenario names.
+
+
+def _base_type():
+    from knowledge.artifact_types import artifact_type
+
+    atype = artifact_type("candidate")
+    assert atype is not None
+    return atype
+
+
+@given(
+    parsers.re(
+        r'a document on disk at "[^"]+" whose frontmatter declares a recognized "type" '
+        r"and satisfies every frontmatter-required field, id pattern, and status enum for that type"
+    )
+)
+def _doc_conforming_frontmatter(context: dict) -> None:
+    atype = _base_type()
+    context["atype"] = atype
+    # Conforming frontmatter written first; the body-section given completes it.
+    _write_document(atype, omit_sections=atype.required_sections)
+
+
+@given(
+    parsers.re(r"the document's body carries every section its type's required-section set demands")
+)
+def _doc_has_all_sections(context: dict) -> None:
+    _write_document(context["atype"])
 
 
 # --- When --------------------------------------------------------------------
@@ -134,3 +219,23 @@ def _stderr_lists_eight_types(context: dict) -> None:
     assert len(RECOGNIZED_ARTIFACT_TYPES) == 8
     for type_name in RECOGNIZED_ARTIFACT_TYPES:
         assert type_name in stderr, f"stderr does not list recognized type {type_name!r}"
+
+
+# --- Then: validate reporting -----------------------------------------------
+
+
+def _stdout_text(context: dict) -> str:
+    return context["stdout"].decode("utf-8")
+
+
+@then("stdout reports the document as conforming")
+def _reports_conforming(context: dict) -> None:
+    text = _stdout_text(context)
+    assert "non-conforming" not in text, f"expected a conforming report, got: {text!r}"
+    assert "conforming" in text, f"stdout does not report the document conforming: {text!r}"
+
+
+@then("stdout names no violation")
+def _names_no_violation(context: dict) -> None:
+    text = _stdout_text(context)
+    assert "- " not in text, f"a conforming report should name no violation, got: {text!r}"
