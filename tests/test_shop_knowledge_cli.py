@@ -44,6 +44,13 @@ def test_template_recognized() -> None: ...
 def test_schema_recognized() -> None: ...
 
 
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge template" and "shop-knowledge schema" both reject an unrecognized artifact type and name the offending value',
+)
+def test_reject_unrecognized() -> None: ...
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -108,3 +115,22 @@ def _stdout_is_schema(context: dict, type_name: str) -> None:
 
     expected = render_schema_fragment(artifact_type(type_name))
     assert context["stdout"] == expected, "stdout is not the generated schema fragment byte-for-byte"
+
+
+# --- Then: reject unrecognized type -----------------------------------------
+
+
+@then(parsers.re(r'stderr names "(?P<offending>[^"]+)" as an unrecognized artifact type'))
+def _stderr_names_offending(context: dict, offending: str) -> None:
+    stderr = context["stderr"].decode("utf-8")
+    assert offending in stderr, f"stderr does not name the offending value {offending!r}"
+
+
+@then("stderr lists the eight recognized artifact types")
+def _stderr_lists_eight_types(context: dict) -> None:
+    from knowledge.artifact_types import RECOGNIZED_ARTIFACT_TYPES
+
+    stderr = context["stderr"].decode("utf-8")
+    assert len(RECOGNIZED_ARTIFACT_TYPES) == 8
+    for type_name in RECOGNIZED_ARTIFACT_TYPES:
+        assert type_name in stderr, f"stderr does not list recognized type {type_name!r}"
