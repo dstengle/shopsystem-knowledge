@@ -164,7 +164,17 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         id_pattern=_pattern("cand"),
         id_example="cand-NNN",
         statuses=("exploring", "shaped", "briefed", "parked", "rejected"),
-        required_sections=("Context", "Open questions"),
+        required_sections=(
+            "Verbatim anchors",
+            "Problem",
+            "Appetite",
+            "Solution sketch",
+            "Rabbit holes",
+            "No-gos",
+            "Evidence / experiments",
+            "Resolution",
+            "Changelog",
+        ),
     ),
     ArtifactType(
         name="session-record",
