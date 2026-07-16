@@ -146,7 +146,7 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         id_prefix="intent",
         id_pattern=_pattern("intent"),
         id_example="intent-NNN",
-        statuses=("draft", "active", "fulfilled", "abandoned"),
+        statuses=("recorded",),
         required_sections=(
             "Verbatim anchors",
             "The goal behind the ask",
