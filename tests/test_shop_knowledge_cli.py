@@ -37,6 +37,13 @@ def context() -> dict:
 def test_template_recognized() -> None: ...
 
 
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge schema" prints the canonical JSON Schema fragment for a recognized artifact type',
+)
+def test_schema_recognized() -> None: ...
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -92,3 +99,12 @@ def _stdout_is_template(context: dict, type_name: str) -> None:
 
     expected = render_template(artifact_type(type_name))
     assert context["stdout"] == expected, "stdout is not the generated template byte-for-byte"
+
+
+@then(parsers.re(r'stdout is the "(?P<type_name>[^"]+)" typedef\'s generated schema fragment byte-for-byte'))
+def _stdout_is_schema(context: dict, type_name: str) -> None:
+    from knowledge.artifact_types import artifact_type
+    from knowledge.typedefs import render_schema_fragment
+
+    expected = render_schema_fragment(artifact_type(type_name))
+    assert context["stdout"] == expected, "stdout is not the generated schema fragment byte-for-byte"
