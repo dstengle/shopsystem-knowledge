@@ -23,9 +23,14 @@ bytes with nothing re-encoded.
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import BinaryIO, Sequence
 
-from knowledge.artifact_types import RECOGNIZED_ARTIFACT_TYPES, artifact_type
+from knowledge.artifact_types import (
+    RECOGNIZED_ARTIFACT_TYPES,
+    artifact_type,
+    parse_artifact,
+)
 from knowledge.typedefs import render_schema_fragment, render_template
 
 
@@ -60,6 +65,14 @@ def _cmd_generate(kind: str, type_name: str, stdout: BinaryIO, stderr: BinaryIO)
     return 0
 
 
+def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
+    """Run ``validate`` for the document at ``path``, reporting conformance."""
+    source = Path(path).read_text(encoding="utf-8")
+    parse_artifact(source)
+    stdout.write(f"conforming: {path}\n".encode("utf-8"))
+    return 0
+
+
 def main(
     argv: Sequence[str] | None = None,
     stdout: BinaryIO | None = None,
@@ -81,6 +94,12 @@ def main(
             err.write(f"error: '{sub}' takes exactly one artifact type\n".encode("utf-8"))
             return 2
         return _cmd_generate(sub, rest[0], out, err)
+
+    if sub == "validate":
+        if len(rest) != 1:
+            err.write(b"error: 'validate' takes exactly one document path\n")
+            return 2
+        return _cmd_validate(rest[0], out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
