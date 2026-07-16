@@ -622,3 +622,80 @@ def _session_full_body(context: dict) -> None:
         frontmatter={"type": "session-record"},
         body=_body_with_sections(["Outcome", "Open threads"]),
     )
+
+
+# =============================================================================
+# Behavior F — session-record id pattern is chronological sess-YYYY-MM-DD-x
+# =============================================================================
+
+
+@scenario(FEATURE, "the session-record id pattern matches real practice's chronological, human-readable shape")
+def test_session_id_pattern() -> None: ...
+
+
+@scenario(FEATURE, "a session-record id in the old session-NNN shape is reported non-conforming against the corrected pattern")
+def test_session_old_id_non_conforming() -> None: ...
+
+
+@given(
+    'the session-record typedef, whose currently generated id pattern is '
+    'session-\\d{3,} (e.g. "session-001"), a shape no real instance has ever used'
+)
+def _session_typedef_old_id_pattern(context: dict) -> None:
+    context["type"] = "session-record"
+
+
+@given(
+    "5 independently-authored session-record instances (sess-2026-07-09-a through "
+    "sess-2026-07-16-a), each using the chronological id pattern sess-YYYY-MM-DD-x"
+)
+def _session_instances_chronological_ids(context: dict) -> None:
+    context.setdefault("type", "session-record")
+
+
+@then("the generated session-record id pattern matches a date plus a same-day disambiguating letter suffix, of the shape sess-YYYY-MM-DD-x")
+def _session_id_pattern_shape() -> None:
+    pattern = _fragment("session-record")["id_pattern"]
+    # A date (YYYY-MM-DD) plus a same-day disambiguating letter suffix.
+    assert re.fullmatch(pattern, "sess-2026-07-09-a"), f"pattern {pattern!r} rejects a dated id"
+    # A non-dated / numbered shape is not of this shape.
+    assert not re.fullmatch(pattern, "sess-001"), f"pattern {pattern!r} accepts a numbered id"
+
+
+@then('a real id such as "sess-2026-07-16-a" matches the generated pattern')
+def _session_id_pattern_accepts_real() -> None:
+    pattern = _fragment("session-record")["id_pattern"]
+    assert re.fullmatch(pattern, "sess-2026-07-16-a"), f"pattern {pattern!r} rejects sess-2026-07-16-a"
+
+
+@then('"session-001" no longer matches the generated pattern')
+def _session_id_pattern_rejects_old() -> None:
+    pattern = _fragment("session-record")["id_pattern"]
+    assert not re.fullmatch(pattern, "session-001"), f"pattern {pattern!r} still accepts session-001"
+
+
+@given(
+    'a session-record artifact whose id is "session-001" rather than the '
+    "sess-YYYY-MM-DD-x pattern its type requires"
+)
+def _session_artifact_old_id(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter=_full_frontmatter("session-record", id_value="session-001", status_value="closed")
+    )
+
+
+@then("it reports the artifact as non-conforming for an id that does not match its type pattern")
+def _fm_id_pattern_mismatch(context: dict) -> None:
+    result = context["fm_result"]
+    assert result.conforming is False
+    assert result.by_code(ID_PATTERN_MISMATCH), "expected an id-pattern-mismatch diagnostic"
+
+
+@then("the diagnosis names the offending id and the expected pattern")
+def _fm_names_offending_id(context: dict) -> None:
+    diag = context["fm_result"].by_code(ID_PATTERN_MISMATCH)[0]
+    assert diag.offending == "session-001"
+    expected_example = artifact_type("session-record").id_example
+    assert diag.expected == expected_example
+    assert "session-001" in diag.message
+    assert expected_example in diag.message
