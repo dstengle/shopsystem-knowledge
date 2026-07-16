@@ -447,3 +447,66 @@ def _then_no_unincorporated(context: dict) -> None:
 )
 def _then_three_advisory(context: dict) -> None:
     assert _distribution_report(context).exit_code == 0
+
+
+# --- Behavior 6: an absent target with no file stays dangling ----------------
+
+
+@scenario(
+    FEATURE,
+    "a link-field target with no corresponding file anywhere in the corpus is "
+    "still reported dangling, distinct from the legacy case",
+)
+def test_absent_target_stays_dangling() -> None: ...
+
+
+@given(
+    "a corpus root directory containing an artifact whose frontmatter declares a "
+    "supersedes edge to an id with no corresponding file anywhere in the corpus "
+    "root directory"
+)
+def _given_supersedes_absent(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    _write(
+        root / "pdrs" / "pdr-600.md",
+        _doc(
+            [
+                "type: pdr",
+                "id: pdr-600",
+                "title: Supersedes a phantom",
+                "status: proposed",
+                "created: 2026-07-01",
+                "updated: 2026-07-01",
+                "authors: [alice]",
+                "description: names a target that has no file",
+                "decision-makers: [alice]",
+                "derives-from: []",
+                "supersedes: [pdr-999]",
+            ]
+        ),
+    )
+    # No pdr-999 exists anywhere in the corpus.
+    context["root"] = root
+    context["source"] = "pdr-600"
+    context["absent"] = "pdr-999"
+
+
+@then("it reports a dangling-edge finding naming the source artifact and the unresolved id")
+def _then_dangling_absent(context: dict) -> None:
+    report = context["report"]
+    assert any(
+        context["source"] in f.subjects and context["absent"] in f.subjects
+        for f in report.findings_for_check("dangling-edge")
+    ), f"expected a dangling-edge finding naming {context['source']} and {context['absent']}"
+
+
+@then(
+    "it does not report an unverifiable-legacy finding for that edge, because no "
+    "file exists to be legacy"
+)
+def _then_no_unverifiable_absent(context: dict) -> None:
+    report = context["report"]
+    for finding in report.findings_for_check("unverifiable-legacy"):
+        assert context["absent"] not in finding.subjects, (
+            f"unexpected unverifiable-legacy finding for an absent target: {finding}"
+        )
