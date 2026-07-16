@@ -15,6 +15,7 @@ test = [
 
 [project.scripts]
 shop-knowledge = "knowledge.cli:run"
+shop-knowledge-gate = "knowledge.coherence_cli:run"
 
 [tool.pytest.ini_options]
 # Step-definition modules and unit tests live under tests/; Gherkin feature

@@ -147,9 +147,18 @@ class ArtifactCorpus:
     :attr:`by_id` exposes the whole id index. Building from parsed
     :class:`~knowledge.artifact_types.Artifact` objects (rather than a directory)
     keeps the corpus deterministic and ambient-free.
+
+    :attr:`legacy_ids` names the ids of **present-but-untyped legacy files** —
+    files that exist in the corpus tree but carry no YAML frontmatter, so they
+    parse to no type and no back-edges. They are neither typed artifacts (they
+    are not in :attr:`by_id`) nor absent: an edge target that resolves to one is
+    reported *unverifiable-legacy* rather than dangling. A corpus built from
+    parsed artifacts alone carries no legacy ids; the filesystem loader supplies
+    the set it discovers.
     """
 
     artifacts: tuple[Artifact, ...] = ()
+    legacy_ids: frozenset[str] = frozenset()
 
     @property
     def by_id(self) -> Mapping[str, Artifact]:
