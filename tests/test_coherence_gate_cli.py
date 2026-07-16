@@ -204,3 +204,54 @@ def _then_exits_zero_despite_finding(context: dict) -> None:
     assert report.findings, "expected at least one finding to exist"
     assert report.exit_code == 0
     assert context["exit_code"] == 0
+
+
+# --- Behavior 3: an absent typed-artifact directory loads as zero instances --
+
+
+@scenario(FEATURE, "an absent typed-artifact directory does not crash the loader")
+def test_absent_subdir() -> None: ...
+
+
+@given("a corpus root directory that contains no prioritizations subdirectory at all")
+def _given_no_prioritizations(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    # A corpus with a pdrs/ subdirectory but deliberately no prioritizations/.
+    _write(
+        root / "pdrs" / "pdr-200.md",
+        _doc(
+            [
+                "type: pdr",
+                "id: pdr-200",
+                "title: A standalone decision",
+                "status: proposed",
+                "created: 2026-07-01",
+                "updated: 2026-07-01",
+                "authors: [alice]",
+                "description: no upstream anchor",
+                "decision-makers: [alice]",
+                "derives-from: []",
+            ]
+        ),
+    )
+    assert not (root / "prioritizations").exists()
+    context["root"] = root
+
+
+@then("the run completes and reports an aggregate verdict")
+def _then_reports_verdict(context: dict) -> None:
+    from knowledge.coherence import CoherenceReport
+
+    assert isinstance(context["report"], CoherenceReport)
+    assert isinstance(context["exit_code"], int)
+
+
+@then(
+    "it treats the absent subdirectory as zero prioritization-record instances, "
+    "not as a loader error"
+)
+def _then_zero_prioritizations(context: dict) -> None:
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(str(context["root"]))
+    assert corpus.of_type("prioritization-record") == ()
