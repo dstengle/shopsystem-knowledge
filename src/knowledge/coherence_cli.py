@@ -35,7 +35,7 @@ from knowledge.typed_edges import TYPED_EDGE_CHECKS
 GATE_CHECKS = LIFECYCLE_CHECKS + TYPED_EDGE_CHECKS
 
 
-def load_and_run(root: str, mode: GateMode = GateMode.AUTHORING) -> CoherenceReport:
+def load_and_run(root: str, mode: GateMode = GateMode.DISTRIBUTION) -> CoherenceReport:
     """Load the corpus at ``root`` and run the gate over it under ``mode``.
 
     The mode defaults to :attr:`GateMode.AUTHORING`, matching the installed
@@ -73,7 +73,7 @@ def main(
     parser.add_argument(
         "--mode",
         choices=[m.value for m in GateMode],
-        default=GateMode.AUTHORING.value,
+        default=GateMode.DISTRIBUTION.value,
         help="gate mode (default: authoring — warn and never block)",
     )
     try:

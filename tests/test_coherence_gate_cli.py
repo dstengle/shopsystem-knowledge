@@ -148,3 +148,59 @@ def _then_no_asymmetric(context: dict) -> None:
 def _then_exits_zero(context: dict) -> None:
     assert context["report"].exit_code == 0
     assert context["exit_code"] == 0
+
+
+# --- Behavior 2: the gate command defaults to authoring mode -----------------
+
+
+@scenario(FEATURE, "the gate command defaults to authoring mode")
+def test_defaults_to_authoring() -> None: ...
+
+
+@given("a corpus root directory that carries at least one coherence finding")
+def _given_corpus_with_finding(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    # A briefed candidate that names no brief is a blocking finding
+    # (briefed-without-brief); authoring mode must warn-not-block on it.
+    _write(
+        root / "candidates" / "cand-100.md",
+        _doc(
+            [
+                "type: candidate",
+                "id: cand-100",
+                "title: A briefed idea",
+                "status: briefed",
+                "created: 2026-07-01",
+                "updated: 2026-07-01",
+                "authors: [alice]",
+                "description: briefed but names no brief",
+            ]
+        ),
+    )
+    context["root"] = root
+
+
+@when(
+    "the operator runs the knowledge context's installed coherence-gate command "
+    "over the corpus root directory with no mode specified"
+)
+def _when_run_no_mode(context: dict) -> None:
+    _run_gate(context)
+
+
+@then("it runs in authoring mode")
+def _then_authoring_mode(context: dict) -> None:
+    from knowledge.coherence import GateMode
+
+    assert context["report"].mode is GateMode.AUTHORING
+
+
+@then(
+    "it exits zero despite the finding, per the already-pinned authoring-mode "
+    "contract"
+)
+def _then_exits_zero_despite_finding(context: dict) -> None:
+    report = context["report"]
+    assert report.findings, "expected at least one finding to exist"
+    assert report.exit_code == 0
+    assert context["exit_code"] == 0
