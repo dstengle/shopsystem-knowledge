@@ -101,6 +101,22 @@ def test_reject_unrecognized() -> None: ...
 def test_validate_conforming() -> None: ...
 
 
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge validate" on a document missing a required frontmatter field '
+    "reports the same named diagnosis the internal frontmatter check produces",
+)
+def test_validate_missing_field() -> None: ...
+
+
+@scenario(
+    "shop_knowledge_cli.feature",
+    '"shop-knowledge validate" on a document whose frontmatter omits or misdeclares '
+    "the type field reports that specific diagnosis rather than skipping validation",
+)
+def test_validate_missing_type() -> None: ...
+
+
 # --- Given -------------------------------------------------------------------
 
 
@@ -146,6 +162,29 @@ def _doc_conforming_frontmatter(context: dict) -> None:
 )
 def _doc_has_all_sections(context: dict) -> None:
     _write_document(context["atype"])
+
+
+@given(parsers.re(r"a document on disk at \"[^\"]+\" whose frontmatter omits a field its recognized type requires"))
+def _doc_missing_field(context: dict) -> None:
+    atype = _base_type()
+    context["atype"] = atype
+    context["missing_field"] = "description"
+    # A single shared required field is omitted; every section is present, so the
+    # missing field is the document's only violation.
+    context["source"] = _write_document(atype, omit_fields=["description"])
+
+
+@given(
+    parsers.re(
+        r"a document on disk at \"[^\"]+\" whose frontmatter omits the \"type\" field, "
+        r"or declares a \"type\" value outside the eight recognized artifact types"
+    )
+)
+def _doc_missing_type(context: dict) -> None:
+    atype = _base_type()
+    context["atype"] = atype
+    # Omit the type field entirely: the document has no determinable type.
+    context["source"] = _write_document(atype, omit_fields=["type"])
 
 
 # --- When --------------------------------------------------------------------
@@ -239,3 +278,45 @@ def _reports_conforming(context: dict) -> None:
 def _names_no_violation(context: dict) -> None:
     text = _stdout_text(context)
     assert "- " not in text, f"a conforming report should name no violation, got: {text!r}"
+
+
+@then("stdout reports the document as non-conforming")
+def _reports_non_conforming(context: dict) -> None:
+    text = _stdout_text(context)
+    assert "non-conforming" in text, f"stdout does not report the document non-conforming: {text!r}"
+
+
+@then("stdout names the missing required field by its field name")
+def _names_missing_field(context: dict) -> None:
+    from knowledge.artifact_types import parse_artifact
+    from knowledge.schema import validate_frontmatter
+
+    field = context["missing_field"]
+    text = _stdout_text(context)
+    # The CLI names the field the internal frontmatter check reports missing.
+    internal = validate_frontmatter(parse_artifact(context["source"]))
+    assert field in internal.missing_fields, "the internal check did not report this field missing"
+    assert field in text, f"stdout does not name the missing field {field!r}: {text!r}"
+
+
+@then("stdout reports the document as non-conforming for a missing or unrecognized type")
+def _reports_non_conforming_type(context: dict) -> None:
+    text = _stdout_text(context)
+    assert "non-conforming" in text, f"stdout does not report non-conforming: {text!r}"
+    assert "type" in text, f"stdout does not name the type problem: {text!r}"
+
+
+@then("stdout does not silently skip validation for lack of a determinable type")
+def _does_not_skip_type(context: dict) -> None:
+    from knowledge.artifact_types import parse_artifact
+    from knowledge.schema import validate_frontmatter
+
+    text = _stdout_text(context)
+    # The internal frontmatter check produces a specific type diagnosis; the CLI
+    # surfaces it rather than passing the document or emitting nothing.
+    internal = validate_frontmatter(parse_artifact(context["source"]))
+    assert not internal.conforming, "the internal check unexpectedly conformed"
+    assert context["exit"] != 0, "validation was silently skipped (clean exit)"
+    assert any(message in text for message in internal.messages), (
+        f"stdout does not surface the internal type diagnosis: {text!r}"
+    )
