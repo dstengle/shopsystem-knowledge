@@ -473,3 +473,79 @@ def _candidate_full_body(context: dict) -> None:
     context["artifact"] = Artifact(
         frontmatter={"type": "candidate"}, body=_body_with_sections(CANDIDATE_SECTIONS)
     )
+
+
+# =============================================================================
+# Behavior D — candidate status enum includes committed
+# =============================================================================
+
+
+@scenario(FEATURE, "the candidate typedef's generated status enum includes committed, the value cand-005 uses")
+def test_candidate_enum_includes_committed() -> None: ...
+
+
+@scenario(FEATURE, "a candidate artifact carrying status committed passes frontmatter conformance")
+def test_candidate_committed_conforms() -> None: ...
+
+
+@scenario(
+    FEATURE,
+    "a status value outside the type's recognized enum is reported non-conforming "
+    "and names the offending value",
+)
+def test_candidate_in_progress_non_conforming() -> None: ...
+
+
+@given(
+    "the candidate typedef, whose currently generated status enum is exploring, "
+    "shaped, briefed, parked or rejected — a set that omits committed, the value "
+    "cand-005's ratification uses"
+)
+def _candidate_typedef_old_enum(context: dict) -> None:
+    context["type"] = "candidate"
+
+
+@given(
+    "5 independently-authored candidate instances, four (cand-001 through cand-004) "
+    "carrying status shaped and one (cand-005) carrying status committed once the "
+    "product authority ratified it"
+)
+def _candidate_instances_committed(context: dict) -> None:
+    context.setdefault("type", "candidate")
+
+
+@then("the generated schema fragment's status enum for candidate is exploring, shaped, briefed, committed, parked and rejected")
+def _candidate_enum_full() -> None:
+    assert _fragment("candidate")["statuses"] == [
+        "exploring",
+        "shaped",
+        "briefed",
+        "committed",
+        "parked",
+        "rejected",
+    ]
+
+
+@then("committed is a member of the generated status enum")
+def _candidate_enum_has_committed() -> None:
+    assert "committed" in _fragment("candidate")["statuses"]
+
+
+@given('a candidate artifact whose frontmatter carries a status value of "committed"')
+def _candidate_status_committed(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter=_full_frontmatter("candidate", id_value="cand-001", status_value="committed")
+    )
+
+
+@given('a candidate artifact whose frontmatter carries a status value of "in-progress"')
+def _candidate_status_in_progress(context: dict) -> None:
+    context["artifact"] = Artifact(
+        frontmatter=_full_frontmatter("candidate", id_value="cand-001", status_value="in-progress")
+    )
+
+
+@given('"in-progress" is not a member of the candidate status enum exploring, shaped, briefed, committed, parked or rejected')
+def _in_progress_not_in_enum(context: dict) -> None:
+    # Rationale; the assertion is on the validation verdict in the Then leg.
+    pass
