@@ -33,7 +33,7 @@ from knowledge.coherence import ArtifactCorpus
 # ``type`` it holds. A subdirectory absent from the root is treated as zero
 # instances of its type rather than an error.
 SUBDIR_TYPES: dict[str, str] = {
-    "intent": "intent-record",
+    "intents": "intent-record",
     "candidates": "candidate",
     "sessions": "session-record",
     "prioritizations": "prioritization-record",
