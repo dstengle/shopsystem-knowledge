@@ -361,6 +361,7 @@ def _cmd_query(
     facet: str | None = None,
     value: str | None = None,
     edge: str | None = None,
+    rendered: bool = False,
 ) -> int:
     """Run ``query`` over the corpus rooted at ``corpus_root``.
 
@@ -380,6 +381,13 @@ def _cmd_query(
 
     A predicate matching no document is an empty result — ``[]`` on stdout,
     exit 0, and nothing on stderr — never routed through the error path.
+
+    When ``rendered`` is true (facet mode only), each selected document's
+    record additionally carries a ``rendered`` field holding that document's
+    body projected through render's *current-system* view. The projection
+    reuses render's module-level :func:`_current_system_body`, so the dropped
+    transformation sections (``## Changelog`` and ``## Supersede-chain``) are
+    byte-identical to render's current-system view rather than re-derived.
     """
     from knowledge.corpus_loader import load_corpus
     from knowledge.typed_edges import _link_targets
@@ -393,8 +401,14 @@ def _cmd_query(
         def selected(doc: object) -> bool:
             return _doc_matches_facet(doc, facet, value)
 
+    def record_for(doc: object) -> dict[str, object]:
+        record = _query_record(doc)
+        if rendered:
+            record["rendered"] = _current_system_body(doc.body)  # type: ignore[attr-defined]
+        return record
+
     corpus = load_corpus(corpus_root)
-    records = [_query_record(doc) for doc in corpus.artifacts if selected(doc)]
+    records = [record_for(doc) for doc in corpus.artifacts if selected(doc)]
     stdout.write(json.dumps(records).encode("utf-8"))
     return 0
 
@@ -534,6 +548,11 @@ def main(
         facet: str | None = None
         value: str | None = None
         edge: str | None = None
+        # ``--rendered`` is a valueless flag on the facet mode; pull it out of
+        # the trailer before the name/value even-length check so the remaining
+        # trailer is the strict name/value pairs.
+        rendered = "--rendered" in extra
+        extra = [tok for tok in extra if tok != "--rendered"]
         if len(extra) % 2 != 0:
             err.write(
                 b"error: 'query' accepts --facet <facet> and --value <value>,"
@@ -589,7 +608,9 @@ def main(
                 b"error: 'query' requires both --facet <facet> and --value <value>\n"
             )
             return 2
-        return _cmd_query(corpus_root, out, err, facet=facet, value=value)
+        return _cmd_query(
+            corpus_root, out, err, facet=facet, value=value, rendered=rendered
+        )
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
