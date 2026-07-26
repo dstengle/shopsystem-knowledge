@@ -242,6 +242,7 @@ def _cmd_render(
     doc_id: str,
     corpus_root: str,
     view: str,
+    fmt: str,
     stdout: BinaryIO,
     stderr: BinaryIO,
 ) -> int:
@@ -282,12 +283,10 @@ def _cmd_render(
         return 2
 
     if view == "transformation":
-        stdout.write(subject.body.encode("utf-8"))
-        return 0
+        return _emit_render(subject.body, subject, fmt, stdout)
 
     if subject.status == "accepted":
-        stdout.write(_current_system_body(subject.body).encode("utf-8"))
-        return 0
+        return _emit_render(_current_system_body(subject.body), subject, fmt, stdout)
 
     # Outside the accepted set: the current-system view has no rendering. Report
     # it — naming the id — and emit none of the document's content.
@@ -297,6 +296,30 @@ def _cmd_render(
             f"not in the accepted set.\n"
         ).encode("utf-8")
     )
+    return 0
+
+
+def _emit_render(rendered_body: str, subject: object, fmt: str, stdout: BinaryIO) -> int:
+    """Emit ``rendered_body`` in the requested ``fmt`` and return exit 0.
+
+    ``md`` (the default) writes the rendered document markdown body bytes
+    exactly — unchanged from render's pre-format behaviour. ``json``/``yaml``
+    write a structured *envelope* wrapping that same rendered body plus the
+    subject's frontmatter facets (id/type/status/title live in
+    ``subject.frontmatter``), so a structured consumer sees both the rendering
+    and the document's identity in one document.
+    """
+    if fmt == "md":
+        stdout.write(rendered_body.encode("utf-8"))
+        return 0
+    envelope = {
+        "body": rendered_body,
+        "frontmatter": dict(subject.frontmatter),  # type: ignore[attr-defined]
+    }
+    if fmt == "yaml":
+        stdout.write(yaml.safe_dump(envelope).encode("utf-8"))
+    else:
+        stdout.write(json.dumps(envelope).encode("utf-8"))
     return 0
 
 
@@ -377,19 +400,22 @@ def main(
 
     if sub == "render":
         # render <doc_id> --corpus <root>
-        #   [--view current-system|transformation] (pairs, any order)
+        #   [--view current-system|transformation] [--format md|json|yaml]
+        #   (pairs, any order)
         if len(rest) < 3 or rest[1] != "--corpus":
             err.write(
                 b"error: 'render' takes a document id and --corpus <root>"
-                b" (optionally --view current-system|transformation)\n"
+                b" (optionally --view current-system|transformation and"
+                b" --format md|json|yaml)\n"
             )
             return 2
         doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
         view = "current-system"
+        fmt = "md"
         if len(extra) % 2 != 0:
             err.write(
-                b"error: 'render' accepts --view current-system|transformation as a"
-                b" name/value pair after --corpus <root>\n"
+                b"error: 'render' accepts --view current-system|transformation and"
+                b" --format md|json|yaml as name/value pairs after --corpus <root>\n"
             )
             return 2
         for i in range(0, len(extra), 2):
@@ -402,13 +428,21 @@ def main(
                         f"current-system, transformation\n".encode("utf-8")
                     )
                     return 2
+            elif name == "--format":
+                fmt = value
+                if fmt not in ("md", "json", "yaml"):
+                    err.write(
+                        f"error: unknown format '{fmt}'; expected one of "
+                        f"md, json, yaml\n".encode("utf-8")
+                    )
+                    return 2
             else:
                 err.write(
                     b"error: 'render' accepts only --view current-system|transformation"
-                    b" after --corpus <root>\n"
+                    b" and --format md|json|yaml after --corpus <root>\n"
                 )
                 return 2
-        return _cmd_render(doc_id, corpus_root, view, out, err)
+        return _cmd_render(doc_id, corpus_root, view, fmt, out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
