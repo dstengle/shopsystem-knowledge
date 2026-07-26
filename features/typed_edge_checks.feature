@@ -138,3 +138,22 @@ Feature: Typed-edge coherence checks over a corpus
         | forward-field | back-field    | finding               |
         | derives-from  | derived-by    | asymmetric-derivation |
         | references    | referenced-by | asymmetric-reference  |
+
+  @scenario_hash:d3e55f9b80099eb5 @bc:shopsystem-knowledge
+  Scenario: a predecessor jointly superseded by several successors, each carrying its supersedes back-edge, passes
+    Given an artifact corpus in which artifact B declares a superseded-by list naming successors A and C
+    And artifacts A and C each declare a supersedes edge naming B
+    And artifact B's status is superseded
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports no asymmetric-supersede finding for the joint supersession of B
+    And the aggregate verdict exits zero
+
+  @scenario_hash:bb316e39954e3ce9 @bc:shopsystem-knowledge
+  Scenario: a joint superseded-by list missing one successor's supersedes back-edge is flagged
+    Given an artifact corpus in which artifact B declares a superseded-by list naming successors A and C
+    And artifact A declares a supersedes edge naming B
+    And artifact C carries no supersedes edge naming B
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports an asymmetric-supersede finding naming B and C by id for the missing back-edge
+    And it reports no asymmetric-supersede finding for the resolved B and A pair
+    And the aggregate verdict exits non-zero

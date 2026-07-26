@@ -108,6 +108,20 @@ def test_asymmetric_typed_edge_flagged() -> None: ...
 def test_symmetric_typed_edge_passes() -> None: ...
 
 
+@scenario(
+    FEATURE,
+    "a predecessor jointly superseded by several successors, each carrying its supersedes back-edge, passes",
+)
+def test_joint_supersession_passes() -> None: ...
+
+
+@scenario(
+    FEATURE,
+    "a joint superseded-by list missing one successor's supersedes back-edge is flagged",
+)
+def test_joint_supersession_missing_flagged() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -307,6 +321,49 @@ def _b_no_typed_backedge(context: dict, back_field: str) -> None:
 def _b_typed_backedge(context: dict, back_field: str) -> None:
     context["back_field"] = back_field
     _set_field(context, context["B"], back_field, [context["A"]])
+
+
+# --- Given steps: joint N:M supersession -------------------------------------
+
+
+@given("an artifact corpus in which artifact B declares a superseded-by list naming successors A and C")
+def _b_superseded_by_list_ac(context: dict) -> None:
+    context["B"] = "adr-050"
+    context["A"] = "adr-100"
+    context["C"] = "adr-060"
+    context["artifacts"] = [
+        _artifact(
+            type="adr",
+            id="adr-050",
+            status="superseded",
+            **{"superseded-by": ["adr-100", "adr-060"]},
+        ),
+        _artifact(type="adr", id="adr-100", status="accepted"),
+        _artifact(type="adr", id="adr-060", status="accepted"),
+    ]
+
+
+@given("artifacts A and C each declare a supersedes edge naming B")
+def _a_and_c_supersede_b(context: dict) -> None:
+    _set_field(context, context["A"], "supersedes", [context["B"]])
+    _set_field(context, context["C"], "supersedes", [context["B"]])
+
+
+@given("artifact B's status is superseded")
+def _b_status_superseded(context: dict) -> None:
+    _set_field(context, context["B"], "status", "superseded")
+
+
+@given("artifact A declares a supersedes edge naming B")
+def _a_supersedes_b_only(context: dict) -> None:
+    _set_field(context, context["A"], "supersedes", [context["B"]])
+
+
+@given("artifact C carries no supersedes edge naming B")
+def _c_no_supersedes_b(context: dict) -> None:
+    for art in context["artifacts"]:
+        if art.id == context["C"]:
+            assert "supersedes" not in art.frontmatter
 
 
 # --- When steps --------------------------------------------------------------
@@ -533,6 +590,31 @@ def _typed_finding_remediation(context: dict, back_field: str) -> None:
 def _no_typed_finding_ab(context: dict, finding: str) -> None:
     for f in _findings(context, finding):
         assert not (context["A"] in f.subjects and context["B"] in f.subjects)
+
+
+@then("it reports no asymmetric-supersede finding for the joint supersession of B")
+def _no_asym_joint_b(context: dict) -> None:
+    for f in _findings(context, "asymmetric-supersede"):
+        assert context["B"] not in f.subjects, (
+            f"unexpected asymmetric-supersede finding naming B: {f.subjects}"
+        )
+
+
+@then("it reports an asymmetric-supersede finding naming B and C by id for the missing back-edge")
+def _reports_asym_bc(context: dict) -> None:
+    found = _findings(context, "asymmetric-supersede")
+    assert found, "expected an asymmetric-supersede finding for the missing B<-C back-edge"
+    assert any(context["B"] in f.subjects and context["C"] in f.subjects for f in found), (
+        f"expected a finding naming B and C; got {[f.subjects for f in found]}"
+    )
+
+
+@then("it reports no asymmetric-supersede finding for the resolved B and A pair")
+def _no_asym_ba(context: dict) -> None:
+    for f in _findings(context, "asymmetric-supersede"):
+        assert not (context["B"] in f.subjects and context["A"] in f.subjects), (
+            f"unexpected asymmetric-supersede finding for resolved B/A pair: {f.subjects}"
+        )
 
 
 @then("the aggregate verdict exits non-zero")
