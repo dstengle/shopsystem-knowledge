@@ -55,6 +55,7 @@ from knowledge.typed_edges import (
     evaluated_governed_delta_subjects,
     governed_delta_registrants,
     resolve_edges,
+    resolve_referenced_by,
 )
 from knowledge.discovery import (
     DiscoveryResult,
@@ -177,6 +178,7 @@ __all__ = [
     "render_schema_fragment",
     "render_template",
     "resolve_edges",
+    "resolve_referenced_by",
     "run_adversarial_pass",
     "run_coherence_gate",
     "run_authoring_discovery",

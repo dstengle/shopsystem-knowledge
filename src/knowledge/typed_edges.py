@@ -307,6 +307,25 @@ def check_asymmetric_reference(
     )
 
 
+def resolve_referenced_by(
+    corpus: ArtifactCorpus, artifact_id: str
+) -> tuple[str, ...]:
+    """The ids that reference ``artifact_id``, read from its own frontmatter.
+
+    Answers "what references ``artifact_id``?" by a single deterministic
+    frontmatter lookup: the ids named in ``artifact_id``'s own materialized
+    ``referenced-by`` field, in declared order. It deliberately does **not**
+    scan the corpus computing forward ``references`` edges — so it answers
+    correctly even when the referencing artifact never materialized the forward
+    ``references`` edge. An absent ``artifact_id`` (or one carrying no
+    ``referenced-by`` field) resolves to the empty tuple.
+    """
+    artifact = corpus.get(artifact_id)
+    if artifact is None:
+        return ()
+    return tuple(_link_targets(artifact, "referenced-by"))
+
+
 def check_active_yet_superseded(
     corpus: ArtifactCorpus, config: CoherenceConfig
 ) -> list[Finding]:
