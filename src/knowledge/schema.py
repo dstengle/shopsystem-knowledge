@@ -53,6 +53,16 @@ STORED_PROJECTION_FIELD = "stored-projection-field"
 # is reported.
 DISTRIBUTION_ENUM = ("product-lead", "product-wide", "bc-local")
 
+# Recognized optional frontmatter fields. Like ``distribution``, each name here
+# is an optional field whose *presence* conforms and whose *absence* is never a
+# missing-field finding. ``tags`` is an optional retrieval-label list carried
+# for discovery; recording it here marks it a recognized optional rather than an
+# unknown field, so a present ``tags`` is not flagged and an absent ``tags`` is
+# never reported missing. The schema stays permissive: this collection records
+# which optionals are recognized, it does not turn every other field into an
+# unrecognized-field diagnostic.
+RECOGNIZED_OPTIONAL_FIELDS: tuple[str, ...] = ("tags",)
+
 # The codes whose diagnostics denote a missing required field — the set
 # :attr:`ConformanceResult.missing_fields` draws its field names from.
 _MISSING_FIELD_CODES = frozenset({MISSING_REQUIRED_FIELD, MISSING_TYPE_FIELD})
