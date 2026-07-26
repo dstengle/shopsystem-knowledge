@@ -98,3 +98,25 @@ Feature: Frontmatter conformance against the per-type schema
     When the knowledge context validates the artifact's frontmatter against the schema
     Then it reports the artifact as non-conforming for storing a disclosure-level field
     And the diagnosis states that disclosure level is a projection emitted by the tool and is never a stored frontmatter field
+
+  @scenario_hash:617cf4f60d8ddb01 @bc:shopsystem-knowledge
+  Scenario Outline: a distribution value inside the enum conforms
+    Given an artifact whose frontmatter carries a distribution value of "<value>"
+    And "<value>" is a member of the distribution enum product-lead, product-wide or bc-local
+    When the knowledge context validates the artifact's frontmatter against the schema
+    Then it reports the artifact as conforming
+    And it does not report distribution as an unrecognized value
+
+    Examples:
+      | value        |
+      | product-lead |
+      | product-wide |
+      | bc-local     |
+
+  @scenario_hash:283fc6f5733ffac6 @bc:shopsystem-knowledge
+  Scenario: a distribution value outside the enum is reported non-conforming and names the offending value
+    Given an artifact whose frontmatter carries a distribution value of "system-wide"
+    And "system-wide" is not a member of the distribution enum product-lead, product-wide or bc-local
+    When the knowledge context validates the artifact's frontmatter against the schema
+    Then it reports the artifact as non-conforming for an unrecognized distribution value
+    And the diagnosis names the offending value "system-wide"

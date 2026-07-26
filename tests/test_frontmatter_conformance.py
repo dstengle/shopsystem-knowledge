@@ -133,6 +133,17 @@ def test_optional_absent_conforms() -> None: ...
 def test_stored_disclosure_level() -> None: ...
 
 
+@scenario(FEATURE, "a distribution value inside the enum conforms")
+def test_distribution_inside_enum_conforms() -> None: ...
+
+
+@scenario(
+    FEATURE,
+    "a distribution value outside the enum is reported non-conforming and names the offending value",
+)
+def test_distribution_outside_enum_non_conforming() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -274,6 +285,43 @@ def _stored_disclosure_level(context: dict) -> None:
     context["frontmatter"] = fm
 
 
+@given(parsers.parse('an artifact whose frontmatter carries a distribution value of "{value}"'))
+def _artifact_with_distribution(context: dict, value: str) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["distribution"] = value
+    context["frontmatter"] = fm
+
+
+@given(
+    parsers.parse(
+        '"{value}" is a member of the distribution enum product-lead, '
+        "product-wide or bc-local"
+    )
+)
+def _value_in_distribution_enum(context: dict, value: str) -> None:
+    # Reference the schema's distribution enum rather than a literal, so this
+    # premise is genuinely unmet until the schema recognizes the enum. Absent
+    # ``DISTRIBUTION_ENUM`` the default empty tuple makes the membership
+    # assertion fail here (RED) instead of erroring at import/collection time.
+    from knowledge import schema
+
+    enum = getattr(schema, "DISTRIBUTION_ENUM", ())
+    assert value in enum, f"'{value}' is not a member of the distribution enum {enum!r}"
+
+
+@given(
+    parsers.parse(
+        '"{value}" is not a member of the distribution enum product-lead, '
+        "product-wide or bc-local"
+    )
+)
+def _value_not_in_distribution_enum(context: dict, value: str) -> None:
+    from knowledge import schema
+
+    enum = getattr(schema, "DISTRIBUTION_ENUM", ())
+    assert value not in enum, f"'{value}' unexpectedly a member of the distribution enum {enum!r}"
+
+
 # --- When step (shared) ------------------------------------------------------
 
 
@@ -395,3 +443,18 @@ def _disclosure_message(context: dict) -> None:
     assert diag.field == "disclosure-level"
     assert "projection" in diag.message
     assert "never a stored frontmatter field" in diag.message
+
+
+@then("it does not report distribution as an unrecognized value")
+def _no_unrecognized_distribution(context: dict) -> None:
+    result = context["result"]
+    assert not any(d.code == "unrecognized-distribution" for d in result.diagnostics), (
+        f"a member value was wrongly flagged unrecognized; diagnostics: {result.messages}"
+    )
+
+
+@then("it reports the artifact as non-conforming for an unrecognized distribution value")
+def _non_conforming_distribution(context: dict) -> None:
+    result = context["result"]
+    assert result.conforming is False
+    assert any(d.code == "unrecognized-distribution" for d in result.diagnostics)
