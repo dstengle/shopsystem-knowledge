@@ -285,3 +285,172 @@ def _no_error_reported(context: dict) -> None:
     assert stderr.strip() == "", (
         f"the CLI reported the empty match as an error on stderr: {stderr!r}"
     )
+
+
+# --- query by edge participation (0a2.15) ------------------------------------
+#
+# A second selection mode on ``query``: instead of ``--facet <f> --value <v>``
+# (frontmatter facet equality), select every document that *participates* in a
+# named materialized edge — i.e. carries a non-empty ``<edge>`` frontmatter link
+# field. The three edges exercised are the materialized back/forward link fields
+# ``superseded-by``, ``references``, and ``referenced-by``. The chosen option
+# shape parallels ``--facet``: ``query --corpus <root> --edge <edge>`` (no value,
+# since participation is a non-empty test, not an equality).
+#
+# The fixture corpus carries, for every exercised edge, at least one document
+# that participates (a non-empty ``<edge>`` link field) AND at least one that
+# does not, so the soundness assertions — every returned document carries a
+# non-empty ``<edge>`` edge, and none lacking it — genuinely prove the verb
+# *filters* on participation rather than returning the whole corpus.
+
+
+def _write_edge_doc(
+    root: Path,
+    subdir: str,
+    doc_id: str,
+    *,
+    status: str,
+    edges: dict[str, list[str]],
+) -> None:
+    """Write a typed ``adr`` document carrying the given materialized ``edges``.
+
+    ``edges`` maps a materialized link-field name (``superseded-by`` /
+    ``references`` / ``referenced-by``) to its non-empty list of target ids; a
+    document participates in an edge exactly when that field is present and
+    non-empty. A document with an empty ``edges`` mapping participates in none.
+    """
+    frontmatter: dict[str, object] = {
+        "type": "adr",
+        "id": doc_id,
+        "title": f"Edge subject {doc_id}",
+        "status": status,
+    }
+    frontmatter.update(edges)
+    source = (
+        "---\n"
+        + yaml.safe_dump(frontmatter, sort_keys=False)
+        + "---\n\n## Context\n\nBody.\n"
+    )
+    (root / subdir).mkdir(parents=True, exist_ok=True)
+    (root / subdir / f"{doc_id}.md").write_text(source, encoding="utf-8")
+
+
+# The edge fixture: for each exercised edge there is a participant carrying a
+# non-empty link field of that name and non-participants that carry none.
+#   (subdir, id, status, {edge_field: [targets]})
+_EDGE_FIXTURE_DOCS: tuple[tuple[str, str, str, dict[str, list[str]]], ...] = (
+    ("adrs", "adr-super", "superseded", {"superseded-by": ["adr-plain"]}),
+    ("adrs", "adr-ref", "accepted", {"references": ["adr-plain"]}),
+    ("adrs", "adr-refby", "accepted", {"referenced-by": ["adr-plain"]}),
+    ("adrs", "adr-plain", "accepted", {}),
+)
+
+
+def _build_edge_corpus(root: Path) -> None:
+    """Materialize the edge-participation fixture corpus under ``root``."""
+    for subdir, doc_id, status, edges in _EDGE_FIXTURE_DOCS:
+        _write_edge_doc(root, subdir, doc_id, status=status, edges=edges)
+
+
+def _doc_participates_in_edge(doc: object, edge: str) -> bool:
+    """Whether ``doc`` carries a non-empty ``edge`` materialized link field.
+
+    Participation is read the same way the edge-resolution pass reads it — via
+    :func:`knowledge.typed_edges._link_targets`, non-empty — so a scalar id, a
+    list of ids, and an absent/empty field are all interpreted uniformly.
+    """
+    from knowledge.typed_edges import _link_targets
+
+    return bool(_link_targets(doc, edge))  # type: ignore[arg-type]
+
+
+def _run_edge_query(context: dict, edge: str) -> None:
+    """Drive ``query --corpus <root> --edge <edge>`` in-process."""
+    from knowledge.cli import main
+
+    out, err = io.BytesIO(), io.BytesIO()
+    rc = main(
+        ["query", "--corpus", str(context["root"]), "--edge", edge],
+        stdout=out,
+        stderr=err,
+    )
+    context["exit"] = rc
+    context["stdout"] = out.getvalue()
+    context["stderr"] = err.getvalue()
+
+
+@scenario(FEATURE, "query selects documents by edge participation")
+def test_query_by_edge_participation() -> None: ...
+
+
+@given(parsers.re(
+    r'a corpus in which some documents participate in the materialized '
+    r'"(?P<edge>[^"]+)" relationship and some do not'
+))
+def _corpus_with_edge_participation(context: dict, tmp_path: Path, edge: str) -> None:
+    root = tmp_path / "corpus"
+    _build_edge_corpus(root)
+    context["root"] = root
+
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(root)
+    context["corpus"] = corpus
+    # Fixture invariant: the edge genuinely partitions the corpus — at least one
+    # document participates in <edge> and at least one does not — so the
+    # soundness assertions prove filtering rather than a whole-corpus return.
+    participants = [d for d in corpus.artifacts if _doc_participates_in_edge(d, edge)]
+    non_participants = [
+        d for d in corpus.artifacts if not _doc_participates_in_edge(d, edge)
+    ]
+    assert participants, (
+        f"fixture invariant: at least one document must participate in {edge!r}"
+    )
+    assert non_participants, (
+        f"fixture invariant: at least one document must NOT participate in {edge!r} "
+        f"so filtering is provable"
+    )
+
+
+@when(parsers.re(
+    r'I run the query verb selecting documents that participate in the '
+    r'"(?P<edge>[^"]+)" edge'
+))
+def _run_verb_edge(context: dict, edge: str) -> None:
+    _run_edge_query(context, edge)
+
+
+@then(parsers.re(
+    r'every returned document carries a non-empty "(?P<edge>[^"]+)" frontmatter edge'
+))
+def _every_returned_participates(context: dict, edge: str) -> None:
+    records = _records(context)
+    assert records, (
+        "expected a non-empty compact list — the fixture corpus has documents "
+        "participating in this edge, so a correct query must return them"
+    )
+    corpus = context["corpus"]
+    for record in records:
+        doc = corpus.get(record["id"])
+        assert doc is not None, (
+            f"query returned id {record['id']!r} not present in the corpus: {record!r}"
+        )
+        assert _doc_participates_in_edge(doc, edge), (
+            f"query returned document {record['id']!r} carrying no non-empty "
+            f"{edge!r} edge; the verb must select only participants: {record!r}"
+        )
+
+
+@then(parsers.re(r'no returned document lacks the "(?P<edge>[^"]+)" edge'))
+def _no_returned_lacks_edge(context: dict, edge: str) -> None:
+    records = _records(context)
+    corpus = context["corpus"]
+    lacking = [
+        record["id"]
+        for record in records
+        if not _doc_participates_in_edge(corpus.get(record["id"]), edge)
+    ]
+    assert not lacking, (
+        f"query returned documents that lack the {edge!r} edge: {lacking!r}; "
+        f"a participation query must exclude non-participants"
+    )

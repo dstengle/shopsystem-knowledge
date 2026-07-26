@@ -32,3 +32,17 @@ Feature: The query read verb — select by frontmatter facet
     Then the exit code is 0
     And the result is an empty list
     And the CLI does not report the empty match as an error
+
+  @scenario_hash:d8899babf8bbc0aa @bc:shopsystem-knowledge
+  Scenario Outline: query selects documents by edge participation
+    Given a corpus in which some documents participate in the materialized "<edge>" relationship and some do not
+    When I run the query verb selecting documents that participate in the "<edge>" edge
+    Then the exit code is 0
+    And every returned document carries a non-empty "<edge>" frontmatter edge
+    And no returned document lacks the "<edge>" edge
+
+    Examples:
+      | edge          |
+      | superseded-by |
+      | references    |
+      | referenced-by |
