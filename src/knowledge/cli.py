@@ -22,9 +22,12 @@ bytes with nothing re-encoded.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import BinaryIO, Sequence
+
+import yaml
 
 from knowledge.artifact_types import (
     RECOGNIZED_ARTIFACT_TYPES,
@@ -93,6 +96,323 @@ def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
     return 1
 
 
+def _render_neighbourhood_markdown(payload: dict[str, object]) -> str:
+    """Render the navigate neighbourhood ``payload`` as a markdown document.
+
+    Each incident edge becomes a bullet naming its ``link_field`` and target id;
+    a resolved neighbour contributes its title. An unresolved edge (whose
+    ``neighbour`` is ``None``) is rendered faithfully without a title lookup.
+    """
+    lines = [f"# navigate: {payload['id']}", "", "## edges", ""]
+    edges = payload.get("edges", [])
+    assert isinstance(edges, list)
+    for edge in edges:
+        assert isinstance(edge, dict)
+        link_field = edge["link_field"]
+        target = edge["target"]
+        neighbour = edge.get("neighbour")
+        if isinstance(neighbour, dict):
+            lines.append(f"- {link_field} -> {target}: {neighbour['title']}")
+        else:
+            lines.append(f"- {link_field} -> {target}: (unresolved)")
+    return "\n".join(lines) + "\n"
+
+
+def _cmd_navigate(
+    doc_id: str,
+    corpus_root: str,
+    direction: str,
+    fmt: str,
+    stdout: BinaryIO,
+    stderr: BinaryIO,
+) -> int:
+    """Run ``navigate`` for ``doc_id`` over the corpus rooted at ``corpus_root``.
+
+    The document's edge-neighbourhood is read from *its own* materialized
+    frontmatter link fields — the forward edges it declares and the back-edges
+    materialized on it — and never by scanning the rest of the corpus for
+    inbound edges, mirroring the :func:`~knowledge.typed_edges.resolve_referenced_by`
+    frontmatter-only precedent. Each incident edge is listed as a link-field,
+    target id, and resolved flag; a resolved target's id/type/status/title is
+    surfaced as the edge's neighbour facets.
+
+    The ``direction`` filter selects which half of the three reciprocity pairs
+    the neighbourhood returns: ``both`` walks all :data:`LINK_FIELDS` (the full
+    neighbourhood, unchanged), ``forward`` restricts to
+    :data:`~knowledge.typed_edges.FORWARD_LINK_FIELDS`, and ``back`` restricts
+    to :data:`~knowledge.typed_edges.BACK_LINK_FIELDS`. An edge whose target does
+    not resolve is surfaced faithfully with ``resolved=false`` rather than
+    dropped.
+
+    An id absent from the corpus is a named error on stderr (naming the
+    offending id and framing it as absent from the corpus) with a non-zero
+    exit, rather than an empty answer.
+    """
+    from knowledge.corpus_loader import load_corpus
+    from knowledge.typed_edges import (
+        BACK_LINK_FIELDS,
+        FORWARD_LINK_FIELDS,
+        LINK_FIELDS,
+        _link_targets,
+    )
+
+    if direction == "forward":
+        walk_fields: tuple[str, ...] = FORWARD_LINK_FIELDS
+    elif direction == "back":
+        walk_fields = BACK_LINK_FIELDS
+    else:
+        walk_fields = LINK_FIELDS
+
+    corpus = load_corpus(corpus_root)
+    subject = corpus.get(doc_id)
+    if subject is None:
+        stderr.write(
+            f"error: no document with id '{doc_id}' is present in the corpus\n".encode(
+                "utf-8"
+            )
+        )
+        return 2
+
+    edges: list[dict[str, object]] = []
+    for field_name in walk_fields:
+        for target in _link_targets(subject, field_name):
+            neighbour_art = corpus.get(target)
+            resolved = neighbour_art is not None
+            neighbour: dict[str, object] | None = None
+            if neighbour_art is not None:
+                neighbour = {
+                    "id": neighbour_art.id,
+                    "type": neighbour_art.type,
+                    "status": neighbour_art.status,
+                    "title": neighbour_art.title,
+                }
+            edges.append(
+                {
+                    "link_field": field_name,
+                    "target": target,
+                    "resolved": resolved,
+                    "neighbour": neighbour,
+                }
+            )
+
+    payload = {"id": doc_id, "edges": edges}
+    if fmt == "yaml":
+        stdout.write(yaml.safe_dump(payload).encode("utf-8"))
+    elif fmt == "md":
+        stdout.write(_render_neighbourhood_markdown(payload).encode("utf-8"))
+    else:
+        stdout.write(json.dumps(payload).encode("utf-8"))
+    return 0
+
+
+# The transformation section headings the current-system view drops. The
+# current-system view projects the document as the accepted system sees it right
+# now, so the *transformation* sections — how the document got here (its
+# ``## Changelog``, including any superseded-predecessor reference living inside
+# it) and its ``## Supersede-chain`` material — are sliced out. The
+# transformation view, by contrast, emits the whole body including these.
+_TRANSFORMATION_SECTION_HEADINGS = frozenset({"Changelog", "Supersede-chain"})
+
+
+def _current_system_body(body: str) -> str:
+    """Slice ``body`` down to the current-system view: drop transformation sections.
+
+    The body is split on ``## `` level-two headings — the same delimiting
+    :attr:`knowledge.artifact_types.Artifact.sections` uses — and every section
+    whose heading is in :data:`_TRANSFORMATION_SECTION_HEADINGS` (``Changelog``
+    and ``Supersede-chain``) is dropped, the rest being rejoined in document
+    order. Dropping ``## Changelog`` removes both the changelog marker and any
+    named predecessor reference living inside that section; dropping
+    ``## Supersede-chain`` removes the supersede-chain material. Any content
+    preceding the first ``## `` heading is preamble and is kept.
+    """
+    kept: list[str] = []
+    dropping = False
+    for line in body.splitlines(keepends=True):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            heading = stripped[3:].strip()
+            dropping = heading in _TRANSFORMATION_SECTION_HEADINGS
+        if not dropping:
+            kept.append(line)
+    return "".join(kept)
+
+
+def _cmd_render(
+    doc_id: str,
+    corpus_root: str,
+    view: str,
+    fmt: str,
+    stdout: BinaryIO,
+    stderr: BinaryIO,
+) -> int:
+    """Run ``render`` for ``doc_id`` over the corpus rooted at ``corpus_root``.
+
+    Two views project a single document:
+
+    * **current-system** projects the document as the accepted system sees it
+      right now. Accepted-set membership is read from *the subject's own*
+      frontmatter status: a document is in the accepted set iff its ``status`` is
+      ``accepted``.
+
+      * **In the accepted set (adr-068):** the view emits the document's content
+        sections, with the transformation sections (``## Changelog`` and
+        ``## Supersede-chain``) sliced out by :func:`_current_system_body`, so a
+        reader sees what the accepted system currently says. Exit 0.
+      * **Outside the accepted set (adr-034, superseded):** the current-system
+        view has *no rendering*. The CLI reports that the document has no
+        current-system rendering *because it is not in the accepted set*, naming
+        the offending id, and emits **none** of that document's content.
+
+    * **transformation** emits the FULL document body (:attr:`Artifact.body`) —
+      content sections plus the changelog and supersede-chain transformation
+      material — so a reader sees how the document got to where it is. Exit 0.
+
+    The caller has already rejected any unknown view before dispatch.
+    """
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(corpus_root)
+    subject = corpus.get(doc_id)
+    if subject is None:
+        stderr.write(
+            f"error: no document with id '{doc_id}' is present in the corpus\n".encode(
+                "utf-8"
+            )
+        )
+        return 2
+
+    if view == "transformation":
+        return _emit_render(subject.body, subject, fmt, stdout)
+
+    if subject.status == "accepted":
+        return _emit_render(_current_system_body(subject.body), subject, fmt, stdout)
+
+    # Outside the accepted set: the current-system view has no rendering. Report
+    # it — naming the id — and emit none of the document's content.
+    stdout.write(
+        (
+            f"{doc_id} has no current-system rendering because it is "
+            f"not in the accepted set.\n"
+        ).encode("utf-8")
+    )
+    return 0
+
+
+def _emit_render(rendered_body: str, subject: object, fmt: str, stdout: BinaryIO) -> int:
+    """Emit ``rendered_body`` in the requested ``fmt`` and return exit 0.
+
+    ``md`` (the default) writes the rendered document markdown body bytes
+    exactly — unchanged from render's pre-format behaviour. ``json``/``yaml``
+    write a structured *envelope* wrapping that same rendered body plus the
+    subject's frontmatter facets (id/type/status/title live in
+    ``subject.frontmatter``), so a structured consumer sees both the rendering
+    and the document's identity in one document.
+    """
+    if fmt == "md":
+        stdout.write(rendered_body.encode("utf-8"))
+        return 0
+    envelope = {
+        "body": rendered_body,
+        "frontmatter": dict(subject.frontmatter),  # type: ignore[attr-defined]
+    }
+    if fmt == "yaml":
+        stdout.write(yaml.safe_dump(envelope).encode("utf-8"))
+    else:
+        stdout.write(json.dumps(envelope).encode("utf-8"))
+    return 0
+
+
+def _doc_matches_facet(doc: object, facet: str, value: str) -> bool:
+    """Whether ``doc`` carries frontmatter facet ``facet`` equal to ``value``.
+
+    ``type`` / ``status`` / ``distribution`` are scalar frontmatter fields read
+    uniformly from :attr:`Artifact.frontmatter` — a match is the stored scalar
+    equalling ``value``. ``tag`` matches by *membership*: the document matches
+    iff ``value`` is in its ``tags`` list (an absent or empty ``tags`` matches
+    nothing). Reading distribution/type/status uniformly from frontmatter keeps
+    the facet-selection logic single-shaped across all four facets.
+    """
+    frontmatter = doc.frontmatter  # type: ignore[attr-defined]
+    if facet == "tag":
+        return value in (frontmatter.get("tags") or [])
+    return frontmatter.get(facet) == value
+
+
+def _query_record(doc: object) -> dict[str, object]:
+    """Project ``doc`` to the compact query record: its id, title, and status.
+
+    The record shape is single-sourced here so the edge-participation query
+    (0a2.15) and the rendered-output query (0a2.17) emit the same three-key
+    record rather than re-spelling it.
+    """
+    return {
+        "id": doc.id,  # type: ignore[attr-defined]
+        "title": doc.title,  # type: ignore[attr-defined]
+        "status": doc.status,  # type: ignore[attr-defined]
+    }
+
+
+def _cmd_query(
+    corpus_root: str,
+    stdout: BinaryIO,
+    stderr: BinaryIO,
+    *,
+    facet: str | None = None,
+    value: str | None = None,
+    edge: str | None = None,
+    rendered: bool = False,
+) -> int:
+    """Run ``query`` over the corpus rooted at ``corpus_root``.
+
+    Unlike ``navigate``/``render`` — which project a single named document —
+    ``query`` is corpus-wide: it loads the whole corpus and selects a subset via
+    one of two mutually-exclusive predicates, emitting a compact JSON array of
+    one :func:`_query_record` (id/title/status) per selected document on stdout
+    with exit 0.
+
+    In *facet* mode (``facet``/``value`` given) a document is selected when its
+    frontmatter facet ``facet`` equals ``value`` (:func:`_doc_matches_facet`).
+    In *edge* mode (``edge`` given) a document is selected when it *participates*
+    in the materialized ``edge`` link field — i.e. carries a non-empty
+    ``edge`` per :func:`~knowledge.typed_edges._link_targets`, the same reader
+    the edge-resolution pass and ``navigate`` use. Only the predicate differs;
+    the record shape and empty-result contract are identical.
+
+    A predicate matching no document is an empty result — ``[]`` on stdout,
+    exit 0, and nothing on stderr — never routed through the error path.
+
+    When ``rendered`` is true (facet mode only), each selected document's
+    record additionally carries a ``rendered`` field holding that document's
+    body projected through render's *current-system* view. The projection
+    reuses render's module-level :func:`_current_system_body`, so the dropped
+    transformation sections (``## Changelog`` and ``## Supersede-chain``) are
+    byte-identical to render's current-system view rather than re-derived.
+    """
+    from knowledge.corpus_loader import load_corpus
+    from knowledge.typed_edges import _link_targets
+
+    if edge is not None:
+        def selected(doc: object) -> bool:
+            return bool(_link_targets(doc, edge))  # type: ignore[arg-type]
+    else:
+        assert facet is not None and value is not None
+
+        def selected(doc: object) -> bool:
+            return _doc_matches_facet(doc, facet, value)
+
+    def record_for(doc: object) -> dict[str, object]:
+        record = _query_record(doc)
+        if rendered:
+            record["rendered"] = _current_system_body(doc.body)  # type: ignore[attr-defined]
+        return record
+
+    corpus = load_corpus(corpus_root)
+    records = [record_for(doc) for doc in corpus.artifacts if selected(doc)]
+    stdout.write(json.dumps(records).encode("utf-8"))
+    return 0
+
+
 def main(
     argv: Sequence[str] | None = None,
     stdout: BinaryIO | None = None,
@@ -104,7 +424,9 @@ def main(
     err = stderr if stderr is not None else sys.stderr.buffer
 
     if not argv:
-        err.write(b"error: a subcommand is required (template, schema, validate)\n")
+        err.write(
+            b"error: a subcommand is required (template, schema, validate, navigate, render, query)\n"
+        )
         return 2
 
     sub, rest = argv[0], argv[1:]
@@ -120,6 +442,175 @@ def main(
             err.write(b"error: 'validate' takes exactly one document path\n")
             return 2
         return _cmd_validate(rest[0], out, err)
+
+    if sub == "navigate":
+        # navigate <doc_id> --corpus <root>
+        #   [--direction forward|back|both] [--format md|json|yaml] (any order)
+        if len(rest) < 3 or rest[1] != "--corpus":
+            err.write(
+                b"error: 'navigate' takes a document id and --corpus <root>"
+                b" (optionally --direction forward|back|both and"
+                b" --format md|json|yaml)\n"
+            )
+            return 2
+        doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
+        direction = "both"
+        fmt = "json"
+        if len(extra) % 2 != 0:
+            err.write(
+                b"error: 'navigate' accepts --direction forward|back|both and"
+                b" --format md|json|yaml as name/value pairs after --corpus <root>\n"
+            )
+            return 2
+        for i in range(0, len(extra), 2):
+            name, value = extra[i], extra[i + 1]
+            if name == "--direction":
+                direction = value
+                if direction not in ("forward", "back", "both"):
+                    err.write(
+                        f"error: unknown direction '{direction}'; expected one of "
+                        f"forward, back, both\n".encode("utf-8")
+                    )
+                    return 2
+            elif name == "--format":
+                fmt = value
+                if fmt not in ("md", "json", "yaml"):
+                    err.write(
+                        f"error: unknown format '{fmt}'; expected one of "
+                        f"md, json, yaml\n".encode("utf-8")
+                    )
+                    return 2
+            else:
+                err.write(
+                    b"error: 'navigate' accepts only --direction forward|back|both"
+                    b" and --format md|json|yaml after --corpus <root>\n"
+                )
+                return 2
+        return _cmd_navigate(doc_id, corpus_root, direction, fmt, out, err)
+
+    if sub == "render":
+        # render <doc_id> --corpus <root>
+        #   [--view current-system|transformation] [--format md|json|yaml]
+        #   (pairs, any order)
+        if len(rest) < 3 or rest[1] != "--corpus":
+            err.write(
+                b"error: 'render' takes a document id and --corpus <root>"
+                b" (optionally --view current-system|transformation and"
+                b" --format md|json|yaml)\n"
+            )
+            return 2
+        doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
+        view = "current-system"
+        fmt = "md"
+        if len(extra) % 2 != 0:
+            err.write(
+                b"error: 'render' accepts --view current-system|transformation and"
+                b" --format md|json|yaml as name/value pairs after --corpus <root>\n"
+            )
+            return 2
+        for i in range(0, len(extra), 2):
+            name, value = extra[i], extra[i + 1]
+            if name == "--view":
+                view = value
+                if view not in ("current-system", "transformation"):
+                    err.write(
+                        f"error: unknown view '{view}'; expected one of "
+                        f"current-system, transformation\n".encode("utf-8")
+                    )
+                    return 2
+            elif name == "--format":
+                fmt = value
+                if fmt not in ("md", "json", "yaml"):
+                    err.write(
+                        f"error: unknown format '{fmt}'; expected one of "
+                        f"md, json, yaml\n".encode("utf-8")
+                    )
+                    return 2
+            else:
+                err.write(
+                    b"error: 'render' accepts only --view current-system|transformation"
+                    b" and --format md|json|yaml after --corpus <root>\n"
+                )
+                return 2
+        return _cmd_render(doc_id, corpus_root, view, fmt, out, err)
+
+    if sub == "query":
+        # query --corpus <root> --facet <facet> --value <value>
+        #   (no positional document id — query is corpus-wide; trailer is
+        #   name/value pairs, kept extensible for 0a2.17's --rendered)
+        if len(rest) < 2 or rest[0] != "--corpus":
+            err.write(
+                b"error: 'query' takes --corpus <root> then --facet <facet>"
+                b" and --value <value> as name/value pairs\n"
+            )
+            return 2
+        corpus_root, extra = rest[1], rest[2:]
+        facet: str | None = None
+        value: str | None = None
+        edge: str | None = None
+        # ``--rendered`` is a valueless flag on the facet mode; pull it out of
+        # the trailer before the name/value even-length check so the remaining
+        # trailer is the strict name/value pairs.
+        rendered = "--rendered" in extra
+        extra = [tok for tok in extra if tok != "--rendered"]
+        if len(extra) % 2 != 0:
+            err.write(
+                b"error: 'query' accepts --facet <facet> and --value <value>,"
+                b" or --edge <edge>, as name/value pairs after --corpus <root>\n"
+            )
+            return 2
+        for i in range(0, len(extra), 2):
+            name, val = extra[i], extra[i + 1]
+            if name == "--facet":
+                facet = val
+                if facet not in ("type", "status", "tag", "distribution"):
+                    err.write(
+                        f"error: unknown facet '{facet}'; expected one of "
+                        f"type, status, tag, distribution\n".encode("utf-8")
+                    )
+                    return 2
+            elif name == "--value":
+                value = val
+            elif name == "--edge":
+                edge = val
+                if edge not in ("superseded-by", "references", "referenced-by"):
+                    err.write(
+                        f"error: unknown edge '{edge}'; expected one of "
+                        f"superseded-by, references, referenced-by\n".encode("utf-8")
+                    )
+                    return 2
+            else:
+                err.write(
+                    b"error: 'query' accepts only --facet <facet> and"
+                    b" --value <value>, or --edge <edge>, after --corpus <root>\n"
+                )
+                return 2
+        # --facet/--value mode and --edge mode are mutually exclusive: exactly
+        # one selection mode must be present.
+        facet_mode = facet is not None or value is not None
+        edge_mode = edge is not None
+        if facet_mode and edge_mode:
+            err.write(
+                b"error: 'query' takes either --facet/--value or --edge,"
+                b" not both\n"
+            )
+            return 2
+        if not facet_mode and not edge_mode:
+            err.write(
+                b"error: 'query' requires either --facet <facet> and"
+                b" --value <value>, or --edge <edge>\n"
+            )
+            return 2
+        if edge_mode:
+            return _cmd_query(corpus_root, out, err, edge=edge)
+        if facet is None or value is None:
+            err.write(
+                b"error: 'query' requires both --facet <facet> and --value <value>\n"
+            )
+            return 2
+        return _cmd_query(
+            corpus_root, out, err, facet=facet, value=value, rendered=rendered
+        )
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
