@@ -111,3 +111,71 @@ Feature: Typed-edge coherence checks over a corpus
     When the knowledge context runs its coherence checks over the corpus
     Then it evaluates no governed-delta tripwire against the artifact that registered none
     And it evaluates the governed-delta tripwire only against the artifact that opted in
+
+  @scenario_hash:c42c3e9b4b327e60 @bc:shopsystem-knowledge
+  Scenario Outline: a materialized forward edge with no reciprocal back-edge is flagged
+      Given an artifact corpus in which artifact A declares a <forward-field> edge naming artifact B
+      And artifact B carries no <back-field> edge back to A
+      When the knowledge context runs the typed-edge coherence checks over the corpus
+      Then it reports a <finding> finding naming A and B by id
+      And the finding carries its check-id and a remediation to write the <back-field> back-edge on B
+      And the aggregate verdict exits non-zero
+
+      Examples:
+        | forward-field | back-field    | finding               |
+        | derives-from  | derived-by    | asymmetric-derivation |
+        | references    | referenced-by | asymmetric-reference  |
+
+  @scenario_hash:b52b179a925b732a @bc:shopsystem-knowledge
+  Scenario Outline: a materialized forward edge whose reciprocal back-edge is present passes
+      Given an artifact corpus in which artifact A declares a <forward-field> edge naming artifact B
+      And artifact B carries a <back-field> edge back to A
+      When the knowledge context runs the typed-edge coherence checks over the corpus
+      Then it reports no <finding> finding for the A and B pair
+      And the aggregate verdict exits zero
+
+      Examples:
+        | forward-field | back-field    | finding               |
+        | derives-from  | derived-by    | asymmetric-derivation |
+        | references    | referenced-by | asymmetric-reference  |
+
+  @scenario_hash:d3e55f9b80099eb5 @bc:shopsystem-knowledge
+  Scenario: a predecessor jointly superseded by several successors, each carrying its supersedes back-edge, passes
+    Given an artifact corpus in which artifact B declares a superseded-by list naming successors A and C
+    And artifacts A and C each declare a supersedes edge naming B
+    And artifact B's status is superseded
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports no asymmetric-supersede finding for the joint supersession of B
+    And the aggregate verdict exits zero
+
+  @scenario_hash:bb316e39954e3ce9 @bc:shopsystem-knowledge
+  Scenario: a joint superseded-by list missing one successor's supersedes back-edge is flagged
+    Given an artifact corpus in which artifact B declares a superseded-by list naming successors A and C
+    And artifact A declares a supersedes edge naming B
+    And artifact C carries no supersedes edge naming B
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports an asymmetric-supersede finding naming B and C by id for the missing back-edge
+    And it reports no asymmetric-supersede finding for the resolved B and A pair
+    And the aggregate verdict exits non-zero
+
+  @scenario_hash:fd98c4d9e26162f0 @bc:shopsystem-knowledge
+  Scenario Outline: a materialized back-edge field pointing to a target absent from the corpus is flagged dangling
+    Given an artifact corpus in which an artifact declares a <link-field> edge to a target id that is not present in the corpus
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports a dangling-edge finding naming the source artifact and the unresolved target id on its <link-field> edge
+    And the finding carries its check-id and a remediation
+    And the aggregate verdict exits non-zero
+
+    Examples:
+      | link-field    |
+      | derived-by    |
+      | references    |
+      | referenced-by |
+
+  @scenario_hash:19b25035e0a2e0ae @bc:shopsystem-knowledge
+  Scenario: an external-references entry forms no intra-corpus edge and draws no dangling-edge finding
+    Given an artifact corpus in which an artifact's external-references field lists a source outside the corpus that is not an artifact id
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it forms no intra-corpus edge from the external-references entry
+    And it reports no dangling-edge finding arising from the external reference
+    And the aggregate verdict exits zero

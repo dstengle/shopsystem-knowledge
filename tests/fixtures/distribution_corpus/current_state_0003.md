@@ -5,6 +5,7 @@ title: Knowledge distribution current state
 status: current
 description: The living stewarded record of how the knowledge context distributes decisions to BCs.
 incorporates: [adr-0040]
+derived-by: [adr-0040]
 ---
 
 # current-state-0003: Knowledge distribution current state

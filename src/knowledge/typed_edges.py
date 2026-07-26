@@ -59,6 +59,9 @@ LINK_FIELDS: tuple[str, ...] = (
     "supersedes",
     "superseded-by",
     "derives-from",
+    "derived-by",
+    "references",
+    "referenced-by",
     "session",
     "brief",
     "candidate",
@@ -139,14 +142,25 @@ def resolve_edges(corpus: ArtifactCorpus) -> tuple[Edge, ...]:
 def check_asymmetric_supersede(
     corpus: ArtifactCorpus, config: CoherenceConfig
 ) -> list[Finding]:
-    """A ``supersedes`` edge to a present target must carry a back-edge.
+    """A supersede must be symmetric in both directions.
 
-    For each present target of a ``supersedes`` link, the target must name the
-    source back in its ``superseded-by`` field. A missing per-pair back-edge is a
-    finding naming the source and that one target. Absent targets are left to the
+    Forward: for each present target of a ``supersedes`` link, the target must
+    name the source back in its ``superseded-by`` field — a missing per-pair
+    back-edge is a finding naming the superseder and that one target.
+
+    Reverse: for each present successor named in an artifact's ``superseded-by``
+    list, that successor must declare a ``supersedes`` edge back to the
+    predecessor — a missing per-pair back-edge is a finding naming the
+    predecessor and that one successor. This catches a joint ``superseded-by``
+    list whose successors do not all reciprocate.
+
+    A pair the forward walk already flagged is not re-flagged by the reverse
+    walk (deduped on the unordered subject pair). Absent targets are left to the
     dangling-edge check.
     """
     findings: list[Finding] = []
+    seen_pairs: set[frozenset[str]] = set()
+    # Forward walk: superseder -> superseded must carry the superseded-by back-edge.
     for artifact in corpus.artifacts:
         source = _id_str(artifact)
         if not source:
@@ -156,6 +170,7 @@ def check_asymmetric_supersede(
             if target_art is None:
                 continue  # a dangling supersede is the dangling-edge check's job
             if source not in _link_targets(target_art, "superseded-by"):
+                seen_pairs.add(frozenset((source, target)))
                 findings.append(
                     Finding(
                         check_id="asymmetric-supersede",
@@ -173,7 +188,142 @@ def check_asymmetric_supersede(
                         ),
                     )
                 )
+    # Reverse walk: predecessor -> successor named in superseded-by must carry
+    # the supersedes back-edge.
+    for artifact in corpus.artifacts:
+        predecessor = _id_str(artifact)
+        if not predecessor:
+            continue
+        for successor in _link_targets(artifact, "superseded-by"):
+            successor_art = corpus.get(successor)
+            if successor_art is None:
+                continue  # a dangling superseded-by is the dangling-edge check's job
+            if predecessor in _link_targets(successor_art, "supersedes"):
+                continue  # the supersedes back-edge is present
+            if frozenset((predecessor, successor)) in seen_pairs:
+                continue  # already flagged by the forward walk
+            seen_pairs.add(frozenset((predecessor, successor)))
+            findings.append(
+                Finding(
+                    check_id="asymmetric-supersede",
+                    check_name="supersede carries no back-edge",
+                    severity=Severity.BLOCKING,
+                    subjects=(predecessor, successor),
+                    message=(
+                        f"artifact '{predecessor}' is superseded-by '{successor}', "
+                        f"but '{successor}' carries no supersedes back-edge to "
+                        f"'{predecessor}'"
+                    ),
+                    remediation=(
+                        f"write the supersedes back-edge on '{successor}' naming "
+                        f"'{predecessor}'"
+                    ),
+                )
+            )
     return findings
+
+
+def _check_reciprocal_edge(
+    corpus: ArtifactCorpus,
+    *,
+    forward_field: str,
+    back_field: str,
+    check_id: str,
+    check_name: str,
+) -> list[Finding]:
+    """A ``forward_field`` edge to a present target must carry its back-edge.
+
+    The general form of :func:`check_asymmetric_supersede`: for each present
+    target of a ``forward_field`` link, the target must name the source back in
+    its ``back_field``. A missing per-pair back-edge is a blocking finding naming
+    the source and that one target. Absent targets are left to the dangling-edge
+    check, exactly as :func:`check_asymmetric_supersede` skips them.
+    """
+    findings: list[Finding] = []
+    for artifact in corpus.artifacts:
+        source = _id_str(artifact)
+        if not source:
+            continue
+        for target in _link_targets(artifact, forward_field):
+            target_art = corpus.get(target)
+            if target_art is None:
+                continue  # a dangling forward edge is the dangling-edge check's job
+            if source not in _link_targets(target_art, back_field):
+                findings.append(
+                    Finding(
+                        check_id=check_id,
+                        check_name=check_name,
+                        severity=Severity.BLOCKING,
+                        subjects=(source, target),
+                        message=(
+                            f"artifact '{source}' declares a {forward_field} edge "
+                            f"to '{target}', but '{target}' carries no {back_field} "
+                            f"back-edge to '{source}'"
+                        ),
+                        remediation=(
+                            f"write the {back_field} back-edge on '{target}' "
+                            f"naming '{source}'"
+                        ),
+                    )
+                )
+    return findings
+
+
+def check_asymmetric_derivation(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A ``derives-from`` edge to a present target must carry a back-edge.
+
+    For each present target of a ``derives-from`` link, the target must name the
+    source back in its ``derived-by`` field. A missing per-pair back-edge is an
+    ``asymmetric-derivation`` finding naming the source and that one target.
+    Absent targets are left to the dangling-edge check.
+    """
+    return _check_reciprocal_edge(
+        corpus,
+        forward_field="derives-from",
+        back_field="derived-by",
+        check_id="asymmetric-derivation",
+        check_name="derives-from carries no back-edge",
+    )
+
+
+def check_asymmetric_reference(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A ``references`` edge to a present target must carry a back-edge.
+
+    For each present target of a ``references`` link, the target must name the
+    source back in its ``referenced-by`` field. A missing per-pair back-edge is
+    an ``asymmetric-reference`` finding naming the source and that one target.
+    Absent targets are left to the dangling-edge check.
+    """
+    return _check_reciprocal_edge(
+        corpus,
+        forward_field="references",
+        back_field="referenced-by",
+        check_id="asymmetric-reference",
+        check_name="references carries no back-edge",
+    )
+
+
+def resolve_referenced_by(
+    corpus: ArtifactCorpus, artifact_id: str
+) -> tuple[str, ...]:
+    """The ids that reference ``artifact_id``, read from its own frontmatter.
+
+    Answers "what references ``artifact_id``?" by a single deterministic
+    frontmatter lookup: the ids named in ``artifact_id``'s own materialized
+    ``referenced-by`` field, in declared order. It deliberately does **not**
+    scan the corpus computing forward ``references`` edges — so it answers
+    correctly even when the referencing artifact never materialized the forward
+    ``references`` edge. An absent ``artifact_id`` (or one carrying no
+    ``referenced-by`` field) resolves to the empty tuple.
+    """
+    artifact = corpus.get(artifact_id)
+    if artifact is None:
+        return ()
+    return tuple(_link_targets(artifact, "referenced-by"))
 
 
 def check_active_yet_superseded(
@@ -446,6 +596,8 @@ def check_governed_delta_tripwire(
 # uses — a new tuple, not a re-spelled aggregate.
 TYPED_EDGE_CHECKS: tuple[Check, ...] = (
     check_asymmetric_supersede,
+    check_asymmetric_derivation,
+    check_asymmetric_reference,
     check_active_yet_superseded,
     check_dangling_edge,
     check_unverifiable_legacy,

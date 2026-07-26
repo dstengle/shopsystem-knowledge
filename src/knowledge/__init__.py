@@ -46,6 +46,8 @@ from knowledge.typed_edges import (
     TYPED_EDGE_CHECKS,
     Edge,
     check_active_yet_superseded,
+    check_asymmetric_derivation,
+    check_asymmetric_reference,
     check_asymmetric_supersede,
     check_dangling_edge,
     check_governed_delta_tripwire,
@@ -53,6 +55,7 @@ from knowledge.typed_edges import (
     evaluated_governed_delta_subjects,
     governed_delta_registrants,
     resolve_edges,
+    resolve_referenced_by,
 )
 from knowledge.discovery import (
     DiscoveryResult,
@@ -142,6 +145,8 @@ __all__ = [
     "artifact_type",
     "build_l0l1_index",
     "check_active_yet_superseded",
+    "check_asymmetric_derivation",
+    "check_asymmetric_reference",
     "check_asymmetric_supersede",
     "check_brief_without_candidate",
     "check_briefed_brief_asymmetry",
@@ -173,6 +178,7 @@ __all__ = [
     "render_schema_fragment",
     "render_template",
     "resolve_edges",
+    "resolve_referenced_by",
     "run_adversarial_pass",
     "run_coherence_gate",
     "run_authoring_discovery",

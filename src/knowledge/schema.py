@@ -41,9 +41,29 @@ MISSING_REQUIRED_FIELD = "missing-required-field"
 MISSING_TYPE_FIELD = "missing-type-field"
 UNRECOGNIZED_TYPE = "unrecognized-type"
 UNRECOGNIZED_STATUS = "unrecognized-status"
+UNRECOGNIZED_DISTRIBUTION = "unrecognized-distribution"
 ID_PATTERN_MISMATCH = "id-pattern-mismatch"
 EMPTY_ANCHOR = "empty-anchor"
 STORED_PROJECTION_FIELD = "stored-projection-field"
+
+# The distribution enum. When a ``distribution`` field is present, its value
+# must be one of these members; a value outside the enum is non-conforming and
+# the diagnosis names the offending value. ``distribution`` is optional — its
+# absence is never a missing-field finding; only a present-but-out-of-enum value
+# is reported.
+DISTRIBUTION_ENUM = ("product-lead", "product-wide", "bc-local")
+
+# Recognized optional frontmatter fields. Like ``distribution``, each name here
+# is an optional field whose *presence* conforms and whose *absence* is never a
+# missing-field finding. ``tags`` is an optional retrieval-label list carried
+# for discovery; recording it here marks it a recognized optional rather than an
+# unknown field, so a present ``tags`` is not flagged and an absent ``tags`` is
+# never reported missing. ``external-references`` is an optional list of sources
+# outside the corpus, recognized the same way: a present ``external-references``
+# is not flagged and an absent one is never reported missing. The schema stays
+# permissive: this collection records which optionals are recognized, it does
+# not turn every other field into an unrecognized-field diagnostic.
+RECOGNIZED_OPTIONAL_FIELDS: tuple[str, ...] = ("tags", "external-references")
 
 # The codes whose diagnostics denote a missing required field — the set
 # :attr:`ConformanceResult.missing_fields` draws its field names from.
@@ -162,6 +182,23 @@ def validate_frontmatter(artifact: Artifact) -> ConformanceResult:
                     ),
                 )
             )
+
+    # 1b. Distribution enum. Optional field: only a present value is checked, and
+    #     a value outside the enum is reported naming the offending value. This is
+    #     a shared, type-independent rule, so it runs regardless of type resolution.
+    distribution_value = frontmatter.get("distribution")
+    if _is_present(frontmatter, "distribution") and distribution_value not in DISTRIBUTION_ENUM:
+        diagnostics.append(
+            Diagnostic(
+                code=UNRECOGNIZED_DISTRIBUTION,
+                field="distribution",
+                offending=str(distribution_value),
+                message=(
+                    f"the distribution value '{distribution_value}' is not a member "
+                    f"of the distribution enum {list(DISTRIBUTION_ENUM)}"
+                ),
+            )
+        )
 
     # 2. Resolve the type. A present-but-unrecognized type is reported and
     #    type-specific checks are skipped.

@@ -1,4 +1,4 @@
-"""Step definitions for the frontmatter-conformance feature (12 scenarios).
+"""Step definitions for the frontmatter-conformance feature (16 scenarios).
 
 Binds every scenario in ``frontmatter_conformance.feature`` and asserts each
 Then/And leg against the :class:`ConformanceResult` returned by
@@ -131,6 +131,29 @@ def test_optional_absent_conforms() -> None: ...
     "disclosure level is a projection and is never a stored frontmatter field",
 )
 def test_stored_disclosure_level() -> None: ...
+
+
+@scenario(FEATURE, "a distribution value inside the enum conforms")
+def test_distribution_inside_enum_conforms() -> None: ...
+
+
+@scenario(
+    FEATURE,
+    "a distribution value outside the enum is reported non-conforming and names the offending value",
+)
+def test_distribution_outside_enum_non_conforming() -> None: ...
+
+
+@scenario(FEATURE, "an artifact carrying a tags list conforms")
+def test_tags_list_conforms() -> None: ...
+
+
+@scenario(FEATURE, "an artifact omitting the optional tags field still conforms")
+def test_tags_omitted_conforms() -> None: ...
+
+
+@scenario(FEATURE, "an artifact carrying an external-references list conforms")
+def test_external_references_list_conforms() -> None: ...
 
 
 # --- Given steps -------------------------------------------------------------
@@ -267,11 +290,81 @@ def _conforming_without_beads(context: dict) -> None:
     context["frontmatter"] = fm
 
 
+@given(
+    "an artifact whose frontmatter carries a tags field holding a list of "
+    "retrieval labels"
+)
+def _artifact_with_tags(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["tags"] = ["retrieval", "discovery", "onboarding"]
+    context["frontmatter"] = fm
+
+
+@given(
+    "an artifact that carries every required field and a recognized status but "
+    "omits the optional tags field"
+)
+def _conforming_without_tags(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    assert "tags" not in fm
+    context["frontmatter"] = fm
+
+
+@given(
+    "an artifact whose frontmatter carries an external-references field holding "
+    "a list of sources outside the corpus"
+)
+def _artifact_with_external_references(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["external-references"] = [
+        "https://example.org/spec",
+        "RFC 8259",
+    ]
+    context["frontmatter"] = fm
+
+
 @given("an artifact whose frontmatter carries a stored disclosure-level field pinning its own tier")
 def _stored_disclosure_level(context: dict) -> None:
     fm = _conforming_frontmatter("candidate")
     fm["disclosure-level"] = "L1"
     context["frontmatter"] = fm
+
+
+@given(parsers.parse('an artifact whose frontmatter carries a distribution value of "{value}"'))
+def _artifact_with_distribution(context: dict, value: str) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["distribution"] = value
+    context["frontmatter"] = fm
+
+
+@given(
+    parsers.parse(
+        '"{value}" is a member of the distribution enum product-lead, '
+        "product-wide or bc-local"
+    )
+)
+def _value_in_distribution_enum(context: dict, value: str) -> None:
+    # Reference the schema's distribution enum rather than a literal, so this
+    # premise is genuinely unmet until the schema recognizes the enum. Absent
+    # ``DISTRIBUTION_ENUM`` the default empty tuple makes the membership
+    # assertion fail here (RED) instead of erroring at import/collection time.
+    from knowledge import schema
+
+    enum = getattr(schema, "DISTRIBUTION_ENUM", ())
+    assert value in enum, f"'{value}' is not a member of the distribution enum {enum!r}"
+
+
+@given(
+    parsers.parse(
+        '"{value}" is not a member of the distribution enum product-lead, '
+        "product-wide or bc-local"
+    )
+)
+def _value_not_in_distribution_enum(context: dict, value: str) -> None:
+    from knowledge import schema
+
+    enum = getattr(schema, "DISTRIBUTION_ENUM", ())
+    assert value not in enum, f"'{value}' unexpectedly a member of the distribution enum {enum!r}"
 
 
 # --- When step (shared) ------------------------------------------------------
@@ -378,6 +471,65 @@ def _beads_not_missing(context: dict) -> None:
     assert "beads" not in context["result"].missing_fields
 
 
+@then("it does not report the tags field as an unrecognized field")
+def _tags_not_unrecognized(context: dict) -> None:
+    # The schema must *recognize* ``tags`` as a known optional field. Reference
+    # the schema's recognized-optional-fields collection rather than a literal,
+    # so this premise is genuinely unmet until the schema records ``tags``.
+    # Absent ``RECOGNIZED_OPTIONAL_FIELDS`` the default empty tuple makes the
+    # membership assertion fail here (RED) rather than passing vacuously against
+    # a permissive schema.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "tags" in recognized, (
+        f"'tags' is not a recognized optional field; recognized={recognized!r}"
+    )
+    # And no diagnostic flags the present tags field.
+    result = context["result"]
+    assert not any(d.field == "tags" for d in result.diagnostics), (
+        f"the tags field was wrongly flagged; diagnostics: {result.messages}"
+    )
+
+
+@then("it does not report the external-references field as an unrecognized field")
+def _external_references_not_unrecognized(context: dict) -> None:
+    # The schema must *recognize* ``external-references`` as a known optional
+    # field: an OPTIONAL list of sources outside the corpus. Reference the
+    # schema's recognized-optional-fields collection rather than a literal, so
+    # this premise is genuinely unmet until the schema records
+    # ``external-references``. Absent it from ``RECOGNIZED_OPTIONAL_FIELDS`` the
+    # membership assertion fails here (RED) rather than passing vacuously against
+    # a permissive schema.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "external-references" in recognized, (
+        f"'external-references' is not a recognized optional field; recognized={recognized!r}"
+    )
+    # And no diagnostic flags the present external-references field.
+    result = context["result"]
+    assert not any(d.field == "external-references" for d in result.diagnostics), (
+        f"the external-references field was wrongly flagged; diagnostics: {result.messages}"
+    )
+
+
+@then("it does not report the absent tags field as missing")
+def _absent_tags_not_missing(context: dict) -> None:
+    result = context["result"]
+    assert "tags" not in result.missing_fields
+    # ``tags`` must be a *recognized* optional field, so its absence is a
+    # recognized-optional absence rather than silent tolerance of an unknown
+    # field. Referencing the schema's recognized-optional-fields collection
+    # keeps this RED until the schema records ``tags``.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "tags" in recognized, (
+        f"'tags' is not a recognized optional field; recognized={recognized!r}"
+    )
+
+
 @then("it reports the artifact as non-conforming for storing a disclosure-level field")
 def _non_conforming_disclosure(context: dict) -> None:
     result = context["result"]
@@ -395,3 +547,18 @@ def _disclosure_message(context: dict) -> None:
     assert diag.field == "disclosure-level"
     assert "projection" in diag.message
     assert "never a stored frontmatter field" in diag.message
+
+
+@then("it does not report distribution as an unrecognized value")
+def _no_unrecognized_distribution(context: dict) -> None:
+    result = context["result"]
+    assert not any(d.code == "unrecognized-distribution" for d in result.diagnostics), (
+        f"a member value was wrongly flagged unrecognized; diagnostics: {result.messages}"
+    )
+
+
+@then("it reports the artifact as non-conforming for an unrecognized distribution value")
+def _non_conforming_distribution(context: dict) -> None:
+    result = context["result"]
+    assert result.conforming is False
+    assert any(d.code == "unrecognized-distribution" for d in result.diagnostics)
