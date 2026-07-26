@@ -454,3 +454,120 @@ def _does_not_drop_unresolved_edge(context: dict) -> None:
         f"the CLI silently dropped the unresolved edge to "
         f"{context['unresolved_target']}: {sorted(targets)}"
     )
+
+
+# --- Output-format selector (md / json / yaml) -------------------------------
+#
+# navigate today emits JSON unconditionally. This behaviour adds a
+# ``--format md|json|yaml`` selector: the same edge-neighbourhood is rendered as
+# a well-formed document of the requested type. The scenario is a Scenario
+# Outline over the three formats; each example asserts the emitted document is
+# well-formed for its type AND carries the subject's own frontmatter incident
+# edges plus its resolved-neighbour facets. It reuses the ``_build_corpus_root``
+# fixture (adr-068's four materialized edges across the three pairs) and the
+# in-process CLI invocation.
+
+
+def _run_navigate_format(context: dict, doc_id: str, fmt: str) -> None:
+    from knowledge.cli import main
+
+    out, err = io.BytesIO(), io.BytesIO()
+    rc = main(
+        ["navigate", doc_id, "--corpus", str(context["root"]), "--format", fmt],
+        stdout=out,
+        stderr=err,
+    )
+    context["exit"] = rc
+    context["stdout"] = out.getvalue()
+    context["stderr"] = err.getvalue()
+    context["format"] = fmt
+
+
+def _assert_structured_neighbourhood(doc: object) -> None:
+    """Assert a parsed json/yaml navigate document carries adr-068's own
+    frontmatter incident edges and each resolved neighbour's facets."""
+    assert isinstance(doc, dict), f"navigate document is not a mapping: {doc!r}"
+    assert doc.get("id") == SUBJECT_ID, f"document id is not {SUBJECT_ID}: {doc!r}"
+    edges = doc.get("edges")
+    assert isinstance(edges, list) and edges, f"expected a non-empty edges list, got {edges!r}"
+
+    seen = {(edge["link_field"], edge["target"]) for edge in edges}
+    assert seen == EXPECTED_EDGES, (
+        f"the rendered incident edges do not match {SUBJECT_ID}'s own frontmatter "
+        f"edges; expected {sorted(EXPECTED_EDGES)}, got {sorted(seen)}"
+    )
+
+    by_target = {edge["target"]: edge for edge in edges}
+    for target, facts in NEIGHBOURS.items():
+        edge = by_target.get(target)
+        assert edge is not None, f"no rendered edge to neighbour {target}"
+        neighbour = edge.get("neighbour")
+        assert isinstance(neighbour, dict), f"edge to {target} carries no neighbour facets: {edge!r}"
+        assert neighbour.get("id") == target, f"neighbour id mismatch: {neighbour!r}"
+        assert neighbour.get("type") == facts["type"], f"neighbour type mismatch for {target}: {neighbour!r}"
+        assert neighbour.get("status") == facts["status"], f"neighbour status mismatch for {target}: {neighbour!r}"
+        assert neighbour.get("title") == facts["title"], f"neighbour title mismatch for {target}: {neighbour!r}"
+
+
+def _assert_markdown_neighbourhood(text: str) -> None:
+    """Assert a rendered markdown navigate document lists adr-068's incident
+    edges (link-field + target id) and each resolved neighbour's title."""
+    assert text.strip(), "the markdown navigate document is empty"
+    for field, target in EXPECTED_EDGES:
+        assert field in text, f"markdown document omits link-field {field!r}: {text!r}"
+        assert target in text, f"markdown document omits target id {target!r}: {text!r}"
+    for target, facts in NEIGHBOURS.items():
+        assert facts["title"] in text, (
+            f"markdown document omits neighbour {target}'s title {facts['title']!r}: {text!r}"
+        )
+
+
+# --- Scenario binding --------------------------------------------------------
+
+
+@scenario(FEATURE, "navigate emits its neighbourhood in the selected output format")
+def test_navigate_output_format() -> None: ...
+
+
+# --- Given -------------------------------------------------------------------
+
+
+@given(parsers.re(r'a corpus whose document "(?P<doc_id>[^"]+)" carries materialized edges to several neighbours$'))
+def _corpus_for_format(context: dict, tmp_path: Path, doc_id: str) -> None:
+    root = tmp_path / "corpus"
+    _build_corpus_root(root)
+    context["root"] = root
+
+
+# --- When --------------------------------------------------------------------
+
+
+@when(parsers.re(r'I run the navigate verb on document id "(?P<doc_id>[^"]+)" requesting "(?P<fmt>[^"]+)" output'))
+def _run_verb_format(context: dict, doc_id: str, fmt: str) -> None:
+    _run_navigate_format(context, doc_id, fmt)
+
+
+# --- Then --------------------------------------------------------------------
+
+
+@then("the exit code is 0")
+def _exit_zero(context: dict) -> None:
+    assert context["exit"] == 0, (
+        f"expected the navigate verb to exit 0; got {context['exit']} "
+        f"(stderr: {context['stderr']!r})"
+    )
+
+
+@then(parsers.re(r'the neighbourhood is emitted as a well-formed "(?P<fmt>[^"]+)" document carrying the incident edges and neighbour facets'))
+def _wellformed_document(context: dict, fmt: str) -> None:
+    raw = context["stdout"]
+    if fmt == "json":
+        doc = json.loads(raw.decode("utf-8"))
+        _assert_structured_neighbourhood(doc)
+    elif fmt == "yaml":
+        doc = yaml.safe_load(raw.decode("utf-8"))
+        _assert_structured_neighbourhood(doc)
+    elif fmt == "md":
+        _assert_markdown_neighbourhood(raw.decode("utf-8"))
+    else:  # pragma: no cover - the outline only supplies md/json/yaml
+        raise AssertionError(f"unexpected format {fmt!r}")

@@ -44,3 +44,16 @@ Feature: The navigate read verb — edge-neighbourhood from frontmatter
     When I run the navigate verb on document id "adr-068"
     Then the neighbourhood includes that edge with its resolved flag reported as false
     And the CLI does not silently drop the unresolved edge from the neighbourhood
+
+  @scenario_hash:3150738158b1dc32 @bc:shopsystem-knowledge
+  Scenario Outline: navigate emits its neighbourhood in the selected output format
+    Given a corpus whose document "adr-068" carries materialized edges to several neighbours
+    When I run the navigate verb on document id "adr-068" requesting "<format>" output
+    Then the exit code is 0
+    And the neighbourhood is emitted as a well-formed "<format>" document carrying the incident edges and neighbour facets
+
+    Examples:
+      | format |
+      | md     |
+      | json   |
+      | yaml   |
