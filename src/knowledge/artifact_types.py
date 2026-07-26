@@ -92,10 +92,12 @@ class ArtifactType:
     document_shape:
         The document shape the typedef generates. ``"instance"`` (the default)
         is an append-only record — each artifact of the type is a new numbered
-        instance. ``"living"`` is a single stewarded document revised in place
-        (e.g. ``current-state``), whose generated template carries its
-        accumulating list fields (such as ``incorporates``) as YAML lists rather
-        than as a fresh numbered instance. The generator reads this to shape the
+        instance. ``"living"`` is a single stewarded document revised in place,
+        whose generated template carries its accumulating list fields as YAML
+        lists rather than as a fresh numbered instance. No recognized type
+        currently declares ``"living"`` — ``current-state`` became a versioned
+        append-only instance under ADR-069 D7 — but the shape is retained as the
+        generic living-vs-instance switch. The generator reads this to shape the
         template and encodes it in the schema fragment, so the living-vs-instance
         distinction is single-sourced from the typedef.
     """
@@ -122,7 +124,7 @@ def _pattern(prefix: str) -> str:
 
 
 # The eight recognized artifact types of the discovery-first knowledge context,
-# following the decision pipeline from an early exploration through to the living
+# following the decision pipeline from an early exploration through to the
 # record of settled decisions (PDR-032 kind->type / ADR-059):
 #
 #   intent-record      — a captured statement of intent and its success signals.
@@ -135,8 +137,9 @@ def _pattern(prefix: str) -> str:
 #                        options and derive a decision from upstream artifacts.
 #   adr                — an architecture decision record anchored to (deriving
 #                        from) at least one upstream artifact.
-#   current-state      — the single living stewarded document that incorporates
-#                        the settled decisions (see :mod:`knowledge.typedefs`).
+#   current-state      — the versioned append-only record (a numbered series of
+#                        instances, ADR-069 D7) that incorporates the settled
+#                        decisions (see :mod:`knowledge.typedefs`).
 #
 # ``roadmap`` is intentionally absent: it is not one of the eight recognized
 # types, so a document typed ``roadmap`` is non-conforming.
@@ -233,7 +236,6 @@ _ARTIFACT_TYPE_LIST: tuple[ArtifactType, ...] = (
         statuses=("current", "superseded"),
         extra_required_fields=("incorporates",),
         required_sections=("Current decisions", "Stewardship"),
-        document_shape="living",
     ),
 )
 

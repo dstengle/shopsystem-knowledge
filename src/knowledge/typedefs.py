@@ -89,11 +89,13 @@ def render_template(atype: ArtifactType) -> bytes:
     to the type name, followed by one empty ``## `` heading per required section
     in the type's declared order. It is a pure function of the typedef.
 
-    A ``document_shape == "living"`` typedef (e.g. ``current-state``) renders a
-    single stewarded living document instead of an append-only numbered-series
-    instance: its type-additional fields (such as ``incorporates``) are rendered
-    as YAML lists it accumulates in place, and the body opens with the
-    :data:`LIVING_DOCUMENT_MARKER`.
+    A ``document_shape == "living"`` typedef renders a single stewarded living
+    document instead of an append-only numbered-series instance: its
+    type-additional fields are rendered as YAML lists it accumulates in place,
+    and the body opens with the :data:`LIVING_DOCUMENT_MARKER`. No recognized
+    type currently declares ``"living"`` (``current-state`` is a versioned
+    append-only instance under ADR-069 D7); the branch is the generic
+    living-vs-instance switch.
     """
     living = atype.document_shape == LIVING_SHAPE
     lines: list[str] = ["---", GENERATED_TEMPLATE_MARKER]
