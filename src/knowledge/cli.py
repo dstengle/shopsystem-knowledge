@@ -323,6 +323,65 @@ def _emit_render(rendered_body: str, subject: object, fmt: str, stdout: BinaryIO
     return 0
 
 
+def _doc_matches_facet(doc: object, facet: str, value: str) -> bool:
+    """Whether ``doc`` carries frontmatter facet ``facet`` equal to ``value``.
+
+    ``type`` / ``status`` / ``distribution`` are scalar frontmatter fields read
+    uniformly from :attr:`Artifact.frontmatter` — a match is the stored scalar
+    equalling ``value``. ``tag`` matches by *membership*: the document matches
+    iff ``value`` is in its ``tags`` list (an absent or empty ``tags`` matches
+    nothing). Reading distribution/type/status uniformly from frontmatter keeps
+    the facet-selection logic single-shaped across all four facets.
+    """
+    frontmatter = doc.frontmatter  # type: ignore[attr-defined]
+    if facet == "tag":
+        return value in (frontmatter.get("tags") or [])
+    return frontmatter.get(facet) == value
+
+
+def _query_record(doc: object) -> dict[str, object]:
+    """Project ``doc`` to the compact query record: its id, title, and status.
+
+    The record shape is single-sourced here so the edge-participation query
+    (0a2.15) and the rendered-output query (0a2.17) emit the same three-key
+    record rather than re-spelling it.
+    """
+    return {
+        "id": doc.id,  # type: ignore[attr-defined]
+        "title": doc.title,  # type: ignore[attr-defined]
+        "status": doc.status,  # type: ignore[attr-defined]
+    }
+
+
+def _cmd_query(
+    corpus_root: str,
+    facet: str,
+    value: str,
+    stdout: BinaryIO,
+    stderr: BinaryIO,
+) -> int:
+    """Run ``query`` over the corpus rooted at ``corpus_root``, filtering by facet.
+
+    Unlike ``navigate``/``render`` — which project a single named document —
+    ``query`` is corpus-wide: it loads the whole corpus and selects every
+    artifact whose frontmatter facet ``facet`` equals ``value``
+    (:func:`_doc_matches_facet`), emitting a compact JSON array of one
+    :func:`_query_record` (id/title/status) per matched document on stdout with
+    exit 0. A facet matching no document is an empty result — ``[]`` on stdout,
+    exit 0, and nothing on stderr — never routed through the error path.
+    """
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(corpus_root)
+    records = [
+        _query_record(doc)
+        for doc in corpus.artifacts
+        if _doc_matches_facet(doc, facet, value)
+    ]
+    stdout.write(json.dumps(records).encode("utf-8"))
+    return 0
+
+
 def main(
     argv: Sequence[str] | None = None,
     stdout: BinaryIO | None = None,
@@ -335,7 +394,7 @@ def main(
 
     if not argv:
         err.write(
-            b"error: a subcommand is required (template, schema, validate, navigate, render)\n"
+            b"error: a subcommand is required (template, schema, validate, navigate, render, query)\n"
         )
         return 2
 
@@ -443,6 +502,50 @@ def main(
                 )
                 return 2
         return _cmd_render(doc_id, corpus_root, view, fmt, out, err)
+
+    if sub == "query":
+        # query --corpus <root> --facet <facet> --value <value>
+        #   (no positional document id — query is corpus-wide; trailer is
+        #   name/value pairs, kept extensible for 0a2.17's --rendered)
+        if len(rest) < 2 or rest[0] != "--corpus":
+            err.write(
+                b"error: 'query' takes --corpus <root> then --facet <facet>"
+                b" and --value <value> as name/value pairs\n"
+            )
+            return 2
+        corpus_root, extra = rest[1], rest[2:]
+        facet: str | None = None
+        value: str | None = None
+        if len(extra) % 2 != 0:
+            err.write(
+                b"error: 'query' accepts --facet <facet> and --value <value>"
+                b" as name/value pairs after --corpus <root>\n"
+            )
+            return 2
+        for i in range(0, len(extra), 2):
+            name, val = extra[i], extra[i + 1]
+            if name == "--facet":
+                facet = val
+                if facet not in ("type", "status", "tag", "distribution"):
+                    err.write(
+                        f"error: unknown facet '{facet}'; expected one of "
+                        f"type, status, tag, distribution\n".encode("utf-8")
+                    )
+                    return 2
+            elif name == "--value":
+                value = val
+            else:
+                err.write(
+                    b"error: 'query' accepts only --facet <facet> and"
+                    b" --value <value> after --corpus <root>\n"
+                )
+                return 2
+        if facet is None or value is None:
+            err.write(
+                b"error: 'query' requires both --facet <facet> and --value <value>\n"
+            )
+            return 2
+        return _cmd_query(corpus_root, facet, value, out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
