@@ -176,6 +176,90 @@ def check_asymmetric_supersede(
     return findings
 
 
+def _check_reciprocal_edge(
+    corpus: ArtifactCorpus,
+    *,
+    forward_field: str,
+    back_field: str,
+    check_id: str,
+    check_name: str,
+) -> list[Finding]:
+    """A ``forward_field`` edge to a present target must carry its back-edge.
+
+    The general form of :func:`check_asymmetric_supersede`: for each present
+    target of a ``forward_field`` link, the target must name the source back in
+    its ``back_field``. A missing per-pair back-edge is a blocking finding naming
+    the source and that one target. Absent targets are left to the dangling-edge
+    check, exactly as :func:`check_asymmetric_supersede` skips them.
+    """
+    findings: list[Finding] = []
+    for artifact in corpus.artifacts:
+        source = _id_str(artifact)
+        if not source:
+            continue
+        for target in _link_targets(artifact, forward_field):
+            target_art = corpus.get(target)
+            if target_art is None:
+                continue  # a dangling forward edge is the dangling-edge check's job
+            if source not in _link_targets(target_art, back_field):
+                findings.append(
+                    Finding(
+                        check_id=check_id,
+                        check_name=check_name,
+                        severity=Severity.BLOCKING,
+                        subjects=(source, target),
+                        message=(
+                            f"artifact '{source}' declares a {forward_field} edge "
+                            f"to '{target}', but '{target}' carries no {back_field} "
+                            f"back-edge to '{source}'"
+                        ),
+                        remediation=(
+                            f"write the {back_field} back-edge on '{target}' "
+                            f"naming '{source}'"
+                        ),
+                    )
+                )
+    return findings
+
+
+def check_asymmetric_derivation(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A ``derives-from`` edge to a present target must carry a back-edge.
+
+    For each present target of a ``derives-from`` link, the target must name the
+    source back in its ``derived-by`` field. A missing per-pair back-edge is an
+    ``asymmetric-derivation`` finding naming the source and that one target.
+    Absent targets are left to the dangling-edge check.
+    """
+    return _check_reciprocal_edge(
+        corpus,
+        forward_field="derives-from",
+        back_field="derived-by",
+        check_id="asymmetric-derivation",
+        check_name="derives-from carries no back-edge",
+    )
+
+
+def check_asymmetric_reference(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A ``references`` edge to a present target must carry a back-edge.
+
+    For each present target of a ``references`` link, the target must name the
+    source back in its ``referenced-by`` field. A missing per-pair back-edge is
+    an ``asymmetric-reference`` finding naming the source and that one target.
+    Absent targets are left to the dangling-edge check.
+    """
+    return _check_reciprocal_edge(
+        corpus,
+        forward_field="references",
+        back_field="referenced-by",
+        check_id="asymmetric-reference",
+        check_name="references carries no back-edge",
+    )
+
+
 def check_active_yet_superseded(
     corpus: ArtifactCorpus, config: CoherenceConfig
 ) -> list[Finding]:
@@ -446,6 +530,8 @@ def check_governed_delta_tripwire(
 # uses — a new tuple, not a re-spelled aggregate.
 TYPED_EDGE_CHECKS: tuple[Check, ...] = (
     check_asymmetric_supersede,
+    check_asymmetric_derivation,
+    check_asymmetric_reference,
     check_active_yet_superseded,
     check_dangling_edge,
     check_unverifiable_legacy,
