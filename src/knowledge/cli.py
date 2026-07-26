@@ -22,6 +22,7 @@ bytes with nothing re-encoded.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import BinaryIO, Sequence
@@ -93,6 +94,63 @@ def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
     return 1
 
 
+def _cmd_navigate(
+    doc_id: str, corpus_root: str, stdout: BinaryIO, stderr: BinaryIO
+) -> int:
+    """Run ``navigate`` for ``doc_id`` over the corpus rooted at ``corpus_root``.
+
+    The document's edge-neighbourhood is read from *its own* materialized
+    frontmatter link fields — the forward edges it declares and the back-edges
+    materialized on it — and never by scanning the rest of the corpus for
+    inbound edges, mirroring the :func:`~knowledge.typed_edges.resolve_referenced_by`
+    frontmatter-only precedent. Each incident edge is listed as a link-field,
+    target id, and resolved flag; a resolved target's id/type/status/title is
+    surfaced as the edge's neighbour facets.
+
+    An id absent from the corpus is a named error on stderr (naming the
+    offending id and framing it as absent from the corpus) with a non-zero
+    exit, rather than an empty answer.
+    """
+    from knowledge.corpus_loader import load_corpus
+    from knowledge.typed_edges import LINK_FIELDS, _link_targets
+
+    corpus = load_corpus(corpus_root)
+    subject = corpus.get(doc_id)
+    if subject is None:
+        stderr.write(
+            f"error: no document with id '{doc_id}' is present in the corpus\n".encode(
+                "utf-8"
+            )
+        )
+        return 2
+
+    edges: list[dict[str, object]] = []
+    for field_name in LINK_FIELDS:
+        for target in _link_targets(subject, field_name):
+            neighbour_art = corpus.get(target)
+            resolved = neighbour_art is not None
+            neighbour: dict[str, object] | None = None
+            if neighbour_art is not None:
+                neighbour = {
+                    "id": neighbour_art.id,
+                    "type": neighbour_art.type,
+                    "status": neighbour_art.status,
+                    "title": neighbour_art.title,
+                }
+            edges.append(
+                {
+                    "link_field": field_name,
+                    "target": target,
+                    "resolved": resolved,
+                    "neighbour": neighbour,
+                }
+            )
+
+    payload = {"id": doc_id, "edges": edges}
+    stdout.write(json.dumps(payload).encode("utf-8"))
+    return 0
+
+
 def main(
     argv: Sequence[str] | None = None,
     stdout: BinaryIO | None = None,
@@ -104,7 +162,9 @@ def main(
     err = stderr if stderr is not None else sys.stderr.buffer
 
     if not argv:
-        err.write(b"error: a subcommand is required (template, schema, validate)\n")
+        err.write(
+            b"error: a subcommand is required (template, schema, validate, navigate)\n"
+        )
         return 2
 
     sub, rest = argv[0], argv[1:]
@@ -120,6 +180,14 @@ def main(
             err.write(b"error: 'validate' takes exactly one document path\n")
             return 2
         return _cmd_validate(rest[0], out, err)
+
+    if sub == "navigate":
+        if len(rest) != 3 or rest[1] != "--corpus":
+            err.write(
+                b"error: 'navigate' takes a document id and --corpus <root>\n"
+            )
+            return 2
+        return _cmd_navigate(rest[0], rest[2], out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
