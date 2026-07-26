@@ -69,6 +69,16 @@ LINK_FIELDS: tuple[str, ...] = (
     "incorporates",
 )
 
+# The three reciprocity pairs split into their forward and back halves. A
+# forward field is the link a document declares *outward* (its own supersedes /
+# derives-from / references edges); a back field is the materialized back-edge
+# reciprocating one of those. Navigation direction filters select which half of
+# the pair set the neighbourhood returns, and this is the single source for that
+# split — the pairs are exactly (supersedes, superseded-by),
+# (derives-from, derived-by), (references, referenced-by).
+FORWARD_LINK_FIELDS: tuple[str, ...] = ("supersedes", "derives-from", "references")
+BACK_LINK_FIELDS: tuple[str, ...] = ("superseded-by", "derived-by", "referenced-by")
+
 # The frontmatter field an artifact opts into the governed-delta tripwire with.
 # A truthy value registers the artifact; a mapping may name the governed surface
 # under ``surface``.

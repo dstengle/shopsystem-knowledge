@@ -95,7 +95,11 @@ def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
 
 
 def _cmd_navigate(
-    doc_id: str, corpus_root: str, stdout: BinaryIO, stderr: BinaryIO
+    doc_id: str,
+    corpus_root: str,
+    direction: str,
+    stdout: BinaryIO,
+    stderr: BinaryIO,
 ) -> int:
     """Run ``navigate`` for ``doc_id`` over the corpus rooted at ``corpus_root``.
 
@@ -107,12 +111,32 @@ def _cmd_navigate(
     target id, and resolved flag; a resolved target's id/type/status/title is
     surfaced as the edge's neighbour facets.
 
+    The ``direction`` filter selects which half of the three reciprocity pairs
+    the neighbourhood returns: ``both`` walks all :data:`LINK_FIELDS` (the full
+    neighbourhood, unchanged), ``forward`` restricts to
+    :data:`~knowledge.typed_edges.FORWARD_LINK_FIELDS`, and ``back`` restricts
+    to :data:`~knowledge.typed_edges.BACK_LINK_FIELDS`. An edge whose target does
+    not resolve is surfaced faithfully with ``resolved=false`` rather than
+    dropped.
+
     An id absent from the corpus is a named error on stderr (naming the
     offending id and framing it as absent from the corpus) with a non-zero
     exit, rather than an empty answer.
     """
     from knowledge.corpus_loader import load_corpus
-    from knowledge.typed_edges import LINK_FIELDS, _link_targets
+    from knowledge.typed_edges import (
+        BACK_LINK_FIELDS,
+        FORWARD_LINK_FIELDS,
+        LINK_FIELDS,
+        _link_targets,
+    )
+
+    if direction == "forward":
+        walk_fields: tuple[str, ...] = FORWARD_LINK_FIELDS
+    elif direction == "back":
+        walk_fields = BACK_LINK_FIELDS
+    else:
+        walk_fields = LINK_FIELDS
 
     corpus = load_corpus(corpus_root)
     subject = corpus.get(doc_id)
@@ -125,7 +149,7 @@ def _cmd_navigate(
         return 2
 
     edges: list[dict[str, object]] = []
-    for field_name in LINK_FIELDS:
+    for field_name in walk_fields:
         for target in _link_targets(subject, field_name):
             neighbour_art = corpus.get(target)
             resolved = neighbour_art is not None
@@ -182,12 +206,30 @@ def main(
         return _cmd_validate(rest[0], out, err)
 
     if sub == "navigate":
-        if len(rest) != 3 or rest[1] != "--corpus":
+        # navigate <doc_id> --corpus <root> [--direction forward|back|both]
+        if len(rest) < 3 or rest[1] != "--corpus":
             err.write(
-                b"error: 'navigate' takes a document id and --corpus <root>\n"
+                b"error: 'navigate' takes a document id and --corpus <root>"
+                b" (optionally --direction forward|back|both)\n"
             )
             return 2
-        return _cmd_navigate(rest[0], rest[2], out, err)
+        doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
+        direction = "both"
+        if extra:
+            if len(extra) != 2 or extra[0] != "--direction":
+                err.write(
+                    b"error: 'navigate' accepts only --direction"
+                    b" forward|back|both after --corpus <root>\n"
+                )
+                return 2
+            direction = extra[1]
+            if direction not in ("forward", "back", "both"):
+                err.write(
+                    f"error: unknown direction '{direction}'; expected one of "
+                    f"forward, back, both\n".encode("utf-8")
+                )
+                return 2
+        return _cmd_navigate(doc_id, corpus_root, direction, out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
