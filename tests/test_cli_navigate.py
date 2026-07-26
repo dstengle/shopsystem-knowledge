@@ -285,3 +285,172 @@ def _stderr_names_unknown_id(context: dict, doc_id: str) -> None:
     assert "corpus" in stderr.lower(), (
         f"stderr does not frame {doc_id!r} as absent from the corpus: {stderr!r}"
     )
+
+
+# --- Direction filter + unresolved-edge faithfulness -------------------------
+#
+# The three edge PAIRS split into a *forward* half (the forward link-fields a
+# document declares) and a *back* half (the materialized back-edges), and the
+# navigate verb's ``--direction forward|back|both`` option selects which half
+# the neighbourhood returns. These two behaviours are pinned by appending to the
+# fixture above, reusing its ``_write_doc`` corpus builder and in-process CLI
+# invocation.
+
+# The forward half of the three edge pairs (the link-fields a document declares
+# outward) and the back half (the materialized back-edges).
+FORWARD_FIELDS: tuple[str, ...] = ("supersedes", "derives-from", "references")
+BACK_FIELDS: tuple[str, ...] = ("superseded-by", "derived-by", "referenced-by")
+
+
+def _label_fields(label: str) -> set[str]:
+    """The link-fields a direction label ("forward" / "back" / "forward and back"
+    / "") names. An empty label names no fields, so an "excludes ''" assertion is
+    vacuously satisfied."""
+    fields: set[str] = set()
+    if "forward" in label:
+        fields |= set(FORWARD_FIELDS)
+    if "back" in label:
+        fields |= set(BACK_FIELDS)
+    return fields
+
+
+def _build_both_halves_corpus(root: Path) -> None:
+    """Materialize a corpus whose ``adr-068`` carries BOTH forward edges and
+    materialized back-edges, each to a present, resolvable neighbour, so a
+    direction filter has a full pair-set to select halves of."""
+    _write_doc(
+        root,
+        SUBJECT_ID,
+        status="superseded",
+        title="Both-halves subject",
+        **{
+            "supersedes": ["adr-060"],
+            "derives-from": ["adr-050"],
+            "references": ["adr-070"],
+            "superseded-by": ["adr-100"],
+            "derived-by": ["adr-110"],
+            "referenced-by": ["adr-120"],
+        },
+    )
+    _write_doc(root, "adr-060", status="superseded", title="Superseded predecessor")
+    _write_doc(root, "adr-050", status="accepted", title="Derivation base")
+    _write_doc(root, "adr-070", status="accepted", title="Referenced note")
+    _write_doc(root, "adr-100", status="accepted", title="Superseding successor")
+    _write_doc(root, "adr-110", status="accepted", title="Derivation consumer")
+    _write_doc(root, "adr-120", status="accepted", title="Back-reference consumer")
+
+
+def _run_navigate_direction(context: dict, doc_id: str, direction: str) -> None:
+    from knowledge.cli import main
+
+    out, err = io.BytesIO(), io.BytesIO()
+    rc = main(
+        ["navigate", doc_id, "--corpus", str(context["root"]), "--direction", direction],
+        stdout=out,
+        stderr=err,
+    )
+    context["exit"] = rc
+    context["stdout"] = out.getvalue()
+    context["stderr"] = err.getvalue()
+
+
+# --- Scenario bindings -------------------------------------------------------
+
+
+@scenario(FEATURE, "navigate's direction filter selects which half of the edge pairs the neighbourhood returns")
+def test_navigate_direction_filter() -> None: ...
+
+
+@scenario(FEATURE, "navigate surfaces an unresolved or legacy-target edge faithfully rather than hiding it")
+def test_navigate_unresolved_edge_faithful() -> None: ...
+
+
+# --- Given -------------------------------------------------------------------
+
+
+@given(parsers.re(r'a corpus whose document "(?P<doc_id>[^"]+)" carries both forward edges and materialized back-edges'))
+def _corpus_both_halves(context: dict, tmp_path: Path, doc_id: str) -> None:
+    root = tmp_path / "corpus"
+    _build_both_halves_corpus(root)
+    context["root"] = root
+
+
+@given(parsers.re(r'a corpus whose document "(?P<doc_id>[^"]+)" carries an edge to a target whose resolution is false or whose target is a legacy artifact'))
+def _corpus_with_unresolved_edge(context: dict, tmp_path: Path, doc_id: str) -> None:
+    root = tmp_path / "corpus"
+    unresolved_target = "adr-missing"
+    # adr-068 declares a references edge to a target with no file anywhere in the
+    # corpus, so the edge resolves false.
+    _write_doc(
+        root,
+        SUBJECT_ID,
+        status="accepted",
+        title="Unresolved-edge subject",
+        **{"references": [unresolved_target]},
+    )
+    context["root"] = root
+    context["unresolved_target"] = unresolved_target
+
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(root)
+    assert corpus.get(unresolved_target) is None, (
+        f"fixture invariant: {unresolved_target} must be absent so the edge resolves false"
+    )
+
+
+# --- When --------------------------------------------------------------------
+
+
+@when(parsers.re(r'I run the navigate verb on document id "(?P<doc_id>[^"]+)" with a direction filter of "(?P<direction>[^"]*)"'))
+def _run_verb_with_direction(context: dict, doc_id: str, direction: str) -> None:
+    _run_navigate_direction(context, doc_id, direction)
+
+
+# --- Then --------------------------------------------------------------------
+
+
+@then(parsers.re(r'the neighbourhood includes the "(?P<label>[^"]*)" edges'))
+def _neighbourhood_includes(context: dict, label: str) -> None:
+    payload = _payload(context)
+    present = {edge["link_field"] for edge in payload["edges"]}
+    for field in _label_fields(label):
+        assert field in present, (
+            f"expected the {label!r} half to include link-field {field!r}; "
+            f"present link-fields: {sorted(present)}"
+        )
+
+
+@then(parsers.re(r'the neighbourhood excludes the "(?P<label>[^"]*)" edges'))
+def _neighbourhood_excludes(context: dict, label: str) -> None:
+    payload = _payload(context)
+    present = {edge["link_field"] for edge in payload["edges"]}
+    for field in _label_fields(label):
+        assert field not in present, (
+            f"expected the {label!r} half to be excluded, but link-field {field!r} "
+            f"is present: {sorted(present)}"
+        )
+
+
+@then("the neighbourhood includes that edge with its resolved flag reported as false")
+def _includes_unresolved_edge(context: dict) -> None:
+    payload = _payload(context)
+    target = context["unresolved_target"]
+    by_target = {edge["target"]: edge for edge in payload["edges"]}
+    edge = by_target.get(target)
+    assert edge is not None, (
+        f"the unresolved edge to {target} is missing from the neighbourhood: {payload!r}"
+    )
+    assert edge["resolved"] is False, (
+        f"the unresolved edge to {target} should report resolved=false: {edge!r}"
+    )
+
+
+@then("the CLI does not silently drop the unresolved edge from the neighbourhood")
+def _does_not_drop_unresolved_edge(context: dict) -> None:
+    payload = _payload(context)
+    targets = {edge["target"] for edge in payload["edges"]}
+    assert context["unresolved_target"] in targets, (
+        f"the CLI silently dropped the unresolved edge to "
+        f"{context['unresolved_target']}: {sorted(targets)}"
+    )
