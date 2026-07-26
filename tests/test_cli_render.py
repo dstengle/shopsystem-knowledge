@@ -32,6 +32,7 @@ provable against the captured output rather than by string-shape guessing.
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 
 import pytest
