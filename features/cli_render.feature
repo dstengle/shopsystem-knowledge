@@ -22,3 +22,20 @@ Feature: The render read verb — current-system view
     When I run the render verb on document id "adr-034" in the current-system view
     Then the CLI reports that "adr-034" has no current-system rendering because it is not in the accepted set
     And no accepted content is emitted for "adr-034"
+
+  @scenario_hash:3f752398f17674a4 @bc:shopsystem-knowledge
+  Scenario: render current-system view DROPS the changelog and supersede-chain transformation material and does not leak it
+    Given a corpus whose document "adr-068" has status "accepted", carries a changelog section naming a superseded predecessor, and carries supersede-chain transformation material
+    When I run the render verb on document id "adr-068" in the current-system view
+    Then the rendered output does not contain the changelog section
+    And the rendered output does not contain the named superseded predecessor reference
+    And the rendered output does not contain the supersede-chain transformation material
+
+  @scenario_hash:335eb88e9c9fb357 @bc:shopsystem-knowledge
+  Scenario: render transformation view emits the full document including changelog and supersede-chain material
+    Given a corpus whose document "adr-068" has status "accepted", carries a changelog section, and carries supersede-chain transformation material
+    When I run the render verb on document id "adr-068" in the transformation view
+    Then the exit code is 0
+    And the rendered output contains the document's content sections
+    And the rendered output contains the changelog section
+    And the rendered output contains the supersede-chain transformation material
