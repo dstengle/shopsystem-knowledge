@@ -39,3 +39,16 @@ Feature: The render read verb — current-system view
     And the rendered output contains the document's content sections
     And the rendered output contains the changelog section
     And the rendered output contains the supersede-chain transformation material
+
+  @scenario_hash:d98873c76ac4b175 @bc:shopsystem-knowledge
+  Scenario Outline: render emits either document markdown or a structured envelope carrying the rendered body and frontmatter facets
+    Given a corpus whose document "adr-068" has status "accepted"
+    When I run the render verb on document id "adr-068" in the current-system view requesting "<format>" output
+    Then the exit code is 0
+    And the output is "<shape>"
+
+    Examples:
+      | format | shape                                                              |
+      | md     | the rendered document markdown body                                |
+      | json   | a json envelope wrapping the rendered body plus the frontmatter facets |
+      | yaml   | a yaml envelope wrapping the rendered body plus the frontmatter facets |

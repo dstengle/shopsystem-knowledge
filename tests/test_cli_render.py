@@ -417,3 +417,173 @@ def _output_has_supersede_chain(context: dict) -> None:
         f"the transformation rendering omits supersede-chain transformation "
         f"material marker {TRANSFORM_SUPERSEDE_CHAIN_MARKER!r}; rendered stdout: {stdout!r}"
     )
+
+
+# =============================================================================
+# 0a2.11 — render output format md / json / yaml envelope
+# =============================================================================
+#
+# render today emits the current-system markdown body unconditionally. This
+# behaviour adds a ``--format md|json|yaml`` selector (mirroring navigate's
+# ``--format``): ``md`` keeps emitting the rendered document markdown body (the
+# current-system sliced body), while ``json``/``yaml`` emit a structured
+# *envelope* wrapping that same rendered body PLUS the subject's frontmatter
+# facets. The scenario is a Scenario Outline over the three formats.
+#
+# The accepted subject adr-068 carries three content sections plus a
+# ``## Changelog`` (a transformation section the current-system view slices
+# out), each region a distinct token, so both legs are provable token-by-token:
+# the rendered body (md output, and the envelope's ``body`` field) must carry
+# the three content markers and must NOT carry the changelog marker, and the
+# json/yaml envelope must additionally carry the frontmatter facets
+# (id / type / status / title).
+
+FORMAT_SUBJECT_ID = "adr-068"
+FORMAT_CONTENT_MARKERS: tuple[str, ...] = (
+    "CTX-068-FORMAT-CONTENT",
+    "DEC-068-FORMAT-CONTENT",
+    "CON-068-FORMAT-CONTENT",
+)
+# The changelog-section marker: a transformation section the current-system view
+# slices out. Its ABSENCE from the rendered body (md output and envelope body)
+# proves the envelope wraps the current-system body, not the whole document.
+FORMAT_CHANGELOG_MARKER = "CHG-068-FORMAT-CHANGELOG"
+
+
+def _format_subject_body() -> str:
+    """Body of accepted adr-068 for the output-format scenario.
+
+    Three content sections (each a distinct marker) plus a ``## Changelog``
+    transformation section the current-system view slices out.
+    """
+    return (
+        f"## Context\n\n{FORMAT_CONTENT_MARKERS[0]}\n\n"
+        f"## Decision\n\n{FORMAT_CONTENT_MARKERS[1]}\n\n"
+        f"## Consequences\n\n{FORMAT_CONTENT_MARKERS[2]}\n\n"
+        f"## Changelog\n\n{FORMAT_CHANGELOG_MARKER}\n"
+    )
+
+
+def _run_render_format(context: dict, doc_id: str, fmt: str) -> None:
+    """Drive ``render`` for ``doc_id`` in the current-system view requesting ``fmt``."""
+    from knowledge.cli import main
+
+    out, err = io.BytesIO(), io.BytesIO()
+    rc = main(
+        [
+            "render",
+            doc_id,
+            "--corpus",
+            str(context["root"]),
+            "--view",
+            "current-system",
+            "--format",
+            fmt,
+        ],
+        stdout=out,
+        stderr=err,
+    )
+    context["exit"] = rc
+    context["stdout"] = out.getvalue()
+    context["stderr"] = err.getvalue()
+    context["format"] = fmt
+
+
+def _assert_render_envelope(doc: object) -> None:
+    """Assert a parsed json/yaml render document is an envelope wrapping the
+    rendered current-system body PLUS the subject's frontmatter facets."""
+    assert isinstance(doc, dict), f"render envelope is not a mapping: {doc!r}"
+    body = doc.get("body")
+    assert isinstance(body, str) and body.strip(), (
+        f"the render envelope carries no rendered body: {doc!r}"
+    )
+    for marker in FORMAT_CONTENT_MARKERS:
+        assert marker in body, (
+            f"the envelope body omits content marker {marker!r}: {body!r}"
+        )
+    assert FORMAT_CHANGELOG_MARKER not in body, (
+        f"the envelope body leaked the changelog section (marker "
+        f"{FORMAT_CHANGELOG_MARKER!r}); the envelope must wrap the current-system "
+        f"sliced body: {body!r}"
+    )
+    facets = doc.get("frontmatter")
+    assert isinstance(facets, dict), (
+        f"the render envelope carries no frontmatter facets: {doc!r}"
+    )
+    assert facets.get("id") == FORMAT_SUBJECT_ID, f"envelope facet id mismatch: {facets!r}"
+    assert facets.get("type") == "adr", f"envelope facet type mismatch: {facets!r}"
+    assert facets.get("status") == "accepted", f"envelope facet status mismatch: {facets!r}"
+    assert facets.get("title") == f"Render subject {FORMAT_SUBJECT_ID}", (
+        f"envelope facet title mismatch: {facets!r}"
+    )
+
+
+# --- Scenario binding --------------------------------------------------------
+
+
+@scenario(FEATURE, "render emits either document markdown or a structured envelope carrying the rendered body and frontmatter facets")
+def test_render_output_format() -> None: ...
+
+
+# --- Given -------------------------------------------------------------------
+
+
+@given(parsers.re(r'a corpus whose document "(?P<doc_id>[^"]+)" has status "accepted"'))
+def _corpus_accepted_for_format(context: dict, tmp_path: Path, doc_id: str) -> None:
+    root = tmp_path / "corpus"
+    _write_adr(root, doc_id, status="accepted", body=_format_subject_body())
+    context["root"] = root
+
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(root)
+    subject = corpus.get(doc_id)
+    assert subject is not None, f"fixture invariant: {doc_id} must load as a typed artifact"
+    assert subject.status == "accepted", (
+        f"fixture invariant: {doc_id} must be in the accepted set: {subject.status!r}"
+    )
+
+
+# --- When --------------------------------------------------------------------
+
+
+@when(parsers.re(r'I run the render verb on document id "(?P<doc_id>[^"]+)" in the current-system view requesting "(?P<fmt>[^"]+)" output'))
+def _run_verb_format(context: dict, doc_id: str, fmt: str) -> None:
+    _run_render_format(context, doc_id, fmt)
+
+
+# --- Then --------------------------------------------------------------------
+
+
+@then(parsers.re(r'the output is "(?P<shape>[^"]+)"'))
+def _output_matches_shape(context: dict, shape: str) -> None:
+    fmt = context["format"]
+    raw = context["stdout"]
+    if fmt == "md":
+        # md keeps emitting the rendered document markdown body (the current-
+        # system sliced body): content markers present, changelog sliced, and it
+        # is plain markdown rather than a structured envelope.
+        stdout = raw.decode("utf-8")
+        for marker in FORMAT_CONTENT_MARKERS:
+            assert marker in stdout, (
+                f"the md render omits content marker {marker!r}: {stdout!r}"
+            )
+        assert FORMAT_CHANGELOG_MARKER not in stdout, (
+            f"the md render leaked the changelog section (marker "
+            f"{FORMAT_CHANGELOG_MARKER!r}); md must emit the current-system sliced "
+            f"body: {stdout!r}"
+        )
+        try:
+            parsed = json.loads(stdout)
+        except (ValueError, TypeError):
+            parsed = None
+        assert not isinstance(parsed, dict), (
+            f"md output must be the plain markdown body, not a structured envelope: "
+            f"{stdout!r}"
+        )
+    elif fmt == "json":
+        _assert_render_envelope(json.loads(raw.decode("utf-8")))
+    elif fmt == "yaml":
+        _assert_render_envelope(yaml.safe_load(raw.decode("utf-8")))
+    else:  # pragma: no cover - the outline only supplies md/json/yaml
+        raise AssertionError(f"unexpected format {fmt!r}")
