@@ -134,3 +134,10 @@ Feature: Frontmatter conformance against the per-type schema
     When the knowledge context validates the artifact's frontmatter against the schema
     Then it reports the artifact as conforming
     And it does not report the absent tags field as missing
+
+  @scenario_hash:197a67281976456c @bc:shopsystem-knowledge
+  Scenario: an artifact carrying an external-references list conforms
+    Given an artifact whose frontmatter carries an external-references field holding a list of sources outside the corpus
+    When the knowledge context validates the artifact's frontmatter against the schema
+    Then it reports the artifact as conforming
+    And it does not report the external-references field as an unrecognized field

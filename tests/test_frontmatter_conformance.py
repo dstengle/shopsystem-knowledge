@@ -152,6 +152,10 @@ def test_tags_list_conforms() -> None: ...
 def test_tags_omitted_conforms() -> None: ...
 
 
+@scenario(FEATURE, "an artifact carrying an external-references list conforms")
+def test_external_references_list_conforms() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -303,6 +307,19 @@ def _artifact_with_tags(context: dict) -> None:
 def _conforming_without_tags(context: dict) -> None:
     fm = _conforming_frontmatter("candidate")
     assert "tags" not in fm
+    context["frontmatter"] = fm
+
+
+@given(
+    "an artifact whose frontmatter carries an external-references field holding "
+    "a list of sources outside the corpus"
+)
+def _artifact_with_external_references(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["external-references"] = [
+        "https://example.org/spec",
+        "RFC 8259",
+    ]
     context["frontmatter"] = fm
 
 
@@ -472,6 +489,28 @@ def _tags_not_unrecognized(context: dict) -> None:
     result = context["result"]
     assert not any(d.field == "tags" for d in result.diagnostics), (
         f"the tags field was wrongly flagged; diagnostics: {result.messages}"
+    )
+
+
+@then("it does not report the external-references field as an unrecognized field")
+def _external_references_not_unrecognized(context: dict) -> None:
+    # The schema must *recognize* ``external-references`` as a known optional
+    # field: an OPTIONAL list of sources outside the corpus. Reference the
+    # schema's recognized-optional-fields collection rather than a literal, so
+    # this premise is genuinely unmet until the schema records
+    # ``external-references``. Absent it from ``RECOGNIZED_OPTIONAL_FIELDS`` the
+    # membership assertion fails here (RED) rather than passing vacuously against
+    # a permissive schema.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "external-references" in recognized, (
+        f"'external-references' is not a recognized optional field; recognized={recognized!r}"
+    )
+    # And no diagnostic flags the present external-references field.
+    result = context["result"]
+    assert not any(d.field == "external-references" for d in result.diagnostics), (
+        f"the external-references field was wrongly flagged; diagnostics: {result.messages}"
     )
 
 
