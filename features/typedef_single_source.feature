@@ -1,3 +1,12 @@
+# RETIRED SCENARIO (provenance — outside every canonical scenario region, ADR-064 D2):
+#   original hash d038584b238f2fee (block-only scenario hash of the deleted body)
+#   title: "the current-state typedef generates a living stewarded document rather
+#           than an append-only instance"
+#   Retired per ADR-069 D7 — current-state is now a versioned append-only instance,
+#   NOT a living stewarded document. The old living-document contract is superseded.
+#   work_id: lead-4vvdo
+#   (The scenario body is deleted from the live block region above the Feature; this
+#    comment carries no @scenario-hash tag token, so no block-only recompute reaches it.)
 Feature: Each artifact type is single-sourced by its own typedef
   The knowledge context recognizes exactly eight artifact types, and each is
   single-sourced by its own per-type typedef. The format generator runs over the
@@ -5,9 +14,9 @@ Feature: Each artifact type is single-sourced by its own typedef
   fragment, marks that generated set generated and read-only, and the drift check
   covers it. The typedef set covers exactly the eight types — no recognized type
   lacks a typedef and no typedef declares a type outside the eight. Every schema
-  fragment requires the shared field set including description, and the
-  current-state typedef generates a single living stewarded document carrying an
-  incorporates list rather than an append-only numbered-series instance.
+  fragment requires the shared field set including description. (The current-state
+  typedef's living-document contract was retired per ADR-069 D7 — current-state is
+  now a versioned append-only instance; see the retirement provenance comment above.)
 
   @scenario_hash:1afdfb1b5cfcbe71 @bc:shopsystem-knowledge
   Scenario Outline: each artifact type is single-sourced by its own typedef that drives the generator
@@ -36,14 +45,6 @@ Feature: Each artifact type is single-sourced by its own typedef
     Then the enumerated set is exactly intent-record, candidate, session-record, prioritization-record, brief, pdr, adr and current-state
     And no recognized artifact type lacks a typedef
     And no typedef declares a type outside the eight recognized artifact types
-
-  @scenario_hash:d038584b238f2fee @bc:shopsystem-knowledge
-  Scenario: the current-state typedef generates a living stewarded document rather than an append-only instance
-    Given the current-state typedef, which declares a single living document stewarded in place with an incorporates list rather than an append-only numbered-series record
-    When the knowledge context runs the format generator over the current-state typedef
-    Then it emits a current-state template shaped as a single stewarded living document carrying an incorporates list
-    And it emits a schema fragment for current-state from the same typedef
-    And the generated current-state template and schema fragment are marked generated and read-only under the same drift check as every other type
 
   @scenario_hash:3bcea617f9a026d9 @bc:shopsystem-knowledge
   Scenario: every type's generated schema fragment requires the shared field set including description
