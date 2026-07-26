@@ -139,14 +139,25 @@ def resolve_edges(corpus: ArtifactCorpus) -> tuple[Edge, ...]:
 def check_asymmetric_supersede(
     corpus: ArtifactCorpus, config: CoherenceConfig
 ) -> list[Finding]:
-    """A ``supersedes`` edge to a present target must carry a back-edge.
+    """A supersede must be symmetric in both directions.
 
-    For each present target of a ``supersedes`` link, the target must name the
-    source back in its ``superseded-by`` field. A missing per-pair back-edge is a
-    finding naming the source and that one target. Absent targets are left to the
+    Forward: for each present target of a ``supersedes`` link, the target must
+    name the source back in its ``superseded-by`` field — a missing per-pair
+    back-edge is a finding naming the superseder and that one target.
+
+    Reverse: for each present successor named in an artifact's ``superseded-by``
+    list, that successor must declare a ``supersedes`` edge back to the
+    predecessor — a missing per-pair back-edge is a finding naming the
+    predecessor and that one successor. This catches a joint ``superseded-by``
+    list whose successors do not all reciprocate.
+
+    A pair the forward walk already flagged is not re-flagged by the reverse
+    walk (deduped on the unordered subject pair). Absent targets are left to the
     dangling-edge check.
     """
     findings: list[Finding] = []
+    seen_pairs: set[frozenset[str]] = set()
+    # Forward walk: superseder -> superseded must carry the superseded-by back-edge.
     for artifact in corpus.artifacts:
         source = _id_str(artifact)
         if not source:
@@ -156,6 +167,7 @@ def check_asymmetric_supersede(
             if target_art is None:
                 continue  # a dangling supersede is the dangling-edge check's job
             if source not in _link_targets(target_art, "superseded-by"):
+                seen_pairs.add(frozenset((source, target)))
                 findings.append(
                     Finding(
                         check_id="asymmetric-supersede",
@@ -173,6 +185,38 @@ def check_asymmetric_supersede(
                         ),
                     )
                 )
+    # Reverse walk: predecessor -> successor named in superseded-by must carry
+    # the supersedes back-edge.
+    for artifact in corpus.artifacts:
+        predecessor = _id_str(artifact)
+        if not predecessor:
+            continue
+        for successor in _link_targets(artifact, "superseded-by"):
+            successor_art = corpus.get(successor)
+            if successor_art is None:
+                continue  # a dangling superseded-by is the dangling-edge check's job
+            if predecessor in _link_targets(successor_art, "supersedes"):
+                continue  # the supersedes back-edge is present
+            if frozenset((predecessor, successor)) in seen_pairs:
+                continue  # already flagged by the forward walk
+            seen_pairs.add(frozenset((predecessor, successor)))
+            findings.append(
+                Finding(
+                    check_id="asymmetric-supersede",
+                    check_name="supersede carries no back-edge",
+                    severity=Severity.BLOCKING,
+                    subjects=(predecessor, successor),
+                    message=(
+                        f"artifact '{predecessor}' is superseded-by '{successor}', "
+                        f"but '{successor}' carries no supersedes back-edge to "
+                        f"'{predecessor}'"
+                    ),
+                    remediation=(
+                        f"write the supersedes back-edge on '{successor}' naming "
+                        f"'{predecessor}'"
+                    ),
+                )
+            )
     return findings
 
 
