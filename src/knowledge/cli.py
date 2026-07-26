@@ -355,29 +355,46 @@ def _query_record(doc: object) -> dict[str, object]:
 
 def _cmd_query(
     corpus_root: str,
-    facet: str,
-    value: str,
     stdout: BinaryIO,
     stderr: BinaryIO,
+    *,
+    facet: str | None = None,
+    value: str | None = None,
+    edge: str | None = None,
 ) -> int:
-    """Run ``query`` over the corpus rooted at ``corpus_root``, filtering by facet.
+    """Run ``query`` over the corpus rooted at ``corpus_root``.
 
     Unlike ``navigate``/``render`` — which project a single named document —
-    ``query`` is corpus-wide: it loads the whole corpus and selects every
-    artifact whose frontmatter facet ``facet`` equals ``value``
-    (:func:`_doc_matches_facet`), emitting a compact JSON array of one
-    :func:`_query_record` (id/title/status) per matched document on stdout with
-    exit 0. A facet matching no document is an empty result — ``[]`` on stdout,
+    ``query`` is corpus-wide: it loads the whole corpus and selects a subset via
+    one of two mutually-exclusive predicates, emitting a compact JSON array of
+    one :func:`_query_record` (id/title/status) per selected document on stdout
+    with exit 0.
+
+    In *facet* mode (``facet``/``value`` given) a document is selected when its
+    frontmatter facet ``facet`` equals ``value`` (:func:`_doc_matches_facet`).
+    In *edge* mode (``edge`` given) a document is selected when it *participates*
+    in the materialized ``edge`` link field — i.e. carries a non-empty
+    ``edge`` per :func:`~knowledge.typed_edges._link_targets`, the same reader
+    the edge-resolution pass and ``navigate`` use. Only the predicate differs;
+    the record shape and empty-result contract are identical.
+
+    A predicate matching no document is an empty result — ``[]`` on stdout,
     exit 0, and nothing on stderr — never routed through the error path.
     """
     from knowledge.corpus_loader import load_corpus
+    from knowledge.typed_edges import _link_targets
+
+    if edge is not None:
+        def selected(doc: object) -> bool:
+            return bool(_link_targets(doc, edge))  # type: ignore[arg-type]
+    else:
+        assert facet is not None and value is not None
+
+        def selected(doc: object) -> bool:
+            return _doc_matches_facet(doc, facet, value)
 
     corpus = load_corpus(corpus_root)
-    records = [
-        _query_record(doc)
-        for doc in corpus.artifacts
-        if _doc_matches_facet(doc, facet, value)
-    ]
+    records = [_query_record(doc) for doc in corpus.artifacts if selected(doc)]
     stdout.write(json.dumps(records).encode("utf-8"))
     return 0
 
@@ -516,10 +533,11 @@ def main(
         corpus_root, extra = rest[1], rest[2:]
         facet: str | None = None
         value: str | None = None
+        edge: str | None = None
         if len(extra) % 2 != 0:
             err.write(
-                b"error: 'query' accepts --facet <facet> and --value <value>"
-                b" as name/value pairs after --corpus <root>\n"
+                b"error: 'query' accepts --facet <facet> and --value <value>,"
+                b" or --edge <edge>, as name/value pairs after --corpus <root>\n"
             )
             return 2
         for i in range(0, len(extra), 2):
@@ -534,18 +552,44 @@ def main(
                     return 2
             elif name == "--value":
                 value = val
+            elif name == "--edge":
+                edge = val
+                if edge not in ("superseded-by", "references", "referenced-by"):
+                    err.write(
+                        f"error: unknown edge '{edge}'; expected one of "
+                        f"superseded-by, references, referenced-by\n".encode("utf-8")
+                    )
+                    return 2
             else:
                 err.write(
                     b"error: 'query' accepts only --facet <facet> and"
-                    b" --value <value> after --corpus <root>\n"
+                    b" --value <value>, or --edge <edge>, after --corpus <root>\n"
                 )
                 return 2
+        # --facet/--value mode and --edge mode are mutually exclusive: exactly
+        # one selection mode must be present.
+        facet_mode = facet is not None or value is not None
+        edge_mode = edge is not None
+        if facet_mode and edge_mode:
+            err.write(
+                b"error: 'query' takes either --facet/--value or --edge,"
+                b" not both\n"
+            )
+            return 2
+        if not facet_mode and not edge_mode:
+            err.write(
+                b"error: 'query' requires either --facet <facet> and"
+                b" --value <value>, or --edge <edge>\n"
+            )
+            return 2
+        if edge_mode:
+            return _cmd_query(corpus_root, out, err, edge=edge)
         if facet is None or value is None:
             err.write(
                 b"error: 'query' requires both --facet <facet> and --value <value>\n"
             )
             return 2
-        return _cmd_query(corpus_root, facet, value, out, err)
+        return _cmd_query(corpus_root, out, err, facet=facet, value=value)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
