@@ -27,6 +27,8 @@ import sys
 from pathlib import Path
 from typing import BinaryIO, Sequence
 
+import yaml
+
 from knowledge.artifact_types import (
     RECOGNIZED_ARTIFACT_TYPES,
     artifact_type,
@@ -94,10 +96,33 @@ def _cmd_validate(path: str, stdout: BinaryIO, stderr: BinaryIO) -> int:
     return 1
 
 
+def _render_neighbourhood_markdown(payload: dict[str, object]) -> str:
+    """Render the navigate neighbourhood ``payload`` as a markdown document.
+
+    Each incident edge becomes a bullet naming its ``link_field`` and target id;
+    a resolved neighbour contributes its title. An unresolved edge (whose
+    ``neighbour`` is ``None``) is rendered faithfully without a title lookup.
+    """
+    lines = [f"# navigate: {payload['id']}", "", "## edges", ""]
+    edges = payload.get("edges", [])
+    assert isinstance(edges, list)
+    for edge in edges:
+        assert isinstance(edge, dict)
+        link_field = edge["link_field"]
+        target = edge["target"]
+        neighbour = edge.get("neighbour")
+        if isinstance(neighbour, dict):
+            lines.append(f"- {link_field} -> {target}: {neighbour['title']}")
+        else:
+            lines.append(f"- {link_field} -> {target}: (unresolved)")
+    return "\n".join(lines) + "\n"
+
+
 def _cmd_navigate(
     doc_id: str,
     corpus_root: str,
     direction: str,
+    fmt: str,
     stdout: BinaryIO,
     stderr: BinaryIO,
 ) -> int:
@@ -171,7 +196,12 @@ def _cmd_navigate(
             )
 
     payload = {"id": doc_id, "edges": edges}
-    stdout.write(json.dumps(payload).encode("utf-8"))
+    if fmt == "yaml":
+        stdout.write(yaml.safe_dump(payload).encode("utf-8"))
+    elif fmt == "md":
+        stdout.write(_render_neighbourhood_markdown(payload).encode("utf-8"))
+    else:
+        stdout.write(json.dumps(payload).encode("utf-8"))
     return 0
 
 
@@ -206,30 +236,49 @@ def main(
         return _cmd_validate(rest[0], out, err)
 
     if sub == "navigate":
-        # navigate <doc_id> --corpus <root> [--direction forward|back|both]
+        # navigate <doc_id> --corpus <root>
+        #   [--direction forward|back|both] [--format md|json|yaml] (any order)
         if len(rest) < 3 or rest[1] != "--corpus":
             err.write(
                 b"error: 'navigate' takes a document id and --corpus <root>"
-                b" (optionally --direction forward|back|both)\n"
+                b" (optionally --direction forward|back|both and"
+                b" --format md|json|yaml)\n"
             )
             return 2
         doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
         direction = "both"
-        if extra:
-            if len(extra) != 2 or extra[0] != "--direction":
+        fmt = "json"
+        if len(extra) % 2 != 0:
+            err.write(
+                b"error: 'navigate' accepts --direction forward|back|both and"
+                b" --format md|json|yaml as name/value pairs after --corpus <root>\n"
+            )
+            return 2
+        for i in range(0, len(extra), 2):
+            name, value = extra[i], extra[i + 1]
+            if name == "--direction":
+                direction = value
+                if direction not in ("forward", "back", "both"):
+                    err.write(
+                        f"error: unknown direction '{direction}'; expected one of "
+                        f"forward, back, both\n".encode("utf-8")
+                    )
+                    return 2
+            elif name == "--format":
+                fmt = value
+                if fmt not in ("md", "json", "yaml"):
+                    err.write(
+                        f"error: unknown format '{fmt}'; expected one of "
+                        f"md, json, yaml\n".encode("utf-8")
+                    )
+                    return 2
+            else:
                 err.write(
-                    b"error: 'navigate' accepts only --direction"
-                    b" forward|back|both after --corpus <root>\n"
+                    b"error: 'navigate' accepts only --direction forward|back|both"
+                    b" and --format md|json|yaml after --corpus <root>\n"
                 )
                 return 2
-            direction = extra[1]
-            if direction not in ("forward", "back", "both"):
-                err.write(
-                    f"error: unknown direction '{direction}'; expected one of "
-                    f"forward, back, both\n".encode("utf-8")
-                )
-                return 2
-        return _cmd_navigate(doc_id, corpus_root, direction, out, err)
+        return _cmd_navigate(doc_id, corpus_root, direction, fmt, out, err)
 
     err.write(f"error: unknown subcommand '{sub}'\n".encode("utf-8"))
     return 2
