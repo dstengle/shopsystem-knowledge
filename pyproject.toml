@@ -1,6 +1,6 @@
 [project]
 name = "shopsystem-knowledge"
-version = "0.0.0"
+version = "0.1.0"
 description = "shopsystem-knowledge bounded context — discovery-first knowledge context"
 requires-python = ">=3.11"
 dependencies = [
