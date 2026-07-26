@@ -205,6 +205,39 @@ def _cmd_navigate(
     return 0
 
 
+# The transformation section headings the current-system view drops. The
+# current-system view projects the document as the accepted system sees it right
+# now, so the *transformation* sections — how the document got here (its
+# ``## Changelog``, including any superseded-predecessor reference living inside
+# it) and its ``## Supersede-chain`` material — are sliced out. The
+# transformation view, by contrast, emits the whole body including these.
+_TRANSFORMATION_SECTION_HEADINGS = frozenset({"Changelog", "Supersede-chain"})
+
+
+def _current_system_body(body: str) -> str:
+    """Slice ``body`` down to the current-system view: drop transformation sections.
+
+    The body is split on ``## `` level-two headings — the same delimiting
+    :attr:`knowledge.artifact_types.Artifact.sections` uses — and every section
+    whose heading is in :data:`_TRANSFORMATION_SECTION_HEADINGS` (``Changelog``
+    and ``Supersede-chain``) is dropped, the rest being rejoined in document
+    order. Dropping ``## Changelog`` removes both the changelog marker and any
+    named predecessor reference living inside that section; dropping
+    ``## Supersede-chain`` removes the supersede-chain material. Any content
+    preceding the first ``## `` heading is preamble and is kept.
+    """
+    kept: list[str] = []
+    dropping = False
+    for line in body.splitlines(keepends=True):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            heading = stripped[3:].strip()
+            dropping = heading in _TRANSFORMATION_SECTION_HEADINGS
+        if not dropping:
+            kept.append(line)
+    return "".join(kept)
+
+
 def _cmd_render(
     doc_id: str,
     corpus_root: str,
@@ -214,22 +247,27 @@ def _cmd_render(
 ) -> int:
     """Run ``render`` for ``doc_id`` over the corpus rooted at ``corpus_root``.
 
-    The current-system view projects a single document as the accepted system
-    sees it right now. Accepted-set membership is read from *the subject's own*
-    frontmatter status: a document is in the accepted set iff its ``status`` is
-    ``accepted``.
+    Two views project a single document:
 
-    * **In the accepted set (adr-068):** the view emits the document's content
-      sections — here, faithfully, the whole rendered body (:attr:`Artifact.body`)
-      — so a reader sees what the accepted system currently says. Exit 0.
-    * **Outside the accepted set (adr-034, superseded):** the current-system view
-      has *no rendering*. The CLI reports that the document has no current-system
-      rendering *because it is not in the accepted set*, naming the offending id,
-      and emits **none** of that document's content.
+    * **current-system** projects the document as the accepted system sees it
+      right now. Accepted-set membership is read from *the subject's own*
+      frontmatter status: a document is in the accepted set iff its ``status`` is
+      ``accepted``.
 
-    The ``view`` value is plumbed through so a later behavior can branch a
-    ``transformation`` view; only ``current-system`` is implemented here, and the
-    caller has already rejected any unknown view before dispatch.
+      * **In the accepted set (adr-068):** the view emits the document's content
+        sections, with the transformation sections (``## Changelog`` and
+        ``## Supersede-chain``) sliced out by :func:`_current_system_body`, so a
+        reader sees what the accepted system currently says. Exit 0.
+      * **Outside the accepted set (adr-034, superseded):** the current-system
+        view has *no rendering*. The CLI reports that the document has no
+        current-system rendering *because it is not in the accepted set*, naming
+        the offending id, and emits **none** of that document's content.
+
+    * **transformation** emits the FULL document body (:attr:`Artifact.body`) —
+      content sections plus the changelog and supersede-chain transformation
+      material — so a reader sees how the document got to where it is. Exit 0.
+
+    The caller has already rejected any unknown view before dispatch.
     """
     from knowledge.corpus_loader import load_corpus
 
@@ -243,8 +281,12 @@ def _cmd_render(
         )
         return 2
 
-    if subject.status == "accepted":
+    if view == "transformation":
         stdout.write(subject.body.encode("utf-8"))
+        return 0
+
+    if subject.status == "accepted":
+        stdout.write(_current_system_body(subject.body).encode("utf-8"))
         return 0
 
     # Outside the accepted set: the current-system view has no rendering. Report
@@ -334,34 +376,35 @@ def main(
         return _cmd_navigate(doc_id, corpus_root, direction, fmt, out, err)
 
     if sub == "render":
-        # render <doc_id> --corpus <root> [--view current-system] (pairs, any order)
+        # render <doc_id> --corpus <root>
+        #   [--view current-system|transformation] (pairs, any order)
         if len(rest) < 3 or rest[1] != "--corpus":
             err.write(
                 b"error: 'render' takes a document id and --corpus <root>"
-                b" (optionally --view current-system)\n"
+                b" (optionally --view current-system|transformation)\n"
             )
             return 2
         doc_id, corpus_root, extra = rest[0], rest[2], rest[3:]
         view = "current-system"
         if len(extra) % 2 != 0:
             err.write(
-                b"error: 'render' accepts --view current-system as a name/value"
-                b" pair after --corpus <root>\n"
+                b"error: 'render' accepts --view current-system|transformation as a"
+                b" name/value pair after --corpus <root>\n"
             )
             return 2
         for i in range(0, len(extra), 2):
             name, value = extra[i], extra[i + 1]
             if name == "--view":
                 view = value
-                if view not in ("current-system",):
+                if view not in ("current-system", "transformation"):
                     err.write(
                         f"error: unknown view '{view}'; expected one of "
-                        f"current-system\n".encode("utf-8")
+                        f"current-system, transformation\n".encode("utf-8")
                     )
                     return 2
             else:
                 err.write(
-                    b"error: 'render' accepts only --view current-system"
+                    b"error: 'render' accepts only --view current-system|transformation"
                     b" after --corpus <root>\n"
                 )
                 return 2
