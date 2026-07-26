@@ -21,6 +21,9 @@ from knowledge.artifact_types import (
     artifact_type,
     parse_artifact,
 )
+from knowledge.additive_discipline import (
+    check_additive_discipline,
+)
 from knowledge.coherence import (
     ArtifactCorpus,
     Check,
@@ -145,6 +148,7 @@ __all__ = [
     "artifact_type",
     "build_l0l1_index",
     "check_active_yet_superseded",
+    "check_additive_discipline",
     "check_asymmetric_derivation",
     "check_asymmetric_reference",
     "check_asymmetric_supersede",
