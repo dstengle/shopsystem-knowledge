@@ -157,3 +157,17 @@ Feature: Typed-edge coherence checks over a corpus
     Then it reports an asymmetric-supersede finding naming B and C by id for the missing back-edge
     And it reports no asymmetric-supersede finding for the resolved B and A pair
     And the aggregate verdict exits non-zero
+
+  @scenario_hash:fd98c4d9e26162f0 @bc:shopsystem-knowledge
+  Scenario Outline: a materialized back-edge field pointing to a target absent from the corpus is flagged dangling
+    Given an artifact corpus in which an artifact declares a <link-field> edge to a target id that is not present in the corpus
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it reports a dangling-edge finding naming the source artifact and the unresolved target id on its <link-field> edge
+    And the finding carries its check-id and a remediation
+    And the aggregate verdict exits non-zero
+
+    Examples:
+      | link-field    |
+      | derived-by    |
+      | references    |
+      | referenced-by |

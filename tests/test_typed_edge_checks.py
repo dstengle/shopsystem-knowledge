@@ -122,6 +122,13 @@ def test_joint_supersession_passes() -> None: ...
 def test_joint_supersession_missing_flagged() -> None: ...
 
 
+@scenario(
+    FEATURE,
+    "a materialized back-edge field pointing to a target absent from the corpus is flagged dangling",
+)
+def test_dangling_back_edge_field() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
