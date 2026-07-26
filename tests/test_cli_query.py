@@ -454,3 +454,217 @@ def _no_returned_lacks_edge(context: dict, edge: str) -> None:
         f"query returned documents that lack the {edge!r} edge: {lacking!r}; "
         f"a participation query must exclude non-participants"
     )
+
+
+# --- query rendered output under the current-system view filter (0a2.17) -----
+#
+# A third shape on ``query``: a ``--rendered`` flag on the facet selection.
+# Without it, each matching document is emitted as the compact id/title/status
+# record. WITH ``--rendered``, each matching document additionally carries a
+# ``rendered`` field holding that document RENDERED under render's *current-
+# system* view — its accepted content sections present, and the ``## Changelog``
+# and ``## Supersede-chain`` transformation material SLICED OUT (the SAME drop
+# render's current-system view performs via ``_current_system_body``). The
+# chosen option shape parallels render's ``--view current-system``, expressed as
+# a bare flag on the facet mode::
+#
+#     query --corpus <root> --facet <f> --value <v> --rendered
+#
+# The fixture corpus carries accepted documents matching the query facet, each
+# carrying content sections + a ``## Changelog`` section (naming a superseded
+# predecessor) + a ``## Supersede-chain`` section, plus at least one non-matching
+# document so the facet filter is provable. Per-document markers are derived from
+# the id so each match's content presence and changelog/supersede-chain absence
+# are provable token-by-token in the rendered field.
+
+# The query facet the rendered fixture selects on: every accepted document
+# matches ``status == accepted`` while the non-accepted document does not, so the
+# facet filter is provable AND the matches are exactly the accepted set.
+_RENDERED_QUERY_FACET = "status"
+_RENDERED_QUERY_VALUE = "accepted"
+
+# The rendered fixture corpus: two accepted documents that match the facet and
+# one non-accepted document that does not.
+#   (subdir, id, status)
+_RENDERED_FIXTURE_DOCS: tuple[tuple[str, str, str], ...] = (
+    ("adrs", "adr-100", "accepted"),
+    ("adrs", "adr-101", "accepted"),
+    ("adrs", "adr-102", "proposed"),
+)
+
+
+def _rendered_content_markers(doc_id: str) -> tuple[str, ...]:
+    """The three content-section markers for ``doc_id`` (must survive the view)."""
+    return (
+        f"CTX-{doc_id}-CONTENT",
+        f"DEC-{doc_id}-CONTENT",
+        f"CON-{doc_id}-CONTENT",
+    )
+
+
+def _rendered_changelog_marker(doc_id: str) -> str:
+    """The changelog-section marker for ``doc_id`` (must be dropped by the view)."""
+    return f"CHG-{doc_id}-CHANGELOG"
+
+
+def _rendered_supersede_marker(doc_id: str) -> str:
+    """The supersede-chain material marker for ``doc_id`` (dropped by the view)."""
+    return f"SUP-{doc_id}-SUPERSEDE"
+
+
+def _rendered_doc_body(doc_id: str) -> str:
+    """Body for a rendered-query fixture document.
+
+    Three content sections (each a distinct per-id marker), a ``## Changelog``
+    section carrying a changelog marker AND naming a superseded predecessor, and
+    a distinct ``## Supersede-chain`` section carrying supersede-chain material.
+    The current-system view keeps the content sections and drops the changelog +
+    supersede-chain material.
+    """
+    ctx, dec, con = _rendered_content_markers(doc_id)
+    return (
+        f"## Context\n\n{ctx}\n\n"
+        f"## Decision\n\n{dec}\n\n"
+        f"## Consequences\n\n{con}\n\n"
+        f"## Changelog\n\n{_rendered_changelog_marker(doc_id)}\n\n"
+        f"Supersedes PRED-{doc_id}.\n\n"
+        f"## Supersede-chain\n\n{_rendered_supersede_marker(doc_id)}\n"
+    )
+
+
+def _write_rendered_doc(root: Path, subdir: str, doc_id: str, *, status: str) -> None:
+    """Write a typed ``adr`` document carrying content + changelog + supersede-chain."""
+    frontmatter: dict[str, object] = {
+        "type": "adr",
+        "id": doc_id,
+        "title": f"Rendered query subject {doc_id}",
+        "status": status,
+    }
+    source = (
+        "---\n"
+        + yaml.safe_dump(frontmatter, sort_keys=False)
+        + "---\n\n"
+        + _rendered_doc_body(doc_id)
+    )
+    (root / subdir).mkdir(parents=True, exist_ok=True)
+    (root / subdir / f"{doc_id}.md").write_text(source, encoding="utf-8")
+
+
+def _build_rendered_corpus(root: Path) -> None:
+    """Materialize the rendered-query fixture corpus under ``root``."""
+    for subdir, doc_id, status in _RENDERED_FIXTURE_DOCS:
+        _write_rendered_doc(root, subdir, doc_id, status=status)
+
+
+def _run_rendered_query(context: dict, facet: str, value: str) -> None:
+    """Drive ``query --corpus <root> --facet <f> --value <v> --rendered`` in-process."""
+    from knowledge.cli import main
+
+    out, err = io.BytesIO(), io.BytesIO()
+    rc = main(
+        [
+            "query",
+            "--corpus",
+            str(context["root"]),
+            "--facet",
+            facet,
+            "--value",
+            value,
+            "--rendered",
+        ],
+        stdout=out,
+        stderr=err,
+    )
+    context["exit"] = rc
+    context["stdout"] = out.getvalue()
+    context["stderr"] = err.getvalue()
+
+
+@scenario(FEATURE, "query with rendered output emits matching documents under the same current-system view filter as render")
+def test_query_rendered_output() -> None: ...
+
+
+@given("a corpus containing accepted documents that carry changelog sections and match a query facet")
+def _corpus_rendered_matches(context: dict, tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    _build_rendered_corpus(root)
+    context["root"] = root
+
+    from knowledge.corpus_loader import load_corpus
+
+    corpus = load_corpus(root)
+    context["corpus"] = corpus
+
+    expected: set[str] = set()
+    for _subdir, doc_id, status in _RENDERED_FIXTURE_DOCS:
+        subject = corpus.get(doc_id)
+        assert subject is not None, (
+            f"fixture invariant: {doc_id} must load as a typed artifact"
+        )
+        if status == _RENDERED_QUERY_VALUE:
+            assert "Changelog" in subject.sections, (
+                f"fixture invariant: matching {doc_id} must carry a changelog "
+                f"section: {subject.sections!r}"
+            )
+            assert "Supersede-chain" in subject.sections, (
+                f"fixture invariant: matching {doc_id} must carry supersede-chain "
+                f"material: {subject.sections!r}"
+            )
+            expected.add(doc_id)
+    context["expected_match_ids"] = expected
+
+    assert expected, "fixture invariant: at least one accepted document must match"
+    non_matching = [
+        d for d in corpus.artifacts if not _doc_has_facet(d, _RENDERED_QUERY_FACET, _RENDERED_QUERY_VALUE)
+    ]
+    assert non_matching, (
+        "fixture invariant: at least one non-matching document must be present so "
+        "the facet filter is provable"
+    )
+
+
+@when("I run the query verb selecting those documents requesting rendered output in the current-system view")
+def _run_verb_rendered(context: dict) -> None:
+    _run_rendered_query(context, _RENDERED_QUERY_FACET, _RENDERED_QUERY_VALUE)
+
+
+@then("each matching document is rendered with its accepted content sections")
+def _each_match_rendered_content(context: dict) -> None:
+    records = _records(context)
+    got_ids = {record["id"] for record in records}
+    assert got_ids == context["expected_match_ids"], (
+        f"rendered query returned ids {got_ids!r}; expected exactly the matching "
+        f"documents {context['expected_match_ids']!r} — the facet filter must "
+        f"select only matches"
+    )
+    for record in records:
+        assert "rendered" in record and isinstance(record["rendered"], str), (
+            f"rendered query record omits a string 'rendered' field: {record!r}"
+        )
+        rendered = record["rendered"]
+        for marker in _rendered_content_markers(record["id"]):
+            assert marker in rendered, (
+                f"the rendered output for {record['id']!r} omits accepted content "
+                f"marker {marker!r}: {rendered!r}"
+            )
+
+
+@then("no rendered match contains its changelog section or supersede-chain transformation material")
+def _no_match_leaks_transformation(context: dict) -> None:
+    records = _records(context)
+    for record in records:
+        assert "rendered" in record and isinstance(record["rendered"], str), (
+            f"rendered query record omits a string 'rendered' field: {record!r}"
+        )
+        rendered = record["rendered"]
+        changelog = _rendered_changelog_marker(record["id"])
+        supersede = _rendered_supersede_marker(record["id"])
+        assert changelog not in rendered, (
+            f"the rendered output for {record['id']!r} leaked its changelog section "
+            f"(marker {changelog!r}); the current-system view must drop it: {rendered!r}"
+        )
+        assert supersede not in rendered, (
+            f"the rendered output for {record['id']!r} leaked supersede-chain "
+            f"transformation material (marker {supersede!r}); the current-system view "
+            f"must drop it: {rendered!r}"
+        )

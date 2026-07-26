@@ -46,3 +46,11 @@ Feature: The query read verb — select by frontmatter facet
       | superseded-by |
       | references    |
       | referenced-by |
+
+  @scenario_hash:876d46bdef2f8311 @bc:shopsystem-knowledge
+  Scenario: query with rendered output emits matching documents under the same current-system view filter as render
+    Given a corpus containing accepted documents that carry changelog sections and match a query facet
+    When I run the query verb selecting those documents requesting rendered output in the current-system view
+    Then the exit code is 0
+    And each matching document is rendered with its accepted content sections
+    And no rendered match contains its changelog section or supersede-chain transformation material
