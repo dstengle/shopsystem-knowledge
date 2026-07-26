@@ -111,3 +111,30 @@ Feature: Typed-edge coherence checks over a corpus
     When the knowledge context runs its coherence checks over the corpus
     Then it evaluates no governed-delta tripwire against the artifact that registered none
     And it evaluates the governed-delta tripwire only against the artifact that opted in
+
+  @scenario_hash:c42c3e9b4b327e60 @bc:shopsystem-knowledge
+  Scenario Outline: a materialized forward edge with no reciprocal back-edge is flagged
+      Given an artifact corpus in which artifact A declares a <forward-field> edge naming artifact B
+      And artifact B carries no <back-field> edge back to A
+      When the knowledge context runs the typed-edge coherence checks over the corpus
+      Then it reports a <finding> finding naming A and B by id
+      And the finding carries its check-id and a remediation to write the <back-field> back-edge on B
+      And the aggregate verdict exits non-zero
+
+      Examples:
+        | forward-field | back-field    | finding               |
+        | derives-from  | derived-by    | asymmetric-derivation |
+        | references    | referenced-by | asymmetric-reference  |
+
+  @scenario_hash:b52b179a925b732a @bc:shopsystem-knowledge
+  Scenario Outline: a materialized forward edge whose reciprocal back-edge is present passes
+      Given an artifact corpus in which artifact A declares a <forward-field> edge naming artifact B
+      And artifact B carries a <back-field> edge back to A
+      When the knowledge context runs the typed-edge coherence checks over the corpus
+      Then it reports no <finding> finding for the A and B pair
+      And the aggregate verdict exits zero
+
+      Examples:
+        | forward-field | back-field    | finding               |
+        | derives-from  | derived-by    | asymmetric-derivation |
+        | references    | referenced-by | asymmetric-reference  |

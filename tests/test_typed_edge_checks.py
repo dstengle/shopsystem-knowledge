@@ -100,6 +100,14 @@ def test_multiple_defects_fold() -> None: ...
 def test_governed_delta_opt_in() -> None: ...
 
 
+@scenario(FEATURE, "a materialized forward edge with no reciprocal back-edge is flagged")
+def test_asymmetric_typed_edge_flagged() -> None: ...
+
+
+@scenario(FEATURE, "a materialized forward edge whose reciprocal back-edge is present passes")
+def test_symmetric_typed_edge_passes() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -261,6 +269,44 @@ def _opts_in_governed_delta(context: dict) -> None:
             **{"governed-delta": {"invariant": "delta-bounded", "surface": "adr-100"}},
         )
     )
+
+
+@given(
+    parsers.re(
+        r"an artifact corpus in which artifact A declares a "
+        r"(?P<forward_field>derives-from|references) edge naming artifact B"
+    )
+)
+def _a_declares_forward_edge(context: dict, forward_field: str) -> None:
+    context["A"] = "adr-100"
+    context["B"] = "adr-050"
+    context["forward_field"] = forward_field
+    context["artifacts"] = [
+        _artifact(type="adr", id="adr-100", status="accepted", **{forward_field: ["adr-050"]}),
+        _artifact(type="adr", id="adr-050", status="accepted"),
+    ]
+
+
+@given(
+    parsers.re(
+        r"artifact B carries no (?P<back_field>derived-by|referenced-by) edge back to A"
+    )
+)
+def _b_no_typed_backedge(context: dict, back_field: str) -> None:
+    context["back_field"] = back_field
+    for art in context["artifacts"]:
+        if art.id == context["B"]:
+            assert back_field not in art.frontmatter
+
+
+@given(
+    parsers.re(
+        r"artifact B carries a (?P<back_field>derived-by|referenced-by) edge back to A"
+    )
+)
+def _b_typed_backedge(context: dict, back_field: str) -> None:
+    context["back_field"] = back_field
+    _set_field(context, context["B"], back_field, [context["A"]])
 
 
 # --- When steps --------------------------------------------------------------
@@ -449,6 +495,44 @@ def _no_tripwire_unregistered(context: dict) -> None:
 @then("it evaluates the governed-delta tripwire only against the artifact that opted in")
 def _tripwire_only_registered(context: dict) -> None:
     assert context["evaluated"] == (context["registered"],)
+
+
+@then(
+    parsers.re(
+        r"it reports a (?P<finding>asymmetric-derivation|asymmetric-reference) "
+        r"finding naming A and B by id"
+    )
+)
+def _reports_typed_finding_ab(context: dict, finding: str) -> None:
+    context["expected_finding"] = finding
+    found = _findings(context, finding)
+    assert found, f"expected a {finding} finding"
+    f0 = found[0]
+    assert context["A"] in f0.subjects and context["B"] in f0.subjects
+    assert context["A"] in f0.message and context["B"] in f0.message
+
+
+@then(
+    parsers.re(
+        r"the finding carries its check-id and a remediation to write the "
+        r"(?P<back_field>derived-by|referenced-by) back-edge on B"
+    )
+)
+def _typed_finding_remediation(context: dict, back_field: str) -> None:
+    finding = _findings(context, context["expected_finding"])[0]
+    assert finding.check_id == context["expected_finding"]
+    assert back_field in finding.remediation.lower()
+
+
+@then(
+    parsers.re(
+        r"it reports no (?P<finding>asymmetric-derivation|asymmetric-reference) "
+        r"finding for the A and B pair"
+    )
+)
+def _no_typed_finding_ab(context: dict, finding: str) -> None:
+    for f in _findings(context, finding):
+        assert not (context["A"] in f.subjects and context["B"] in f.subjects)
 
 
 @then("the aggregate verdict exits non-zero")
