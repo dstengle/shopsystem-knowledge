@@ -129,6 +129,13 @@ def test_joint_supersession_missing_flagged() -> None: ...
 def test_dangling_back_edge_field() -> None: ...
 
 
+@scenario(
+    FEATURE,
+    "an external-references entry forms no intra-corpus edge and draws no dangling-edge finding",
+)
+def test_external_references_no_edge() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -371,6 +378,23 @@ def _c_no_supersedes_b(context: dict) -> None:
     for art in context["artifacts"]:
         if art.id == context["C"]:
             assert "supersedes" not in art.frontmatter
+
+
+@given(
+    "an artifact corpus in which an artifact's external-references field lists a source "
+    "outside the corpus that is not an artifact id"
+)
+def _external_references_source(context: dict) -> None:
+    context["source"] = "adr-100"
+    context["external_ref"] = "https://www.rfc-editor.org/rfc/rfc9110"
+    context["artifacts"] = [
+        _artifact(
+            type="adr",
+            id="adr-100",
+            status="accepted",
+            **{"external-references": [context["external_ref"]]},
+        ),
+    ]
 
 
 # --- When steps --------------------------------------------------------------
@@ -627,6 +651,27 @@ def _no_asym_ba(context: dict) -> None:
 @then("the aggregate verdict exits non-zero")
 def _exits_non_zero(context: dict) -> None:
     assert context["report"].exit_code != 0
+
+
+@then("it forms no intra-corpus edge from the external-references entry")
+def _no_external_reference_edge(context: dict) -> None:
+    from knowledge.typed_edges import resolve_edges
+
+    edges = resolve_edges(context["corpus"])
+    assert all(edge.link_field != "external-references" for edge in edges), (
+        "external-references must not be resolved as an intra-corpus link field"
+    )
+    assert all(edge.target != context["external_ref"] for edge in edges), (
+        "the external reference must not form a resolved graph edge"
+    )
+
+
+@then("it reports no dangling-edge finding arising from the external reference")
+def _no_dangling_from_external_reference(context: dict) -> None:
+    for f in _findings(context, "dangling-edge"):
+        assert context["external_ref"] not in f.subjects, (
+            f"unexpected dangling-edge finding naming the external reference: {f.subjects}"
+        )
 
 
 @then("the aggregate verdict exits zero")

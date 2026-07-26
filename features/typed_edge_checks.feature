@@ -171,3 +171,11 @@ Feature: Typed-edge coherence checks over a corpus
       | derived-by    |
       | references    |
       | referenced-by |
+
+  @scenario_hash:19b25035e0a2e0ae @bc:shopsystem-knowledge
+  Scenario: an external-references entry forms no intra-corpus edge and draws no dangling-edge finding
+    Given an artifact corpus in which an artifact's external-references field lists a source outside the corpus that is not an artifact id
+    When the knowledge context runs the typed-edge coherence checks over the corpus
+    Then it forms no intra-corpus edge from the external-references entry
+    And it reports no dangling-edge finding arising from the external reference
+    And the aggregate verdict exits zero
