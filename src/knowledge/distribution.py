@@ -40,17 +40,63 @@ from knowledge.coherence import (
     Finding,
     GateMode,
     LIFECYCLE_CHECKS,
+    Severity,
     run_coherence_gate,
 )
 from knowledge.digest import DigestEntry, generate_l1_digest
 from knowledge.projections import generate_projections
 from knowledge.typed_edges import TYPED_EDGE_CHECKS
 
-# The check registry the distribution gate runs: the lifecycle checks and the
-# typed-edge checks together, so distribution is vetoed by any blocking finding
-# either registry surfaces. Named so a caller reuses exactly this composed gate
-# rather than re-spelling the concatenation.
-DISTRIBUTION_CHECKS: tuple[Check, ...] = LIFECYCLE_CHECKS + TYPED_EDGE_CHECKS
+# The distribution scope that marks an artifact as belonging in a BC repo rather
+# than on the lead host. The knowledge context's corpus is resident on the lead
+# host, so an artifact carried here that declares this scope is misfiled by
+# construction.
+BC_LOCAL_DISTRIBUTION: str = "bc-local"
+
+
+def check_misfiled_bc_local(
+    corpus: ArtifactCorpus, config: CoherenceConfig
+) -> list[Finding]:
+    """A lead-host corpus artifact declaring ``distribution: bc-local`` is misfiled.
+
+    The corpus the knowledge context ranges over is resident on the lead host
+    (the context runs on the lead host), so "resident on the lead host" is
+    implicit in every artifact the corpus carries. An artifact whose frontmatter
+    ``distribution`` is ``bc-local`` therefore belongs in a BC repo, not here —
+    it is flagged BLOCKING so the aggregate verdict vetoes it.
+    """
+    findings: list[Finding] = []
+    for art in corpus.artifacts:
+        if art.frontmatter.get("distribution") != BC_LOCAL_DISTRIBUTION:
+            continue
+        aid = art.id if isinstance(art.id, str) else ""
+        findings.append(
+            Finding(
+                check_id="misfiled-bc-local",
+                check_name="bc-local artifact misfiled on the lead host",
+                severity=Severity.BLOCKING,
+                subjects=(aid,),
+                message=(
+                    f"artifact '{aid}' declares distribution bc-local but is "
+                    f"resident on the lead-host corpus; bc-local artifacts "
+                    f"belong in a BC repo"
+                ),
+                remediation=(
+                    f"relocate artifact '{aid}' to its BC repo, or correct its "
+                    f"distribution scope so it is not bc-local"
+                ),
+            )
+        )
+    return findings
+
+
+# The check registry the distribution gate runs: the lifecycle checks, the
+# typed-edge checks, and the distribution-scope check together, so distribution
+# is vetoed by any blocking finding any registry surfaces. Named so a caller
+# reuses exactly this composed gate rather than re-spelling the concatenation.
+DISTRIBUTION_CHECKS: tuple[Check, ...] = (
+    LIFECYCLE_CHECKS + TYPED_EDGE_CHECKS + (check_misfiled_bc_local,)
+)
 
 # The projection tiers that are allowed to cross the distribution boundary. L2
 # (the full source document) is deliberately absent.
