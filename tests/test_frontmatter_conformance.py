@@ -1,4 +1,4 @@
-"""Step definitions for the frontmatter-conformance feature (12 scenarios).
+"""Step definitions for the frontmatter-conformance feature (16 scenarios).
 
 Binds every scenario in ``frontmatter_conformance.feature`` and asserts each
 Then/And leg against the :class:`ConformanceResult` returned by
@@ -144,6 +144,14 @@ def test_distribution_inside_enum_conforms() -> None: ...
 def test_distribution_outside_enum_non_conforming() -> None: ...
 
 
+@scenario(FEATURE, "an artifact carrying a tags list conforms")
+def test_tags_list_conforms() -> None: ...
+
+
+@scenario(FEATURE, "an artifact omitting the optional tags field still conforms")
+def test_tags_omitted_conforms() -> None: ...
+
+
 # --- Given steps -------------------------------------------------------------
 
 
@@ -275,6 +283,26 @@ def _adr_empty_derives_from(context: dict) -> None:
 def _conforming_without_beads(context: dict) -> None:
     fm = _conforming_frontmatter("candidate")
     assert "beads" not in fm
+    context["frontmatter"] = fm
+
+
+@given(
+    "an artifact whose frontmatter carries a tags field holding a list of "
+    "retrieval labels"
+)
+def _artifact_with_tags(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    fm["tags"] = ["retrieval", "discovery", "onboarding"]
+    context["frontmatter"] = fm
+
+
+@given(
+    "an artifact that carries every required field and a recognized status but "
+    "omits the optional tags field"
+)
+def _conforming_without_tags(context: dict) -> None:
+    fm = _conforming_frontmatter("candidate")
+    assert "tags" not in fm
     context["frontmatter"] = fm
 
 
@@ -424,6 +452,43 @@ def _non_conforming_anchor(context: dict) -> None:
 @then("it does not report the absent beads field as missing")
 def _beads_not_missing(context: dict) -> None:
     assert "beads" not in context["result"].missing_fields
+
+
+@then("it does not report the tags field as an unrecognized field")
+def _tags_not_unrecognized(context: dict) -> None:
+    # The schema must *recognize* ``tags`` as a known optional field. Reference
+    # the schema's recognized-optional-fields collection rather than a literal,
+    # so this premise is genuinely unmet until the schema records ``tags``.
+    # Absent ``RECOGNIZED_OPTIONAL_FIELDS`` the default empty tuple makes the
+    # membership assertion fail here (RED) rather than passing vacuously against
+    # a permissive schema.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "tags" in recognized, (
+        f"'tags' is not a recognized optional field; recognized={recognized!r}"
+    )
+    # And no diagnostic flags the present tags field.
+    result = context["result"]
+    assert not any(d.field == "tags" for d in result.diagnostics), (
+        f"the tags field was wrongly flagged; diagnostics: {result.messages}"
+    )
+
+
+@then("it does not report the absent tags field as missing")
+def _absent_tags_not_missing(context: dict) -> None:
+    result = context["result"]
+    assert "tags" not in result.missing_fields
+    # ``tags`` must be a *recognized* optional field, so its absence is a
+    # recognized-optional absence rather than silent tolerance of an unknown
+    # field. Referencing the schema's recognized-optional-fields collection
+    # keeps this RED until the schema records ``tags``.
+    from knowledge import schema
+
+    recognized = getattr(schema, "RECOGNIZED_OPTIONAL_FIELDS", ())
+    assert "tags" in recognized, (
+        f"'tags' is not a recognized optional field; recognized={recognized!r}"
+    )
 
 
 @then("it reports the artifact as non-conforming for storing a disclosure-level field")

@@ -120,3 +120,17 @@ Feature: Frontmatter conformance against the per-type schema
     When the knowledge context validates the artifact's frontmatter against the schema
     Then it reports the artifact as non-conforming for an unrecognized distribution value
     And the diagnosis names the offending value "system-wide"
+
+  @scenario_hash:9cbc6bee113e1f52 @bc:shopsystem-knowledge
+  Scenario: an artifact carrying a tags list conforms
+    Given an artifact whose frontmatter carries a tags field holding a list of retrieval labels
+    When the knowledge context validates the artifact's frontmatter against the schema
+    Then it reports the artifact as conforming
+    And it does not report the tags field as an unrecognized field
+
+  @scenario_hash:64bf2fe14d80e4eb @bc:shopsystem-knowledge
+  Scenario: an artifact omitting the optional tags field still conforms
+    Given an artifact that carries every required field and a recognized status but omits the optional tags field
+    When the knowledge context validates the artifact's frontmatter against the schema
+    Then it reports the artifact as conforming
+    And it does not report the absent tags field as missing
