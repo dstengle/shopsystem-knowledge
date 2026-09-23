@@ -16,6 +16,41 @@ kb's contract, pinned by version. shop-knowledge never touches kb's files
 or git. It calls the contract through the in-process client today and a
 network channel when a server exists, with no other change.
 
+## Assumptions this design tests
+
+Each is a belief that use can prove wrong. Scenarios cite the one they
+exercise; slices are ordered by which belief is riskiest.
+
+- **one-command-line-is-enough.** Users and agents need nothing but
+  `shop-knol` to work with the shop's knowledge. Fails if a role needs
+  another path to the corpus.
+- **seven-types-close-the-loop.** Decision, feature, work item, role,
+  process, step, and tag are enough until the crossover. Fails if the first
+  operating-system feature needs an eighth.
+- **shared-steps-get-used.** Processes reuse steps rather than restating
+  them. Fails if every step ends up written inline.
+- **tags-replace-flags-in-prose.** A tag artifact with integrity replaces
+  flags written into prose. Fails if a flag reappears in a body.
+- **renderers-match-the-harness.** A rendered skill or agent loads in the
+  harness unchanged. Fails if the harness rejects one or someone edits the
+  output.
+- **markdown-projection-reads-well-enough.** The generic markdown rendering
+  is enough for a person reading a type with no renderer of its own. Fails
+  if a new type gets a renderer just to be readable.
+- **corpus-only-roles-work-without-a-shell.** A role allowed only
+  `shop-knol` can do its whole job. Observed in use through the harness's
+  permission allowlist, which shop-knowledge does not implement, so no
+  scenario tests it here.
+- **actor-and-message-are-tolerable.** Requiring who and why on every
+  change does not slow agents down. Fails if agents pad or omit them.
+- **passed-through-errors-are-actionable.** kb's artifact, path, and
+  message are enough for a user to fix a rejected change. Fails if users
+  need to read the schema to understand a rejection.
+- **yaml-and-json-are-the-only-outputs.** Fails if a consumer needs another
+  shape.
+- **a-scenario-status-ledger-can-wait.** No scenario status is needed before
+  the crossover. Fails if assignment cannot be tracked without one.
+
 ## The CLI
 
 `shop-knol` is the working name. The repository is found through
