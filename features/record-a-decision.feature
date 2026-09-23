@@ -11,33 +11,33 @@ So that a choice the shop has made is written down where the whole shop can find
     Then the shop holds the decision under a name the user can read it back by
     And the decision is at its first version
 
-  @slice-37
+  @slice-27
   Scenario: The user pipes a decision in instead of naming a file
     Given a decision produced by another command
     When the user records it by piping it in, saying who they are and why
     Then the shop holds the decision just as if it had come from a file
 
-  @slice-62
+  @slice-27
   Scenario: The user records a decision as part of a piece of work
     Given a decision in a file
     And the user works as the shopkeeper on a named piece of work
     When the user records that file as a decision, saying who they are and why
     Then the change is attributed to the shopkeeper and to that piece of work
 
-  @slice-35
+  @slice-25
   Scenario: A decision recorded by nobody is refused
     Given a decision in a file
     And the user has not said which role they are
     When the user records that file as a decision
     Then the decision is rejected because every change must say which role made it
 
-  @slice-36
+  @slice-25
   Scenario: A decision recorded without a reason is refused
     Given a decision in a file
     When the user records that file as a decision without a message
     Then the decision is rejected because every change must carry a message
 
-  @slice-33
+  @slice-25
   Scenario: A decision that does not fit the shop's decision type is refused
     Given a file missing something the shop's decision type requires
     When the user records that file as a decision, saying who they are and why

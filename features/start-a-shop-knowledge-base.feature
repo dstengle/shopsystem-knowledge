@@ -8,14 +8,14 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop can hold decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
-  @slice-82
+  @slice-46
   Scenario: A role keeps its harness fields apart from its shop identity
     Given a shop knowledge base
     When the user records a role, saying who they are and why
     Then the fields the harness needs are kept as one named group
     And the fields that say who the role is in the shop are kept as another
 
-  @slice-83
+  @slice-46
   Scenario: Anything the shop knows can be tagged
     Given a shop knowledge base holding a tag "pricing" with a title and a description
     When the user tags a decision with "pricing", saying who they are and why

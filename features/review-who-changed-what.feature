@@ -10,17 +10,17 @@ So that the shop can see how its knowledge came to be the way it is, the user ca
     When the user reviews the changes to that decision
     Then the user sees both changes, each with who made it, when, what it did and why
 
-  @slice-59
+  @slice-35
   Scenario: The user reviews what one role did
     When the user reviews the changes made by the shopkeeper
     Then the user sees only the recording of the decision
 
-  @slice-60
+  @slice-35
   Scenario: The user reviews what one piece of work did
     When the user reviews the changes made for that piece of work
     Then the user sees only the revision made by the agent
 
-  @slice-61
+  @slice-35
   Scenario: The user reviews the changes since a date
     When the user reviews the changes since 2026-09-22
     Then the user sees only the revision made today

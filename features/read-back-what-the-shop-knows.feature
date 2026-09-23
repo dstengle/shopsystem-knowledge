@@ -11,7 +11,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     And the user sees a stub of each thing it points at
     And the user sees how many things point back at it, and of what kind
 
-  @slice-23
+  @slice-21
   Scenario: The user reads one section of a decision
     When the user reads the rationale of the decision
     Then the user sees that section and nothing else
@@ -21,12 +21,12 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the whole decision
     Then the user sees every field, every section and every part it holds
 
-  @slice-25
+  @slice-21
   Scenario: The user reads a decision with the things it points at filled in
     When the user reads the whole decision with what it points at resolved
     Then the superseded decision is shown in place of the pointer, as the shop holds it now
 
-  @slice-26
+  @slice-21
   Scenario: The user takes the same answer as JSON
     When the user reads the decision asking for JSON
     Then the user gets the same answer as the default, written as JSON

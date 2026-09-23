@@ -11,7 +11,7 @@ So that a set of changes that only makes sense together lands together, the user
     Then both changes are in the shop
     And the shop's history shows them as one change
 
-  @slice-81
+  @slice-45
   Scenario: One bad change in a batch leaves the shop untouched
     Given a batch whose second change does not fit its type
     When the user applies the batch, saying who they are and why

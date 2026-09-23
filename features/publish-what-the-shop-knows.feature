@@ -10,7 +10,7 @@ So that the harness and people outside the command line can use what the shop kn
     Then that directory holds a skill whose heading block is the process's identity and whose body is its steps, with the reused step written out in full
     And the shop's knowledge base is unchanged
 
-  @slice-84
+  @slice-47
   Scenario: The user publishes a role as an agent
     When the user publishes the role as an agent into a directory
     Then that directory holds an agent whose heading block is the role's harness fields and whose body is the role's prose

@@ -8,9 +8,10 @@ When slice 1 is green, kb is tagged 0.1, this repository pins it, and the
 slices made only of kb scenarios move to kb's own plan.
 
 Slice 1 is the walking skeleton the specs define. Slices 2 to 19 each
-settle one unknown and are ordered by the size of it. Slices 20 onward have
-no unknown and are ordered by value, kb's scenario ahead of the
-shop-knowledge scenario that needs it.
+settle one unknown and are ordered by the size of it. Slices 20 to 47 have
+no unknown: scenarios that share a feature and step definitions bundle into
+one slice, and the slices are ordered by value, kb's slice ahead of the
+shop-knowledge slice that needs it.
 
 ## Slice 1: Record a decision and read it back
 
@@ -183,70 +184,25 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 20: Read the whole artifact
+## Slice 20: Read an artifact at every depth
 
 - Kind: stack
-- Scenarios: kb / read-an-artifact / The client reads the whole artifact
-- Observable: A client reads a decision whole and gets every field, section, and part in the order the type declares.
+- Scenarios: kb / read-an-artifact / The client reads the whole artifact; kb / read-an-artifact / The client reads one section by its title; kb / read-an-artifact / The client reads the whole artifact with what it points at filled in
+- Observable: A client reads a decision whole and gets every field, section, and part in the order the type declares; asks for its rationale and gets that section and nothing else; and reads it with its links resolved and gets the older decision in place of the link, as the store holds it now.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 21: Read the whole decision
+## Slice 21: Read a decision at every depth, as text or JSON
 
 - Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads the whole decision
-- Observable: A user reads a decision whole and sees every field, section, and part it holds.
+- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads the whole decision; shop-knowledge / read-back-what-the-shop-knows / The user reads one section of a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision with the things it points at filled in; shop-knowledge / read-back-what-the-shop-knows / The user takes the same answer as JSON
+- Observable: A user reads a decision whole, or only its rationale, or whole with what it points at filled in, and can take any of those answers as JSON instead of the default.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 22: Read one section by its title
-
-- Kind: stack
-- Scenarios: kb / read-an-artifact / The client reads one section by its title
-- Observable: A client asks for the rationale of a decision and gets that section and nothing else.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 23: Read one section of a decision
-
-- Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads one section of a decision
-- Observable: A user reads the rationale of a decision and sees that section and nothing else.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 24: Read with links resolved
-
-- Kind: stack
-- Scenarios: kb / read-an-artifact / The client reads the whole artifact with what it points at filled in
-- Observable: A client reads a decision whole with its links resolved and gets the older decision in place of the link, as the store holds it now.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 25: Read a decision with what it points at filled in
-
-- Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads a decision with the things it points at filled in
-- Observable: A user reads a decision whole with what it points at resolved and sees the superseded decision in place of the pointer.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 26: The same answer as JSON
-
-- Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user takes the same answer as JSON
-- Observable: A user asks for JSON and gets the same answer as the default, written as JSON.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 27: Change an artifact
+## Slice 22: Change an artifact
 
 - Kind: stack
 - Scenarios: kb / change-an-artifact / The client changes an artifact
@@ -255,61 +211,34 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 28: Revise a recorded decision
+## Slice 23: Revise a recorded decision, whole or in part
 
 - Kind: capability
-- Scenarios: shop-knowledge / revise-what-the-shop-knows / The user revises a recorded decision
-- Observable: A user replaces a decision from a file; the shop holds the new wording at a later version.
+- Scenarios: shop-knowledge / revise-what-the-shop-knows / The user revises a recorded decision; shop-knowledge / revise-what-the-shop-knows / The user revises one part of a recorded decision
+- Observable: A user replaces a decision from a file and the shop holds the new wording at a later version, or replaces only its rationale and the rest reads as before.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 29: Revise one part of a recorded decision
+## Slice 24: An artifact that breaks its type is refused
+
+- Kind: stack
+- Scenarios: kb / create-an-artifact / An artifact missing a required section is refused; kb / create-an-artifact / An artifact pointing at something that is not there is refused; kb / create-an-artifact / An artifact with two parts of the same name is refused
+- Observable: A client creates a decision with no purpose, or one superseding a decision the store does not hold, or one carrying two options of the same name, and each is refused naming the rule it broke.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 25: A decision the shop cannot accept is refused
 
 - Kind: capability
-- Scenarios: shop-knowledge / revise-what-the-shop-knows / The user revises one part of a recorded decision
-- Observable: A user replaces only the rationale of a decision from a file, and the rest reads as before.
+- Scenarios: shop-knowledge / record-a-decision / A decision that does not fit the shop's decision type is refused; shop-knowledge / record-a-decision / A decision recorded by nobody is refused; shop-knowledge / record-a-decision / A decision recorded without a reason is refused
+- Observable: A user records a file that does not fit the decision type and is told which artifact and place is at fault with the command exiting non-zero, or records without saying which role they are, or without a message, and is refused for that reason.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 30: A missing required section is refused
-
-- Kind: stack
-- Scenarios: kb / create-an-artifact / An artifact missing a required section is refused
-- Observable: A client creates a decision with no purpose and is refused because the type's sections must all be present, in order.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 31: A link to nothing is refused
-
-- Kind: stack
-- Scenarios: kb / create-an-artifact / An artifact pointing at something that is not there is refused
-- Observable: A client creates a decision superseding one the store does not hold and is refused because a link must land on a node of an allowed kind.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 32: Two parts of the same name are refused
-
-- Kind: stack
-- Scenarios: kb / create-an-artifact / An artifact with two parts of the same name is refused
-- Observable: A client creates a decision carrying two options of the same name and is refused because part names must be unique within their collection.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 33: A decision that does not fit its type is refused
-
-- Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A decision that does not fit the shop's decision type is refused
-- Observable: A user records a file missing something the decision type requires, is told which artifact and which place is at fault, and the command exits non-zero.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 34: A malformed type is refused
+## Slice 26: A malformed type is refused
 
 - Kind: stack
 - Scenarios: kb / define-a-type / Something that is not a well-formed type is refused
@@ -318,259 +247,88 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 35: A decision recorded by nobody is refused
+## Slice 27: Record a decision from a pipe or under a piece of work
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A decision recorded by nobody is refused
-- Observable: A user who has not said which role they are records a decision and is refused because every change must say which role made it.
+- Scenarios: shop-knowledge / record-a-decision / The user pipes a decision in instead of naming a file; shop-knowledge / record-a-decision / The user records a decision as part of a piece of work
+- Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, and a user working as the shopkeeper on a named piece of work records one and the change is attributed to both.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 36: A decision recorded without a reason is refused
-
-- Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A decision recorded without a reason is refused
-- Observable: A user records a decision without a message and is refused because every change must carry one.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 37: Pipe a decision in
-
-- Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / The user pipes a decision in instead of naming a file
-- Observable: A user pipes a decision produced by another command into the record command, and the shop holds it as if it had come from a file.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 38: List every artifact of a kind
+## Slice 28: List artifacts of a kind
 
 - Kind: stack
-- Scenarios: kb / list-artifacts-of-a-kind / The client lists every artifact of a kind
-- Observable: A client lists the decisions and gets a stub of each of the three.
+- Scenarios: kb / list-artifacts-of-a-kind / The client lists every artifact of a kind; kb / list-artifacts-of-a-kind / The client lists the artifacts matching a field; kb / list-artifacts-of-a-kind / The client lists names only
+- Observable: A client lists the decisions and gets a stub of each of the three, narrows to the superseded one by a field, or asks for names and gets three names and nothing else.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 39: List the artifacts matching a field
+## Slice 29: List what the shop has recorded
+
+- Kind: capability
+- Scenarios: shop-knowledge / list-what-the-shop-has-recorded / The user lists every decision; shop-knowledge / list-what-the-shop-has-recorded / The user lists the decisions that match a field; shop-knowledge / list-what-the-shop-has-recorded / The user lists only the names, to feed another command
+- Observable: A user lists the decisions and sees all three with name and title, narrows to the superseded one by a field, or asks for names only and sees three names fit to feed another command.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 30: Follow the links one step, narrowed or not
 
 - Kind: stack
-- Scenarios: kb / list-artifacts-of-a-kind / The client lists the artifacts matching a field
-- Observable: A client lists the decisions that are superseded and gets only that one.
+- Scenarios: kb / follow-the-links / The client follows the links out of an artifact; kb / follow-the-links / The client follows the links into an artifact; kb / follow-the-links / The client narrows the links to one link and one kind
+- Observable: A client follows the links out of a decision and gets a stub of the older decision, follows them in and gets a stub of each work item, or narrows to one link and one kind and gets both work items and nothing else.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 40: List names only
+## Slice 31: Follow the links from the command line
+
+- Kind: capability
+- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what a decision points at; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what points at a decision; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user narrows the links to one kind of link and one kind of thing; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user follows the links two steps out
+- Observable: A user follows the links out of a decision and sees the older decision, in and sees both work items, narrowed to one link and one kind and sees both work items and nothing else, or two steps out and sees the older decision and the tag each with the route taken.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 32: Search within one kind, and the fields too
 
 - Kind: stack
-- Scenarios: kb / list-artifacts-of-a-kind / The client lists names only
-- Observable: A client lists the decisions asking for names and gets three names and nothing else.
+- Scenarios: kb / search-the-store / The client searches within one kind; kb / search-the-store / The client searches the fields as well as the prose
+- Observable: A client searches the prose among decisions only and gets the two decisions and not the process, or searches fields and prose and also gets a decision whose title carries the word.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 41: List every decision
+## Slice 33: Search what the shop knows
 
 - Kind: capability
-- Scenarios: shop-knowledge / list-what-the-shop-has-recorded / The user lists every decision
-- Observable: A user lists the decisions and sees all three, each with its name and title.
+- Scenarios: shop-knowledge / search-what-the-shop-knows / The user searches the prose; shop-knowledge / search-what-the-shop-knows / The user searches within one kind of thing; shop-knowledge / search-what-the-shop-knows / The user searches the fields as well as the prose
+- Observable: A user searches for a word and sees each result with the section it matched and a snippet with the heaviest section first, narrows to decisions and sees the two decisions and not the process, or includes the fields and also sees a decision whose title carries the word.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 42: List the decisions that match a field
-
-- Kind: capability
-- Scenarios: shop-knowledge / list-what-the-shop-has-recorded / The user lists the decisions that match a field
-- Observable: A user lists the decisions that are superseded and sees only that one.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 43: List only the names
-
-- Kind: capability
-- Scenarios: shop-knowledge / list-what-the-shop-has-recorded / The user lists only the names, to feed another command
-- Observable: A user lists the decisions asking for names only and sees three names and nothing else.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 44: Follow the links out
+## Slice 34: Read the journal by role, piece of work, or time
 
 - Kind: stack
-- Scenarios: kb / follow-the-links / The client follows the links out of an artifact
-- Observable: A client follows the links out of a decision and gets a stub of the older decision.
+- Scenarios: kb / read-the-journal / The client reads the journal for one role; kb / read-the-journal / The client reads the journal for one piece of work; kb / read-the-journal / The client reads the journal since a time
+- Observable: A client reads the journal for the shopkeeper and gets only the creation of the decision, for a piece of work and gets only the agent's change, or since yesterday and gets only today's change.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 45: Follow the links in
-
-- Kind: stack
-- Scenarios: kb / follow-the-links / The client follows the links into an artifact
-- Observable: A client follows the links into a decision and gets a stub of each work item pointing at it.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 46: Narrow the links to one link and one kind
-
-- Kind: stack
-- Scenarios: kb / follow-the-links / The client narrows the links to one link and one kind
-- Observable: A client follows the links into a decision only through the work item's link and only from work items, and gets both work items and nothing else.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 47: See what a decision points at
+## Slice 35: Review by role, piece of work, or date
 
 - Kind: capability
-- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what a decision points at
-- Observable: A user follows the links out of a decision and sees the older decision.
+- Scenarios: shop-knowledge / review-who-changed-what / The user reviews what one role did; shop-knowledge / review-who-changed-what / The user reviews what one piece of work did; shop-knowledge / review-who-changed-what / The user reviews the changes since a date
+- Observable: A user reviews the shopkeeper's changes and sees only the recording of the decision, a piece of work's changes and sees only the agent's revision, or the changes since yesterday and sees only today's revision.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 48: See what points at a decision
-
-- Kind: capability
-- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what points at a decision
-- Observable: A user follows the links into a decision and sees both work items.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 49: Narrow the links from the command line
-
-- Kind: capability
-- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user narrows the links to one kind of link and one kind of thing
-- Observable: A user follows the links into a decision only through the work item's link and only from work items, and sees both work items and nothing else.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 50: Follow the links two steps out from the command line
-
-- Kind: capability
-- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user follows the links two steps out
-- Observable: A user follows the links out of a decision two steps and sees the older decision and the tag, each with the route taken.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 51: Search within one kind
-
-- Kind: stack
-- Scenarios: kb / search-the-store / The client searches within one kind
-- Observable: A client searches the prose among decisions only and gets the two decisions and not the process.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 52: Search the fields as well as the prose
-
-- Kind: stack
-- Scenarios: kb / search-the-store / The client searches the fields as well as the prose
-- Observable: A client searches fields and prose and also gets a decision whose title carries the word.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 53: Search the prose from the command line
-
-- Kind: capability
-- Scenarios: shop-knowledge / search-what-the-shop-knows / The user searches the prose
-- Observable: A user searches for a word and sees each result with the section it matched and a snippet, the heaviest section first.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 54: Search within one kind of thing
-
-- Kind: capability
-- Scenarios: shop-knowledge / search-what-the-shop-knows / The user searches within one kind of thing
-- Observable: A user searches among decisions only and sees the two decisions and not the process.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 55: Search the fields as well as the prose from the command line
-
-- Kind: capability
-- Scenarios: shop-knowledge / search-what-the-shop-knows / The user searches the fields as well as the prose
-- Observable: A user searches fields and prose and also sees a decision whose title carries the word.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 56: Read the journal for one role
-
-- Kind: stack
-- Scenarios: kb / read-the-journal / The client reads the journal for one role
-- Observable: A client reads the journal for the shopkeeper and gets only the creation of the decision.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 57: Read the journal for one piece of work
-
-- Kind: stack
-- Scenarios: kb / read-the-journal / The client reads the journal for one piece of work
-- Observable: A client reads the journal for a piece of work and gets only the change the agent made under it.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 58: Read the journal since a time
-
-- Kind: stack
-- Scenarios: kb / read-the-journal / The client reads the journal since a time
-- Observable: A client reads the journal since yesterday and gets only today's change.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 59: Review what one role did
-
-- Kind: capability
-- Scenarios: shop-knowledge / review-who-changed-what / The user reviews what one role did
-- Observable: A user reviews the shopkeeper's changes and sees only the recording of the decision.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 60: Review what one piece of work did
-
-- Kind: capability
-- Scenarios: shop-knowledge / review-who-changed-what / The user reviews what one piece of work did
-- Observable: A user reviews a piece of work's changes and sees only the agent's revision.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 61: Review the changes since a date
-
-- Kind: capability
-- Scenarios: shop-knowledge / review-who-changed-what / The user reviews the changes since a date
-- Observable: A user reviews the changes since yesterday and sees only today's revision.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 62: Record a decision as part of a piece of work
-
-- Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / The user records a decision as part of a piece of work
-- Observable: A user working as the shopkeeper on a named piece of work records a decision, and the change is attributed to both.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 63: Snapshot what a piece of work read
+## Slice 36: Snapshot what a piece of work read
 
 - Kind: stack
 - Scenarios: kb / snapshot-what-a-piece-of-work-read / The client snapshots what a piece of work read
@@ -579,7 +337,7 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 64: Record what a piece of work read
+## Slice 37: Record what a piece of work read
 
 - Kind: capability
 - Scenarios: shop-knowledge / record-what-a-piece-of-work-read / An agent records what it read
@@ -588,151 +346,70 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 65: Add an item to a collection
+## Slice 38: Add an item to a collection
 
 - Kind: stack
-- Scenarios: kb / add-an-item-to-a-collection / The client adds an item to a collection
-- Observable: A client adds a step to a process and gets the item's name and the artifact's new version, with the item after those already there.
+- Scenarios: kb / add-an-item-to-a-collection / The client adds an item to a collection; kb / add-an-item-to-a-collection / An item that uses another artifact keeps its settings on itself
+- Observable: A client adds a step to a process and gets the item's name and the artifact's new version with the item after those already there, and adds a step that points at the shared step with its own settings, which sit on the new item while the shared step is unchanged.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 66: An item that uses another artifact keeps its settings
-
-- Kind: stack
-- Scenarios: kb / add-an-item-to-a-collection / An item that uses another artifact keeps its settings on itself
-- Observable: A client adds a step that points at the shared step with its own settings; the settings sit on the new item and the shared step is unchanged.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 67: Add a step written in place
+## Slice 39: Add a step to a process
 
 - Kind: capability
-- Scenarios: shop-knowledge / add-a-step-to-a-process / The user adds a step written in place
-- Observable: A user adds a step to a process; it is the last step and the user is told its name.
+- Scenarios: shop-knowledge / add-a-step-to-a-process / The user adds a step written in place; shop-knowledge / add-a-step-to-a-process / The user adds a step that reuses a shared step
+- Observable: A user adds a step written in place and it is the last step with the user told its name, or adds a step that uses a shared step with its own settings and the process runs it there with those settings while the shared step and its other users are unchanged.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 68: Add a step that reuses a shared step
+## Slice 40: Remove an artifact, or be refused
+
+- Kind: stack
+- Scenarios: kb / remove-an-artifact / The client removes an artifact nothing points at; kb / remove-an-artifact / A removal something points at is refused
+- Observable: A client removes a tag nothing points at and the store no longer holds it with the removal in the journal, or removes a tag a decision points at and is refused with every link that blocks it.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 41: Retire what the shop no longer uses
 
 - Kind: capability
-- Scenarios: shop-knowledge / add-a-step-to-a-process / The user adds a step that reuses a shared step
-- Observable: A user adds a step that uses a shared step with its own settings; the process runs it there with those settings, and the shared step and its other users are unchanged.
+- Scenarios: shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something nothing points at; shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something that is still pointed at
+- Observable: A user retires a tag nothing points at and the shop no longer holds it, or retires a tag a decision carries and is refused, seeing everything that points at it.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 69: Remove an artifact nothing points at
+## Slice 42: A check reports nothing when sound and stale when behind
 
 - Kind: stack
-- Scenarios: kb / remove-an-artifact / The client removes an artifact nothing points at
-- Observable: A client removes a tag nothing points at; the store no longer holds it and the removal is in the journal.
+- Scenarios: kb / check-the-store / A store with nothing wrong reports nothing; kb / check-the-store / An artifact behind its type is reported as stale
+- Observable: A client checks a store where everything fits its type and is told of no violation, or one holding a decision last checked against an older version of its type and sees it listed as behind its type and not as a violation.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 70: A removal something points at is refused
-
-- Kind: stack
-- Scenarios: kb / remove-an-artifact / A removal something points at is refused
-- Observable: A client removes a tag a decision points at and is refused, with every link that blocks it.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 71: Retire something nothing points at
+## Slice 43: Check the shop's knowledge is sound
 
 - Kind: capability
-- Scenarios: shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something nothing points at
-- Observable: A user retires a tag nothing points at, and the shop no longer holds it.
+- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a sound knowledge base; shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a knowledge base with faults; shop-knowledge / check-the-shops-knowledge-is-sound / The user is told what is behind its type
+- Observable: A user checks a sound knowledge base and is told nothing is wrong, checks one with two faults and sees both with the artifact and place while the command exits non-zero, or sees a decision listed as behind its type and not as a fault.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 72: Retire something that is still pointed at
-
-- Kind: capability
-- Scenarios: shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something that is still pointed at
-- Observable: A user retires a tag a decision carries and is refused, seeing everything that points at it.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 73: A sound store reports nothing
+## Slice 44: The operator looks after a store
 
 - Kind: stack
-- Scenarios: kb / check-the-store / A store with nothing wrong reports nothing
-- Observable: A client checks a store where everything fits its type and is told of no violation.
+- Scenarios: kb / look-after-a-store / The operator sets up a store; kb / look-after-a-store / The operator checks the whole store; kb / look-after-a-store / The command line does nothing to content
+- Observable: An operator runs kb's own command line to set up a store in a directory ready for a client to define types in, runs the check from a shell and is told of everything that does not fit its type and everything behind its type, and asks what the command line offers and sees only those two things.
 - Unknown: none
-- Needs: none
+- Needs: kb's own console entry point (every scenario)
 - Status: planned
 
-## Slice 74: An artifact behind its type is stale, not wrong
-
-- Kind: stack
-- Scenarios: kb / check-the-store / An artifact behind its type is reported as stale
-- Observable: A client checks a store holding a decision last checked against an older version of its type; the decision is listed as behind its type and not as a violation.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 75: Check a sound knowledge base
-
-- Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a sound knowledge base
-- Observable: A user checks the shop's knowledge and is told nothing is wrong.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 76: Check a knowledge base with faults
-
-- Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a knowledge base with faults
-- Observable: A user checks a knowledge base with two faults, sees both with the artifact and place, and the command exits non-zero.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 77: Told what is behind its type
-
-- Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user is told what is behind its type
-- Observable: A user checks the shop's knowledge and sees a decision listed as behind its type, not as a fault.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 78: The operator sets up a store
-
-- Kind: stack
-- Scenarios: kb / look-after-a-store / The operator sets up a store
-- Observable: An operator runs the store's own command line against a directory and a store is there, ready for a client to define types in.
-- Unknown: none
-- Needs: kb's own console entry point (this scenario and the next two)
-- Status: planned
-
-## Slice 79: The operator checks the whole store
-
-- Kind: stack
-- Scenarios: kb / look-after-a-store / The operator checks the whole store
-- Observable: An operator runs the check from a shell and is told of everything that does not fit its type and everything behind its type.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 80: The command line does nothing to content
-
-- Kind: stack
-- Scenarios: kb / look-after-a-store / The command line does nothing to content
-- Observable: An operator asks what kb's command line offers and sees setting up and checking a store, and nothing that changes content.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 81: One bad change in a batch leaves the shop untouched
+## Slice 45: One bad change in a batch leaves the shop untouched
 
 - Kind: capability
 - Scenarios: shop-knowledge / make-several-changes-at-once / One bad change in a batch leaves the shop untouched
@@ -741,25 +418,16 @@ shop-knowledge scenario that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 82: A role keeps its harness fields apart
+## Slice 46: The shop's roles and tags hold their shape
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / A role keeps its harness fields apart from its shop identity
-- Observable: A user records a role and its harness fields sit in one named group, its shop identity in another.
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / A role keeps its harness fields apart from its shop identity; shop-knowledge / start-a-shop-knowledge-base / Anything the shop knows can be tagged
+- Observable: A user records a role and its harness fields sit in one named group and its shop identity in another, and tags a decision with a tag so the decision names it while the tag's description is held once, on the tag.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 83: Anything the shop knows can be tagged
-
-- Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Anything the shop knows can be tagged
-- Observable: A user tags a decision with a tag; the decision names it and the tag's description is held once, on the tag.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 84: Publish a role as an agent
+## Slice 47: Publish a role as an agent
 
 - Kind: capability
 - Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a role as an agent
@@ -780,6 +448,8 @@ shop-knowledge scenario that needs it.
 - 2026-09-23 When slice 1 is green: tag kb 0.1, pin it here, and move slices made only of kb scenarios into kb's own plan file, as both specs' "Order of building" say. Until then this is the only plan for either repository.
 - 2026-09-23 A slice with no unknown that turns out green after an earlier slice's work is credited to that slice in this log and dropped.
 - 2026-09-23 QUESTION FOR THE SPEC: kb / make-several-changes-in-one-go and shop-knowledge / make-several-changes-at-once say the history shows the set "as one change". The kb spec commits a set once but writes one journal entry per operation, and does not store the commit in the entry. Is "one change" the single commit, or must journal entries say which set they landed in? Slices 5 and 14 are cut on the one-commit reading; the other reading changes what they observe.
-- 2026-09-23 QUESTION FOR THE SPEC: kb / read-an-artifact and shop-knowledge / read-back-what-the-shop-knows, the resolved read. When the resolved target itself points at something, is that resolved too, and what stops a cycle? The scenarios' older decision points at nothing, so slices 24 and 25 pass either way.
-- 2026-09-23 QUESTION FOR THE SPEC: kb / add-an-item-to-a-collection and shop-knowledge / add-a-step-to-a-process say the client "is given the new item's name". Does the client name the item in its content, as parts carry their own id, or does kb mint it? Slices 65 and 67 pass either way.
-- 2026-09-23 QUESTION FOR THE SPEC: kb / check-the-store and shop-knowledge / check-the-shops-knowledge-is-sound, the stale scenarios. Is an artifact behind its type checked against the current type at all? If the current type would refuse it, is it stale, a fault, or both? Slices 74 and 77 bump the type's version without changing what it requires, so they pass either way.
+- 2026-09-23 QUESTION FOR THE SPEC: kb / read-an-artifact and shop-knowledge / read-back-what-the-shop-knows, the resolved read. When the resolved target itself points at something, is that resolved too, and what stops a cycle? The scenarios' older decision points at nothing, so slices 20 and 21 pass either way.
+- 2026-09-23 QUESTION FOR THE SPEC: kb / add-an-item-to-a-collection and shop-knowledge / add-a-step-to-a-process say the client "is given the new item's name". Does the client name the item in its content, as parts carry their own id, or does kb mint it? Slices 38 and 39 pass either way.
+- 2026-09-23 QUESTION FOR THE SPEC: kb / check-the-store and shop-knowledge / check-the-shops-knowledge-is-sound, the stale scenarios. Is an artifact behind its type checked against the current type at all? If the current type would refuse it, is it stale, a fault, or both? Slices 42 and 43 bump the type's version without changing what it requires, so they pass either way.
+- 2026-09-23 Suite (shop-knowledge): 0 passed, 0 failed. `python -m pytest -q` reports "no tests ran". Same for kb.
+- 2026-09-23 Re-slice: slices 1 to 19 unchanged. The tail, once 65 one-scenario slices, is now 28 slices, 20 to 47, each bundling the scenarios of one feature that share step definitions: the variants of one read, list, follow, search, journal, check, add, or remove, or the refusals of one command. Where a feature's tail scenarios split into two operations that do not share steps (record-a-decision's refusals and its two ways of recording) they are two slices. Slices that stand alone do so because nothing else in their feature is in the tail. The order and the kb-before-shop rule are as before. Every `@slice-<n>` tag in both repositories rewritten to match.

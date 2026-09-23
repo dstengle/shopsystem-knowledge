@@ -4,17 +4,17 @@ So that the user can see everything of one kind without knowing its name, the us
   Background:
     Given a shop knowledge base holding three decisions, one of them superseded
 
-  @slice-41
+  @slice-29
   Scenario: The user lists every decision
     When the user lists the decisions
     Then the user sees all three, each with its name and title
 
-  @slice-42
+  @slice-29
   Scenario: The user lists the decisions that match a field
     When the user lists the decisions that are superseded
     Then the user sees only the superseded one
 
-  @slice-43
+  @slice-29
   Scenario: The user lists only the names, to feed another command
     When the user lists the decisions asking for names only
     Then the user sees three names and nothing else
