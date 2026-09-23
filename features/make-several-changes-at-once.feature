@@ -4,12 +4,14 @@ So that a set of changes that only makes sense together lands together, the user
   Background:
     Given a shop knowledge base holding the shop's types and a work item
 
+  @slice-14
   Scenario: The user makes several changes at once
     Given a batch that records a decision and points the work item at it
     When the user applies the batch, saying who they are and why
     Then both changes are in the shop
     And the shop's history shows them as one change
 
+  @slice-81
   Scenario: One bad change in a batch leaves the shop untouched
     Given a batch whose second change does not fit its type
     When the user applies the batch, saying who they are and why
