@@ -64,7 +64,7 @@ Every mutating command requires an actor and `-m`.
 | command | maps to |
 |---|---|
 | `shop-knol create <type> --from <file or ->` | Create |
-| `shop-knol read <locator> [--section <title>] [--whole] [--resolve]` | Read at the chosen level |
+| `shop-knol read <locator> [--section <title>] [--whole] [--resolve [<depth>]]` | Read at the chosen level; `--resolve` alone is depth 1 |
 | `shop-knol write <locator> --from <file or ->` | Write |
 | `shop-knol append <locator> --from <file or ->` | Append |
 | `shop-knol delete <locator>` | Delete |
@@ -75,10 +75,12 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
 | `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
 | `shop-knol validate` | Validate |
-| `shop-knol init <root>` | Init, then loads the bootstrap set through Create |
+| `shop-knol init <root>` | Init, then loads the bootstrap set through Create; refused where a store exists |
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
-Output is YAML by default and `--json` for the same structure. Errors are
+Ids are minted by kb from titles and never supplied by the user; `create`
+and `append` print the id kb chose. Output is YAML by default and `--json`
+for the same structure. Errors are
 printed as returned by kb, with artifact, path, and message, and exit
 non-zero. The boundary for a corpus-only role is a harness permission
 allowlist of exactly `shop-knol *`.
