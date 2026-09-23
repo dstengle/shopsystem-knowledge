@@ -8,6 +8,12 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop can hold decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
+  Scenario: Starting a knowledge base where the shop already has one is refused
+    Given a directory that already holds the shop's knowledge
+    When the user starts a shop knowledge base in that directory
+    Then starting the knowledge base is rejected because a store is already there
+    And everything the shop already knows is still there, unchanged
+
   @slice-46
   Scenario: A role keeps its harness fields apart from its shop identity
     Given a shop knowledge base
