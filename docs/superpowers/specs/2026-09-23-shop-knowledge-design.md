@@ -1,0 +1,91 @@
+# shop-knowledge Design
+
+Date: 2026-09-23
+Status: Draft for review
+
+## Purpose
+
+shop-knowledge is the only interface a shopsystem user or agent uses to the
+shop's knowledge base. It is a client of kb (repository `shopsystem-kb`),
+and it owns everything the shop knows that kb does not: the artifact types,
+the seed content, the renderers, and the command line.
+
+## Depends on
+
+kb's contract, pinned by version. shop-knowledge never touches kb's files
+or git. It calls the contract through the in-process client today and a
+network channel when a server exists, with no other change.
+
+## The CLI
+
+`shop-knol` is the working name. The repository is found through
+`KB_ROOT`; the actor through `KB_ACTOR` as `role` or `role:execution-id`.
+Every mutating command requires an actor and `-m`.
+
+| command | maps to |
+|---|---|
+| `shop-knol create <type> --from <file or ->` | Create |
+| `shop-knol read <locator> [--section <title>] [--whole] [--resolve]` | Read at the chosen level |
+| `shop-knol write <locator> --from <file or ->` | Write |
+| `shop-knol append <locator> --from <file or ->` | Append |
+| `shop-knol delete <locator>` | Delete |
+| `shop-knol apply --from <batch>` | Apply |
+| `shop-knol list --type <type> [--where k=v ...] [--ids]` | List |
+| `shop-knol refs <locator> --inbound|--outbound [--via f] [--type t] [--depth n]` | Refs |
+| `shop-knol search <text> [--type t] [--in sections|fields|all]` | Search |
+| `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
+| `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
+| `shop-knol validate` | Validate |
+| `shop-knol init <root>` | Init, then loads the bootstrap set through Create |
+| `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
+
+Output is YAML by default and `--json` for the same structure. Errors are
+printed as returned by kb, with artifact, path, and message, and exit
+non-zero. The boundary for a corpus-only role is a harness permission
+allowlist of exactly `shop-knol *`.
+
+## Bootstrap types
+
+Schema artifacts for: `decision`, `feature`, `work-item`, `role`,
+`process`, `step`, `tag`. Plus whatever data-type schemas the process and
+feature schemas share through `$ref`.
+
+- `process` declares a `steps` part collection whose items either define a
+  step inline or carry `uses: <ref to step>` and `with: <bindings>`.
+- `role` separates the harness contract fields from the corpus identity
+  fields into two named field groups, so the `agent` renderer can copy one
+  into frontmatter.
+- `tag` is a title and description; a `tags` reference field on other types
+  targets it.
+- Scenario status over time is a ledger modelled later, not a field on the
+  scenario and not a field on a work item.
+
+## Renderers
+
+Client code, invoked only by `shop-knol render`. Each reads the resolved
+whole artifact, the stubs of its references, and its schema through the
+contract, and writes files to the target directory.
+
+- `skill` for `process`: `SKILL.md` in Anthropic's frontmatter-plus-body
+  shape with resolved steps as the body.
+- `agent` for `role`: `.claude/agents/<name>.md` with the harness field
+  group as frontmatter and the prose sections as the body.
+- `diagram` for `process`: `<id>.mmd` generated from steps and branches.
+- `markdown` for any type: identity as heading, fields as a definition
+  list, sections at their levels, parts as tables.
+
+`skill` and `agent` validate their output against the limits the harness
+publishes and fail rather than emit something it would reject.
+
+## Not in this version
+
+- Product-local or user-local extensions. When wanted, they are additional
+  schema and renderer sets shop-knowledge loads; kb never learns of them.
+- Any validation that kb's schema language cannot express. If one is
+  needed, it runs client-side before the call and is not binding.
+
+## Testing
+
+Built with the shopsystem-bdd workflow. Feature files are formulated from
+this spec, from the perspective of a shopsystem user at the command line.
+kb is exercised through its in-process transport, never mocked.
