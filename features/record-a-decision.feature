@@ -12,6 +12,7 @@ So that a choice the shop has made is written down where the whole shop can find
     And the shop holds the decision under that name and reads it back by it
     And the decision is at its first version
 
+  @slice-27
   Scenario: A decision whose title is already used is given a name of its own
     Given a decision in a file whose title is already used by a decision the shop holds
     When the user records that file as a decision, saying who they are and why

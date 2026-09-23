@@ -9,16 +9,22 @@ slices made only of kb scenarios move to kb's own plan.
 
 Slice 0 is the enabling slice the skeleton stands on: both checkouts run
 their feature suites and this repository imports kb from the checkout
-beside it. Slice 1 is the walking skeleton the specs define. Slices 2 to 19 each
-settle one unknown and are ordered by the size of it. Slices 20 to 47 have
+beside it. Slice 1 is the walking skeleton the specs define. Then come the slices
+that each settle one unknown, ordered by the size of it. Then the slices with
 no unknown: scenarios that share a feature and step definitions bundle into
 one slice, and the slices are ordered by value, kb's slice ahead of the
 shop-knowledge slice that needs it.
 
+The order of the sections in this file is the order of the work. A slice's
+number is the name its tag carries and does not change once given, so slices
+cut after the first plan carry numbers above 47 wherever they sit: 48 and 49
+among the slices with an unknown, 50 at the end of them, 51 to 53 in the
+tail.
+
 ## Slice 0: Both checkouts run their feature suites
 
 - Kind: enabling
-- Check: `python -m pytest -q` in `shopsystem-kb` -> 0 passed, 44 failed, every approved scenario collected and failing for want of steps, not "no tests ran"; `python -m pytest -q` in this repository -> 0 passed, 45 failed, the same; `python -c "import kb"` from this repository's checkout -> succeeds, with kb resolved from the sibling checkout as an editable path dependency; the protobuf compiler run over kb's contract file -> exits 0 and the code it generates imports
+- Check: `python -m pytest -q` in `shopsystem-kb` -> 0 passed, 65 failed, every approved scenario collected and failing for want of steps, not "no tests ran"; `python -m pytest -q` in this repository -> 0 passed, 50 failed, the same; `python -c "import kb"` from this repository's checkout -> succeeds, with kb resolved from the sibling checkout as an editable path dependency; the protobuf compiler run over kb's contract file -> exits 0 and the code it generates imports
 - Observable: A developer in either checkout runs the feature suite and sees every approved scenario collected and failing for want of steps rather than skipped for want of wiring, and this repository imports kb from the checkout beside it.
 - Unknown: Does one Python environment serve both side-by-side checkouts, with this repository importing kb as an editable path dependency?
 - Needs: none
@@ -28,9 +34,9 @@ shop-knowledge slice that needs it.
 
 - Kind: capability
 - Scenarios: kb / start-a-store / The client starts a store; kb / define-a-type / The client defines a type; kb / create-an-artifact / The client creates an artifact; kb / read-an-artifact / The client reads a summary; shop-knowledge / record-a-decision / The user records a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision at a glance
-- Observable: At a shell, a user starts a shop knowledge base, records a decision from a file saying who they are and why, and reads it back at a glance with stubs of what it points at and counts of what points at it, while the decision sits on disk as a file inside a commit.
+- Observable: At a shell, a user starts a shop knowledge base, records a decision from a file saying who they are and why, is shown the name the decision was given without having chosen it, and reads it back by that name at a glance with stubs of what it points at and counts of what points at it, while the decision sits on disk as a file inside a commit.
 - Unknown: Does one round trip pass through every layer: the command line, the in-process client, the contract's messages, schema validation, canonical YAML on disk, and a git commit?
-- Needs: the contract's messages that starting a store, defining a type, creating, and reading a summary need (every scenario); the metaschema written when a store starts (the start scenario); writes landing as files and one commit in the store's git repository, which nothing here asserts on but without which the skeleton is not through every layer (the create and record scenarios); the shop's start command loading bootstrap types for decision, work item, and tag, flat or on a base as the implementer chooses since nothing here asserts on composition (the two shop-knowledge scenarios)
+- Needs: the contract's messages that starting a store, defining a type, creating, and reading a summary need (every scenario); the metaschema written when a store starts (the start scenario); writes landing as files and one commit in the store's git repository, which nothing here asserts on but without which the skeleton is not through every layer (the create and record scenarios); the shop's start command loading bootstrap types for decision, work item, and tag, flat or on a base as the implementer chooses since nothing here asserts on composition (the two shop-knowledge scenarios); the name of a new artifact made by kb from its title, since neither the client nor the user chooses one (the create and record scenarios)
 - Status: planned
 
 ## Slice 2: Two types share a shape
@@ -64,7 +70,7 @@ shop-knowledge slice that needs it.
 
 - Kind: capability
 - Scenarios: kb / make-several-changes-in-one-go / The client makes several changes in one go
-- Observable: A client sends a create and a change in one request, gets a result for each, and the store's history shows the two as one change.
+- Observable: A client sends a create and a change in one request, is given a name for the set it never asked for and a result for each change, and the store's history shows the two as one change.
 - Unknown: Can the second operation in a set point at the artifact the first one creates, before either has landed?
 - Needs: none
 - Status: planned
@@ -100,9 +106,9 @@ shop-knowledge slice that needs it.
 
 - Kind: capability
 - Scenarios: kb / read-the-journal / Every change leaves an entry
-- Observable: After a decision is created on one day and changed two days later, the journal for that decision shows two entries, each with when, which role, which piece of work, what it did, where, the version left behind, a fingerprint, and the message.
+- Observable: After a decision is created on one day and changed two days later, the journal for that decision shows two entries, each with when, which role, which piece of work, what it did, where, the version left behind, a fingerprint, the message, and the set of changes it landed with.
 - Unknown: How do step definitions set the time kb stamps on an entry, so that two changes can be two days apart within one run?
-- Needs: a journal entry written for every operation from here on (this scenario); an outside control of the clock (this scenario, and the since scenario later)
+- Needs: a journal entry written for every operation from here on, each naming the set it landed with and its own name when it landed alone (this scenario); an outside control of the clock (this scenario, and the since scenario later)
 - Status: planned
 
 ## Slice 10: Every violation is reported
@@ -132,12 +138,30 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
+## Slice 48: A loop in the links stops
+
+- Kind: capability
+- Scenarios: kb / read-an-artifact / A loop in the links stops instead of going round
+- Observable: A client reads one of two decisions that point at each other, following its links three steps, and gets the other decision filled in, with the decision being read given as a name where the other points back rather than filled in again.
+- Unknown: How does resolution know which artifacts are already filled in on the path it is following, so a loop comes back as a name while the same artifact reached by another path is still filled in?
+- Needs: none
+- Status: planned
+
 ## Slice 13: Change one node inside an artifact
 
 - Kind: capability
 - Scenarios: kb / change-an-artifact / The client changes one node inside an artifact
 - Observable: A client replaces only the rationale of a decision, and the rest of the decision reads as before.
 - Unknown: Can a write be addressed at a section inside an artifact and the whole artifact re-validated afterwards?
+- Needs: none
+- Status: planned
+
+## Slice 49: Items keep their names when put in a different order
+
+- Kind: capability
+- Scenarios: kb / add-an-item-to-a-collection / Putting items in a different order does not rename them
+- Observable: A client puts the items of a collection, each named by its place when it was added, in a different order, and every item keeps its name, so anything pointing at one of them still lands on the same item.
+- Unknown: How does an item keep the name kb minted for it across a write that moves it, when the client never chooses names and an item named by its place no longer sits there?
 - Needs: none
 - Status: planned
 
@@ -195,11 +219,20 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 20: Read an artifact at every depth
+## Slice 50: Starting a store inside a store is refused
 
 - Kind: capability
-- Scenarios: kb / read-an-artifact / The client reads the whole artifact; kb / read-an-artifact / The client reads one section by its title; kb / read-an-artifact / The client reads the whole artifact with what it points at filled in
-- Observable: A client reads a decision whole and gets every field, section, and part in the order the type declares; asks for its rationale and gets that section and nothing else; and reads it with its links resolved and gets the older decision in place of the link, as the store holds it now.
+- Scenarios: kb / start-a-store / Starting a store inside a store is refused
+- Observable: A client starts a store in a directory that sits inside a store and is refused for that reason, and the store it sits inside holds what it held before.
+- Unknown: How does kb tell that a directory sits inside a store, when a store is marked only by a file inside its own subdirectory and the directory may be any depth below it?
+- Needs: none
+- Status: planned
+
+## Slice 20: Read an artifact at every depth, following its links as far as asked
+
+- Kind: capability
+- Scenarios: kb / read-an-artifact / The client reads the whole artifact; kb / read-an-artifact / The client reads one section by its title; kb / read-an-artifact / The client reads the whole artifact with what it points at filled in; kb / read-an-artifact / Without being asked to follow them, links come back as names; kb / read-an-artifact / The client reads an artifact following its links two steps; kb / read-an-artifact / The branches inside a process are not followed
+- Observable: A client reads a decision whole and gets every field, section, and part in the order the type declares, with what it points at given as names; asks for its rationale and gets that section and nothing else; reads it following its links one step and gets the older decision in place of the link, as the store holds it now, with what that older decision points at given as names; follows them two steps and gets the tag in place of the link inside the older decision; and reads a process whose steps branch to each other and gets the branches as written, naming the steps.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -207,17 +240,17 @@ shop-knowledge slice that needs it.
 ## Slice 21: Read a decision at every depth, as text or JSON
 
 - Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads the whole decision; shop-knowledge / read-back-what-the-shop-knows / The user reads one section of a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision with the things it points at filled in; shop-knowledge / read-back-what-the-shop-knows / The user takes the same answer as JSON
-- Observable: A user reads a decision whole, or only its rationale, or whole with what it points at filled in, and can take any of those answers as JSON instead of the default.
+- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads the whole decision; shop-knowledge / read-back-what-the-shop-knows / The user reads one section of a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision with the things it points at filled in; shop-knowledge / read-back-what-the-shop-knows / The user takes the same answer as JSON; shop-knowledge / read-back-what-the-shop-knows / The user asks for the links to be followed two steps
+- Observable: A user reads a decision whole with what it points at shown by name, or only its rationale, or whole with what it points at filled in one step when they do not say how far, or two steps so the tag inside the older decision is filled in too, and can take any of those answers as JSON instead of the default.
 - Unknown: none
 - Needs: none
 - Status: planned
 
-## Slice 22: Change an artifact
+## Slice 22: Change an artifact, behind its type or not
 
 - Kind: capability
-- Scenarios: kb / change-an-artifact / The client changes an artifact
-- Observable: A client replaces a decision; its version goes up by one and it records the current version of its type.
+- Scenarios: kb / change-an-artifact / The client changes an artifact; kb / change-an-artifact / Changing an artifact that is behind its type brings it up to date; kb / change-an-artifact / Changing an artifact that is behind its type with content the current version will not have is refused
+- Observable: A client replaces a decision; its version goes up by one and it records the current version of its type. A decision behind its type, replaced with content that fits the current version, records that version and is no longer listed as behind it; replaced with content that does not fit, the change is refused like any other, the decision reads as it was at the version it was, and it is still listed as behind its type.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -231,11 +264,11 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 24: An artifact that breaks its type is refused
+## Slice 24: Create names what it stores and refuses what breaks its type
 
 - Kind: capability
-- Scenarios: kb / create-an-artifact / An artifact missing a required section is refused; kb / create-an-artifact / An artifact pointing at something that is not there is refused; kb / create-an-artifact / An artifact with two parts of the same name is refused
-- Observable: A client creates a decision with no purpose, or one superseding a decision the store does not hold, or one carrying two options of the same name, and each is refused naming the rule it broke.
+- Scenarios: kb / create-an-artifact / The name of a new artifact is made from its title, not asked for; kb / create-an-artifact / A second artifact with a title already used gets a name of its own; kb / create-an-artifact / Two parts with the same title are given names of their own; kb / create-an-artifact / An artifact missing a required section is refused; kb / create-an-artifact / An artifact pointing at something that is not there is refused
+- Observable: A client creates a decision and is given a name made from its title that it never chose; a second decision with the same title is given that name with a number added while the first keeps its own; two options with the same title are each given a name of their own; and a decision with no purpose, or one superseding a decision the store does not hold, is refused naming the rule it broke.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -258,11 +291,11 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 27: Record a decision from a pipe or under a piece of work
+## Slice 27: Record a decision from a pipe, under a piece of work, or with a title already used
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / The user pipes a decision in instead of naming a file; shop-knowledge / record-a-decision / The user records a decision as part of a piece of work
-- Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, and a user working as the shopkeeper on a named piece of work records one and the change is attributed to both.
+- Scenarios: shop-knowledge / record-a-decision / The user pipes a decision in instead of naming a file; shop-knowledge / record-a-decision / The user records a decision as part of a piece of work; shop-knowledge / record-a-decision / A decision whose title is already used is given a name of its own
+- Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, a user working as the shopkeeper on a named piece of work records one and the change is attributed to both; and a user records a decision whose title is already used and is shown a name of its own for it, the taken name with a number added, while the earlier decision still reads back by its name.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -321,11 +354,11 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 34: Read the journal by role, piece of work, or time
+## Slice 34: Read the journal by role, piece of work, time, or set
 
 - Kind: capability
-- Scenarios: kb / read-the-journal / The client reads the journal for one role; kb / read-the-journal / The client reads the journal for one piece of work; kb / read-the-journal / The client reads the journal since a time
-- Observable: A client reads the journal for the shopkeeper and gets only the creation of the decision, for a piece of work and gets only the agent's change, or since yesterday and gets only today's change.
+- Scenarios: kb / read-the-journal / The client reads the journal for one role; kb / read-the-journal / The client reads the journal for one piece of work; kb / read-the-journal / The client reads the journal since a time; kb / read-the-journal / The journal alone shows what landed together
+- Observable: A client reads the journal for the shopkeeper and gets only the creation of the decision, for a piece of work and gets only the agent's change, or since yesterday and gets only today's change; and, reading the journal of a store where two artifacts changed in one go and a third alone, sees the two entries name the same set and the third name itself as its own, so what landed together is plain from the journal alone.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -357,11 +390,11 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 38: Add an item to a collection
+## Slice 38: Add an item to a collection, named by kb
 
 - Kind: capability
-- Scenarios: kb / add-an-item-to-a-collection / The client adds an item to a collection; kb / add-an-item-to-a-collection / An item that uses another artifact keeps its settings on itself
-- Observable: A client adds a step to a process and gets the item's name and the artifact's new version with the item after those already there, and adds a step that points at the shared step with its own settings, which sit on the new item while the shared step is unchanged.
+- Scenarios: kb / add-an-item-to-a-collection / The client adds an item to a collection; kb / add-an-item-to-a-collection / An item that uses another artifact keeps its settings on itself; kb / add-an-item-to-a-collection / The name of a new item comes from its title; kb / add-an-item-to-a-collection / An item of a kind that carries no title is named by its place; kb / add-an-item-to-a-collection / A second item with a title already used in the collection gets a name of its own; kb / add-an-item-to-a-collection / Taking an item out does not rename the items left
+- Observable: A client adds a step to a process and gets the item's name and the artifact's new version with the item after those already there; the name is made from the step's title, or from its place when items of that kind carry no title, and a second step with a title already used gets that name with a number added while the first keeps its own; a step that points at the shared step with its own settings keeps those on the new item while the shared step is unchanged; and taking the first item out of a collection leaves every other item with the name it was given when it was added.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -393,11 +426,11 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
-## Slice 42: A check reports nothing when sound and stale when behind
+## Slice 42: A check reports nothing when sound, stale when behind, and both when behind and broken
 
 - Kind: capability
-- Scenarios: kb / check-the-store / A store with nothing wrong reports nothing; kb / check-the-store / An artifact behind its type is reported as stale
-- Observable: A client checks a store where everything fits its type and is told of no violation, or one holding a decision last checked against an older version of its type and sees it listed as behind its type and not as a violation.
+- Scenarios: kb / check-the-store / A store with nothing wrong reports nothing; kb / check-the-store / An artifact behind its type is reported as stale; kb / check-the-store / An artifact behind its type that no longer fits it is reported both ways
+- Observable: A client checks a store where everything fits its type and is told of no violation, or one holding a decision last checked against an older version of its type and sees it listed as behind its type and not as a violation; or one holding a decision behind its type that no longer fits the current version and sees it listed both as behind its type and as a violation naming the artifact, the place, and the rule, while the check itself does not fail.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -411,13 +444,31 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
+## Slice 51: A store sits beside other things, and is not started twice
+
+- Kind: capability
+- Scenarios: kb / start-a-store / A directory holding other things can still be given a store; kb / start-a-store / Starting a store in a directory that already has one inside it is refused
+- Observable: A client starts a store in a directory holding unrelated files and finds the store made inside it in a place of its own, with those files left alone and none of them the store's concern; starts one in a directory that already has a store inside it and is refused for that reason, with the store there holding what it held before.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Slice 44: The operator looks after a store
 
 - Kind: capability
-- Scenarios: kb / look-after-a-store / The operator sets up a store; kb / look-after-a-store / The operator checks the whole store; kb / look-after-a-store / The command line does nothing to content
-- Observable: An operator runs kb's own command line to set up a store in a directory ready for a client to define types in, runs the check from a shell and is told of everything that does not fit its type and everything behind its type, and asks what the command line offers and sees only those two things.
+- Scenarios: kb / look-after-a-store / The operator sets up a store; kb / look-after-a-store / Setting up a store where the directory already has one inside it is refused; kb / look-after-a-store / Setting up a store inside a store is refused; kb / look-after-a-store / The operator checks the whole store; kb / look-after-a-store / The command line does nothing to content
+- Observable: An operator runs kb's own command line to set up a store inside a directory, in a place of its own, ready for a client to define types in; is refused where the directory already has a store inside it or sits inside one, with the store there left as it was; runs the check from a shell and is told of everything that does not fit its type and everything behind its type, and asks what the command line offers and sees only those two things.
 - Unknown: none
 - Needs: kb's own console entry point (every scenario)
+- Status: planned
+
+## Slice 52: The shop's knowledge base sits beside the shop's work, and is not started twice
+
+- Kind: capability
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / The shop's knowledge sits in a place of its own inside the directory it was started in; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base where the directory already holds one is refused; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base inside one the shop already has is refused
+- Observable: A user starts a shop knowledge base in a directory holding other work of the shop's and finds the knowledge kept in a place of its own inside it, with that work left as it was; starting one where the directory already holds the shop's knowledge, or in a directory inside it, is refused for that reason with everything the shop already knows unchanged.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Slice 45: One bad change in a batch leaves the shop untouched
@@ -447,6 +498,15 @@ shop-knowledge slice that needs it.
 - Needs: none
 - Status: planned
 
+## Slice 53: The set's name finds the set in the history
+
+- Kind: capability
+- Scenarios: kb / make-several-changes-in-one-go / The name given for a set finds the set in the history
+- Observable: A client makes two changes in one go and, under the name it was given for the set, the history shows exactly those two.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
@@ -466,3 +526,12 @@ shop-knowledge slice that needs it.
 - 2026-09-23 Re-slice: slices 1 to 19 unchanged. The tail, once 65 one-scenario slices, is now 28 slices, 20 to 47, each bundling the scenarios of one feature that share step definitions: the variants of one read, list, follow, search, journal, check, add, or remove, or the refusals of one command. Where a feature's tail scenarios split into two operations that do not share steps (record-a-decision's refusals and its two ways of recording) they are two slices. Slices that stand alone do so because nothing else in their feature is in the tail. The order and the kb-before-shop rule are as before. Every `@slice-<n>` tag in both repositories rewritten to match.
 - 2026-09-23 Suite (shop-knowledge): 0 passed, 0 failed. `python -m pytest -q` reports "no tests ran". Same for kb.
 - 2026-09-23 Re-plan under the current slicing rules: slice order and every `@slice-<n>` tag unchanged. Kind now follows what each slice delivers, not the repository it runs in: every slice with a Scenarios line is capability, so slices 2, 3, 5 to 13, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, and 44 change from stack to capability. No slice is stack: neither spec states a bound outside a scenario. Slice 0 added, enabling, verified by checks: the runnable packages, the suites wired to pytest-bdd, kb as an editable path dependency, and the contract file generating code, taken out of slice 1's Needs line. Slice 0 has no scenarios, so no feature file changes.
+- 2026-09-23 Suite (shop-knowledge): 0 passed, 0 failed. `python -m pytest -q` reports "no tests ran". Same for kb.
+- 2026-09-23 Both specs revised and both feature sets approved since the last cut: kb now mints every name, from the title or the item's place, once for life; a set of changes is given a name and every journal entry carries the set it landed with; a resolved read takes a depth and stops at a loop; a store is made in a place of its own inside the directory it is started in and refused where one already is or inside one; an artifact behind its type is checked against the current type. 27 scenarios added, 22 in kb and 5 here, and one removed: kb / create-an-artifact / An artifact with two parts of the same name is refused, gone from slice 24 since kb now names such parts apart. Seven scenarios already in slices 1, 5, 9, 20, 21, and 44 say more than they did; those slices' Observable lines now say it too.
+- 2026-09-23 QUESTION answered by the spec: "one change" is a named set. Every journal entry names the set it landed with, and a change made alone names itself. Slices 5 and 9 now observe it; slice 53 and the scenario added to slice 34 read it back.
+- 2026-09-23 QUESTION answered by the spec: a resolved read takes a depth, one step when none is given, and a target already filled in on the path is given as a name. Slice 48 carries the loop; the depths join slices 20 and 21.
+- 2026-09-23 QUESTION answered by the spec: kb mints an item's name from its title or its place, once for life, and gives it back. The naming scenarios join slices 24 and 38; slice 49 carries the one with an unknown.
+- 2026-09-23 QUESTION answered by the spec: an artifact behind its type is checked against the current type: still fitting, it is stale; no longer fitting, it is stale and in violation; a write to it is checked against the current type. Those scenarios join slices 22 and 42.
+- 2026-09-23 Placed: 18 of the 27 join an existing slice that shares their feature and step definitions (slices 20, 21, 22, 24, 27, 34, 38, 42, 44). Three carry an unknown of their own and are new slices among the unknown slices, placed by the size of it: 48, a loop in the links, after 12; 49, names survive a reorder, after 13; 50, a store inside a store, after 19. The remaining six have no unknown and no tail slice of their feature to join: 51 (two kb start scenarios) before 44, so kb's own command line does not build the refusal first; 52 (three shop-knowledge start scenarios) after 44; 53 (the set's name) last. Order and tags of slices 0 to 47 unchanged. Every scenario in both repositories carries one `@slice-<n>` tag.
+- 2026-09-23 QUESTION FOR THE SPEC: kb / add-an-item-to-a-collection / Putting items in a different order does not rename them. The spec says the client never supplies an item's name and that reordering does not rename; it does not say what the client sends when it reorders. Does it write the collection back carrying the names kb gave the items, or does kb match the items some other way? Slice 49's unknown is cut on the first reading; the second changes what a client sends, not what it observes.
+- 2026-09-23 QUESTION FOR THE SPEC: kb / make-several-changes-in-one-go / The name given for a set finds the set in the history. The journal's filters are artifact, role, piece of work, and time; the set's name is not among them. Does the journal take the set's name as a filter, or does the client read the journal and keep the entries that name the set? Slice 53 passes either way.

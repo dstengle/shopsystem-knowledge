@@ -28,6 +28,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     Then the superseded decision is shown in place of the pointer, as the shop holds it now
     And what that older decision points at is shown by name only
 
+  @slice-21
   Scenario: The user asks for the links to be followed two steps
     Given the older decision is tagged "seasonal"
     When the user reads the whole decision asking for what it points at to be filled in two steps
