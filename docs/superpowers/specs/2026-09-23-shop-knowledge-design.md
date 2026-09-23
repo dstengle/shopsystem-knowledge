@@ -34,6 +34,9 @@ exercise; slices are ordered by which belief is riskiest.
 - **renderers-match-the-harness.** A rendered skill or agent loads in the
   harness unchanged. Fails if the harness rejects one or someone edits the
   output.
+- **a-diagram-is-derivable-from-steps.** A process's steps and branches
+  carry enough structure to draw it without hand layout. Fails if a
+  rendered diagram needs manual arrangement to be readable.
 - **markdown-projection-reads-well-enough.** The generic markdown rendering
   is enough for a person reading a type with no renderer of its own. Fails
   if a new type gets a renderer just to be readable.
