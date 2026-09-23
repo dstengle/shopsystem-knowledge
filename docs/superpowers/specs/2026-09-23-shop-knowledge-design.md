@@ -84,6 +84,21 @@ publishes and fail rather than emit something it would reject.
 - Any validation that kb's schema language cannot express. If one is
   needed, it runs client-side before the call and is not binding.
 
+## Order of building
+
+shop-knowledge and kb are one effort until the walking skeleton is green,
+then two. The living plan lives here because this is where value is
+observable.
+
+1. Feature files for both are formulated in one session from both specs.
+   This repo's scenarios are the outer loop; every kb scenario cites the
+   scenario here that needs it.
+2. Slice 1 is create a decision and read it back through `shop-knol`, and
+   it may touch both repos. kb is an editable path dependency until then.
+3. When slice 1 is green, kb is tagged 0.1 and this repo pins it. From
+   then, a kb change needed here is a request to bump the pin, and each
+   repo plans alone.
+
 ## Testing
 
 Built with the shopsystem-bdd workflow. Feature files are formulated from
