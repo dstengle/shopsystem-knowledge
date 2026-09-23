@@ -8,10 +8,22 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop can hold decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
-  Scenario: Starting a knowledge base where the shop already has one is refused
+  Scenario: The shop's knowledge sits in a place of its own inside the directory it was started in
+    Given a directory holding work of the shop's that is not its knowledge
+    When the user starts a shop knowledge base in that directory
+    Then the shop's knowledge is kept in a place of its own inside that directory
+    And the work that was already in that directory is left as it was
+
+  Scenario: Starting a knowledge base where the directory already holds one is refused
     Given a directory that already holds the shop's knowledge
     When the user starts a shop knowledge base in that directory
-    Then starting the knowledge base is rejected because a store is already there
+    Then starting the knowledge base is rejected because that directory already holds a knowledge base
+    And everything the shop already knows is still there, unchanged
+
+  Scenario: Starting a knowledge base inside one the shop already has is refused
+    Given a directory that sits inside the shop's knowledge
+    When the user starts a shop knowledge base in that directory
+    Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
   @slice-46
