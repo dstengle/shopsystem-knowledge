@@ -5,13 +5,11 @@ So that a process can be built up a step at a time, the user can add a step to a
     Given a shop knowledge base holding a process with two steps
     And a shared step "check the stock" that other processes already use
 
-  @assumes-one-command-line-is-enough
   Scenario: The user adds a step written in place
     When the user adds a step describing what to do, saying who they are and why
     Then the new step is the last step of the process
     And the user is told the name the new step is known by
 
-  @assumes-shared-steps-get-used
   Scenario: The user adds a step that reuses a shared step
     When the user adds a step that uses "check the stock" with its own settings, saying who they are and why
     Then the process runs "check the stock" at that point with those settings

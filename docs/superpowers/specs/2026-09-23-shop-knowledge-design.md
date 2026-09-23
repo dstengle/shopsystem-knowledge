@@ -16,10 +16,11 @@ kb's contract, pinned by version. shop-knowledge never touches kb's files
 or git. It calls the contract through the in-process client today and a
 network channel when a server exists, with no other change.
 
-## Assumptions this design tests
+## What use will tell us
 
-Each is a belief that use can prove wrong. Scenarios cite the one they
-exercise; slices are ordered by which belief is riskiest.
+Each is a belief that only use can prove wrong. None is tested by a
+scenario or ordered by a slice; they are what the shop's measurement loop
+should watch once the system runs.
 
 - **one-command-line-is-enough.** Users and agents need nothing but
   `shop-knol` to work with the shop's knowledge. Fails if a role needs
