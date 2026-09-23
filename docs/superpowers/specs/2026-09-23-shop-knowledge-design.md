@@ -50,6 +50,10 @@ Schema artifacts for: `decision`, `feature`, `work-item`, `role`,
 `process`, `step`, `tag`. Plus whatever data-type schemas the process and
 feature schemas share through `$ref`.
 
+All seven build on a `shop-artifact` base schema through kb's composition
+mechanism, so the fields every shop artifact carries, such as owner,
+status, and tags, are declared once.
+
 - `process` declares a `steps` part collection whose items either define a
   step inline or carry `uses: <ref to step>` and `with: <bindings>`.
 - `role` separates the harness contract fields from the corpus identity
