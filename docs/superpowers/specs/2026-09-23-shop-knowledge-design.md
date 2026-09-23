@@ -75,7 +75,7 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
 | `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
 | `shop-knol validate` | Validate |
-| `shop-knol init <root>` | Init, then loads the bootstrap set through Create; refused where a store exists |
+| `shop-knol init <root>` | Init, which creates `<root>/kb/`, then loads the bootstrap set through Create; refused where `<root>/kb/` exists or `<root>` is inside a store |
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
 Ids are minted by kb from titles and never supplied by the user; `create`
