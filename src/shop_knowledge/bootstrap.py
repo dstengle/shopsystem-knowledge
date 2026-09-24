@@ -12,7 +12,8 @@ def load(client, actor):
     for name in TYPES:
         text = resources.files("shop_knowledge.types").joinpath(f"{name}.yaml").read_text()
         content = yaml.safe_load(text)
+        title = content.pop("title")
         client.Create(kb_pb2.CreateRequest(
-            type="schema", content=dumps(content), actor=actor,
-            message=f"Define the shop's {content['title'].lower()} type",
+            type="schema", title=title, content=dumps(content), actor=actor,
+            message=f"Define the shop's {title.lower()} type",
         ))

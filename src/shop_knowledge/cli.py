@@ -52,8 +52,9 @@ def _init(args) -> int:
 
 def _create(args) -> int:
     content = yaml.safe_load(Path(args.source).read_text())
+    title = content.pop("title", "")
     response = _client().Create(kb_pb2.CreateRequest(
-        type=args.type, content=dumps(content), actor=_actor(), message=args.message,
+        type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
     ))
     _show({"id": response.id, "revision": response.revision})
     return 0
