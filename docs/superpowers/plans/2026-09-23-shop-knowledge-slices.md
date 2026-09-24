@@ -182,7 +182,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client readied where there was no store and nothing named one reads a decision from a store started there since, and is never readied again.
 - Unknown: Can finding the store move from when a client is readied to each call it makes, while starting a store still takes its directory from the request?
 - Needs: the refusals of slice 61 given on the call that finds no store, as they are now given by a client readied over a refusal (slice 61's scenarios, which must stay green)
-- Status: planned
+- Status: green
 
 ## Slice 69: A store is started where the client says, not where it works
 
@@ -897,3 +897,9 @@ point in the order, not after slice 1 alone.
   - QUESTION FOR THE SPEC: Init's root is a request string that becomes a filesystem path unconverted (Store(request.root)); the boundary rule says storage accepts only checked values. Is the root a checked value too? No scenario pins it.
   - QUESTION FOR THE SPEC: the spec says Create refuses, as its own fault, a plain kind that names no schema; with no scenario, `CreateRequest(type="note")` in a store without `schema/note` still raises FileNotFoundError through the client.
   Next: slice 68.
+- 2026-09-24 slice 68 green. Someone can now: ready a client where there is no store, start one there, and read from it with the same client; a client readied anywhere can start a store.
+  Assumption "finding the store can move to each call, Init still taking its root from the request": held. Evidence: `python -m pytest -q -m "slice-68 or slice-61 or slice-56"` gave `6 passed, 101 deselected`; kb full suite `74 failed, 33 passed`; shop-knowledge `-m slice-1` `2 passed`; `connect().Init(InitRequest(root='/tmp/slice68-probe', ...))` printed an empty line and `os.path.exists('/tmp/slice68-probe/kb/store.yaml')` printed `True`.
+  Surprised by: nothing; red was the StepDefinitionNotFoundError for the new Given, then the `store` refusal "no store was found, neither above .../shop nor named outright", as the brief said.
+  Open questions:
+  - ANSWERED: connect() with no store, then Init, no longer raises (the whole-branch review's question on slice 61).
+  Next: slice 69.
