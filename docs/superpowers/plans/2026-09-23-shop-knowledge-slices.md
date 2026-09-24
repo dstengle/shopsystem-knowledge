@@ -206,7 +206,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client creates a decision whose title arrives as the yes-or-no true rather than as text, and reads the title back as the text "true", with the name made from that text.
 - Unknown: Where does a title that arrives as something other than text become the text it would be written as, when the contract carries the title as a text field?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.19: Reading an artifact whose stored file cannot be read is refused
 
@@ -1004,3 +1004,7 @@ ahead of slice 2: every later finding is placed by its unknown among slices
 - 2026-09-24 Still open, no scenario, so no slice builds them: a bare date in a field value is text under the core schema but ruamel still loads it as a date (slice 64's question); a `%TAG` directive, which the spec refuses beside `%YAML`; content that is not YAML at all or not a mapping raises through the client (slices 59 and 65); an empty KB_ROOT (slice 61); a write whose own output fails the canonical check (slice 65); a read of a refused name through shop-knol other than an unreadable file (slice 60).
 - 2026-09-24 Next: writing-plans over slices 1.18 to 1.28, one task per slice in that order, to `2026-09-24-pretag3-implementation.md`.
 - 2026-09-24 writing-plans done: `2026-09-24-pretag3-implementation.md`, eleven tasks for slices 1.18 to 1.28 in slice order. It was assembled and run in scratch copies of both repositories (kb 45 passed, 73 failed; shop-knowledge 7 passed, 55 failed once all eleven are green). Two of slice 1.25's three scenarios went green there on their step definitions alone. Slice 1.26 makes shop-knowledge's test fixture create the directory a knowledge base starts in, since kb no longer builds it. Next: execute it, then the tag.
+- 2026-09-24 slice 1.18 green. Someone can now: create an artifact whose title arrived as true and read it back as the text "true", with the name made from it.
+  Assumption "a title that is not text becomes text in the client, through one function kb supplies, since the contract carries text": held. Evidence: `['true', 'false', '', '12', '12.5']`, the output of python -c "from kb.content import text; print([text(v) for v in (True, False, None, 12, 12.5)])".
+  Surprised by: nothing.
+  Open questions: none. Next: slice 1.19.
