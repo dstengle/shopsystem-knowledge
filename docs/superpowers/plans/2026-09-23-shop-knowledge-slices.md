@@ -875,6 +875,7 @@ point in the order, not after slice 1 alone.
   Open questions:
   - QUESTION FOR THE SPEC: a file in the store that no longer reads plainly (hand-edited to hold `&a`) now makes Read raise NotCanonical through the client, since load checks every file. Is it a fault on Read, or only a violation for Validate? No scenario pins it.
   - QUESTION FOR THE SPEC (still open from slice 59, now on ruamel): content that is not YAML (`title: [unclosed`) raises ParserError, and content that is not a mapping (`- a`) raises TypeError, through the client.
+  - QUESTION FOR THE SPEC (from the whole-branch review): content with a duplicate key (`a: 1\na: 2`) makes ruamel raise DuplicateKeyError through the client and through shop-knol create; PyYAML kept the last value. Is it a fault, and which rule? No scenario pins it.
   - QUESTION FOR THE SPEC (from the slice 64 review): content beginning with a `%YAML 1.1` directive is read by ruamel as YAML 1.1, so a client can switch kb's reader back to 1.1: `content.loads('%YAML 1.1\n---\na: on\n')` gives `{'a': True}` (confirmed again at slice 65). Should kb refuse the directive? No scenario asserts it, so it is not coded.
   Next: slice 66.
 - 2026-09-24 slice 66 green. Someone can now: create a decision with a section missing its title or its body and be refused the way any content that does not fit its type is; an empty body still fits.
@@ -895,6 +896,7 @@ point in the order, not after slice 1 alone.
   Surprised by: nothing that differed from the brief. The current servicer had nothing the brief's version dropped; the differences are only that Read's reference stubs and `_inbound` now convert stored strings through `values.artifact_id` / `values.kind`, so a malformed stored reference or type would raise `Refused` uncaught (no scenario covers it).
   Open questions:
   - QUESTION FOR THE SPEC: Init's root is a request string that becomes a filesystem path unconverted (Store(request.root)); the boundary rule says storage accepts only checked values. Is the root a checked value too? No scenario pins it.
+  - Reproduction for the Init-root question: connect().Init(InitRequest(root="")) starts a store in the working directory (Path("") is "."), and raises FileExistsError if that directory is already a store; this cuts against slice 69's "started where the client says". No scenario pins an empty root.
   - QUESTION FOR THE SPEC: the spec says Create refuses, as its own fault, a plain kind that names no schema; with no scenario, `CreateRequest(type="note")` in a store without `schema/note` still raises FileNotFoundError through the client.
   Next: slice 68.
 - 2026-09-24 slice 68 green. Someone can now: ready a client where there is no store, start one there, and read from it with the same client; a client readied anywhere can start a store.
@@ -910,4 +912,5 @@ point in the order, not after slice 1 alone.
   Surprised by: the shop-knowledge full suite before the change was `57 failed, 2 passed` (the two slice-70 scenarios red, so 55 failed once they are green). Scenario 2 had no red of its own on code: after scenario 1's production change only its Then step was missing (StepDefinitionNotFoundError), so it went green on that step definition alone, as with slice 69. Red for scenario 1 was the StepDefinitionNotFoundError for the new Given, then the create's `TypeError: bad argument type for built-in operation` from PyYAML's date. The grep for `import yaml` over src and tests prints nothing, and no diff under features/. Evidence: `-m "slice-70 or slice-1"` `4 passed, 55 deselected`; shop-knowledge full suite `55 failed, 4 passed`; kb full suite `73 failed, 34 passed`.
   Open questions:
   - QUESTION FOR THE SPEC: a title in a file that YAML 1.2 still reads as something other than text (`title: true`, `title: 12`, `title: 2026-9-24`) reaches kb as `True`, `12`, `2026-09-24`, not as the text written. No scenario pins it.
+  - QUESTION FOR THE SPEC: a user file holding a tag, an anchor or alias, or a second document now makes shop-knol create fail with an uncaught NotCanonical traceback (PyYAML's safe_load accepted anchors). Should shop-knol answer with a fault or a message? No scenario pins it.
   Next: the plan's remaining work (tag kb 0.1, pin it here, move the kb-only slices to kb's own plan) is deliberately not done here and awaits the user.
