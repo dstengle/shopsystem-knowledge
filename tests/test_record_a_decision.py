@@ -1,7 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import knol, record
+from driver import knol, record, refused_plainly, reported_failure
 
 scenarios("record-a-decision.feature")
 
@@ -99,3 +99,35 @@ def _title_is_text_not_a_bool(env, recorded, decision_file):
 def _name_from_that_text(recorded, decision_file):
     written = decision_file.read_text().splitlines()[0].removeprefix("title: ")
     assert loads(recorded.stdout)["id"] == f"decision/{written}"
+
+
+@given("a decision in a file that names the same entry twice in the same place", target_fixture="decision_file")
+def _decision_in_a_file_naming_an_entry_twice(tmp_path):
+    path = tmp_path / "twice.yaml"
+    path.write_text(
+        "title: Price reviews happen weekly\n"
+        "sections:\n"
+        "  - title: Purpose\n"
+        "    body: Keep prices in step with costs.\n"
+        "    body: Keep prices low.\n"
+        "  - title: Rationale\n"
+        "    body: Costs move weekly.\n"
+    )
+    return path
+
+
+@then("the decision is rejected because an entry is named once and only once, naming the place in the file")
+def _rejected_for_an_entry_named_twice(recorded, decision_file):
+    assert recorded.stderr.splitlines() == [
+        f"{decision_file} at sections/0/body: an entry is named once and only once; 'body' is named again at line 5",
+    ]
+
+
+@then("the user is shown that fault in plain words, never a traceback")
+def _shown_in_plain_words(recorded):
+    refused_plainly(recorded)
+
+
+@then("the command reports failure to whatever ran it")
+def _reports_failure(recorded):
+    reported_failure(recorded)

@@ -1,12 +1,14 @@
 """shop-knol: the shop's command line over kb. KB_ROOT finds the repository, KB_ACTOR says who is acting.
 
 Every file it reads and everything it prints is YAML 1.2, read and written by kb's own reading and writing of content.
+A refusal, kb's or its own, is printed in plain words on stderr, one fault a line, with a non-zero exit; never a traceback.
 """
 import argparse
 import os
+import sys
 from pathlib import Path
 
-from kb import client as kb_client
+from kb import canonical, client as kb_client
 from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
@@ -44,6 +46,18 @@ def _show(document: dict) -> None:
     print(dumps(document), end="")
 
 
+def _plain(fault: kb_pb2.Fault) -> str:
+    """One fault as a line a person reads: where, then what is wrong."""
+    where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
+    return f"{where}: {fault.message}"
+
+
+def _refuse(faults) -> int:
+    for fault in faults:
+        print(_plain(fault), file=sys.stderr)
+    return 1
+
+
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
@@ -53,11 +67,16 @@ def _init(args) -> int:
 
 
 def _create(args) -> int:
-    content = loads(Path(args.source).read_text())
+    try:
+        content = loads(Path(args.source).read_text())
+    except canonical.NotCanonical as fault:
+        return _refuse([kb_pb2.Fault(artifact=args.source, path=fault.path, rule="content", message=str(fault))])
     title = text(content.pop("title", None))
     response = _client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
     ))
+    if response.faults:
+        return _refuse(response.faults)
     _show({"id": response.id, "revision": response.revision})
     return 0
 
