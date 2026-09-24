@@ -90,7 +90,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client creates a decision titled "2026-09-24" and the title reads back as that text and not as a date, with the name made from that text.
 - Unknown: Does a title YAML would read as a date survive the trip to disk and back as text, when the file is written by kb's emitter and loaded by a YAML parser?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 59: Create refuses what it cannot name or hold, and names plainly what it can
 
@@ -735,3 +735,7 @@ point in the order, not after slice 1 alone.
   The step reads the file; the Journal rpc arrives with slice 9.
   Surprised by: nothing.
   Open questions: none. Next: slice 58.
+- 2026-09-24 slice 58 green. Someone can now: create an artifact titled "2026-09-24" and read that title back as text, from the store and from the file, with the name made from it.
+  Assumption "a title YAML would read as a date survives as text": held with no code of this slice's own. Evidence: the file carries `title: '2026-09-24'`; the emitter quotes any string whose plain form resolves to another type, and the title has been a string field since slice 55.
+  Surprised by: the unknown was spent by slices 54 and 55 together; the scenario went green on its step definitions.
+  Open questions: none. Next: slice 59.
