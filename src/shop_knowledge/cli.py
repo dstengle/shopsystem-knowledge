@@ -30,8 +30,10 @@ def main(argv=None) -> int:
     read = commands.add_parser("read", help="read an artifact at a glance")
     read.add_argument("locator")
 
+    commands.add_parser("validate", help="check everything the shop knows; lists every fault, exits non-zero if any")
+
     args = parser.parse_args(argv)
-    return {"init": _init, "create": _create, "read": _read}[args.command](args)
+    return {"init": _init, "create": _create, "read": _read, "validate": _validate}[args.command](args)
 
 
 def _actor() -> kb_pb2.Actor:
@@ -100,3 +102,8 @@ def _read(args) -> int:
         "inbound": [{"type": count.type, "field": count.field, "count": count.count} for count in response.inbound],
     })
     return 0
+
+
+def _validate(args) -> int:
+    response = _client().Validate(kb_pb2.ValidateRequest())
+    return _refuse([*response.faults, *response.violations]) if response.faults or response.violations else 0
