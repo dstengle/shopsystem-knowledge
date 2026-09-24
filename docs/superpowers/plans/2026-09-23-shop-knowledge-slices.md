@@ -287,7 +287,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A user reads a decision whose file was mangled by hand and is told in plain words that the file cannot be read, naming it, with the command reporting failure and no traceback shown.
 - Unknown: none
 - Needs: the shop's read reporting a refusal kb returns, where today it prints an empty artifact and succeeds (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 1.28: A check of the shop's knowledge lists a file it cannot read
 
@@ -1047,3 +1047,6 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Open questions:
   - QUESTION FOR THE SPEC: shop-knol init into a directory that is not there exits 0 having started nothing; it ignores kb's refusal and loads its types into no store. Slice 47 pins what the user sees on init. (Review Focus 3)
   Next: slice 1.27.
+- 2026-09-24 slice 1.27 green. Someone can now: read a decision whose file was mangled by hand and be told in plain words which file cannot be read, with a non-zero exit; any refusal kb gives a read is printed the same way (slice 60's open question on the shop's read of a refused name).
+  Surprised by: nothing.
+  Open questions: none. Next: slice 1.28.
