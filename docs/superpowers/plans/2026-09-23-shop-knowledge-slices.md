@@ -164,7 +164,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client creates a decision whose first section has a body and no title, or whose purpose has a title and no body, and is refused the way anything that does not fit its type is refused.
 - Unknown: Can kb's own structural rules be written as one schema fragment that the standard validator checks together with the type's schema in one pass?
 - Needs: the section rule of slice 59 checked by that fragment, in place of the check it has now (slice 59's section scenario, which must stay green)
-- Status: planned
+- Status: green
 
 ## Slice 67: A kind that is not a plain name is refused like any other input
 
@@ -877,3 +877,16 @@ point in the order, not after slice 1 alone.
   - QUESTION FOR THE SPEC (still open from slice 59, now on ruamel): content that is not YAML (`title: [unclosed`) raises ParserError, and content that is not a mapping (`- a`) raises TypeError, through the client.
   - QUESTION FOR THE SPEC (from the slice 64 review): content beginning with a `%YAML 1.1` directive is read by ruamel as YAML 1.1, so a client can switch kb's reader back to 1.1: `content.loads('%YAML 1.1\n---\na: on\n')` gives `{'a': True}` (confirmed again at slice 65). Should kb refuse the directive? No scenario asserts it, so it is not coded.
   Next: slice 66.
+- 2026-09-24 slice 66 green. Someone can now: create a decision with a section missing its title or its body and be refused the way any content that does not fit its type is; an empty body still fits.
+  Assumption "kb's structural rules can be one fragment checked with the type's schema in one pass": held. Evidence:
+  ```
+  []
+  [('sections/0/sections/0', 'required')]
+  [('sections', 'type')]
+  ```
+  (an empty body fits; a nested section is held to the same rule; sections that are not a list are refused plainly). Red came out as predicted: `2 failed` with undefined When steps, then `KeyError: 'title'`, `KeyError: 'body'` and slice 59's `('sections/0/author', 'section') != ('sections/0', 'additionalProperties')`, `3 failed, 7 passed`; green `10 passed`, kb full suite `76 failed, 31 passed`, shop-knowledge slice-1 `2 passed`.
+  Surprised by: nothing; slice 59's section Then (a step definition, not the feature line) changed its asserted rule name from kb's `section` to the schema keyword `additionalProperties`, as the brief said.
+  Open questions:
+  - ANSWERED by the composed schema: `sections` that is not a list is refused as a `type` fault at `sections` (slice 59's question).
+  - The part-item id and identity-key fragments are not composed yet: kb mints item ids after validation, and content carrying an identity key is refused before it. They arrive with the first slice that validates a stored artifact (slice 10 or 42).
+  Next: slice 67.
