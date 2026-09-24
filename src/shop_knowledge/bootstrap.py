@@ -1,0 +1,18 @@
+"""The shop's types, loaded through Create when a knowledge base starts. kb never learns them any other way."""
+from importlib import resources
+
+import yaml
+from kb.content import dumps
+from kb.contract import kb_pb2
+
+TYPES = ("decision",)
+
+
+def load(client, actor):
+    for name in TYPES:
+        text = resources.files("shop_knowledge.types").joinpath(f"{name}.yaml").read_text()
+        content = yaml.safe_load(text)
+        client.Create(kb_pb2.CreateRequest(
+            type="schema", content=dumps(content), actor=actor,
+            message=f"Define the shop's {content['title'].lower()} type",
+        ))

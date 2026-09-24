@@ -1,0 +1,28 @@
+title: Decision
+version: 1
+schema:
+  type: object
+  properties:
+    title:
+      type: string
+    supersedes:
+      type: string
+      ref:
+        targets: [decision]
+        cardinality: one
+        parts: false
+        on_delete: refuse
+    tags:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [tag]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title]
+  sections:
+    - title: Purpose
+    - title: Rationale
+  summary: [supersedes, tags]

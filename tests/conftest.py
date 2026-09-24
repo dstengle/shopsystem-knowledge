@@ -1,6 +1,12 @@
 """Suite wiring. Step definitions live beside the scenarios they serve; shared Givens are added here by slice 1."""
+import os
 import re
 from pathlib import Path
+
+import pytest
+from pytest_bdd import given
+
+from driver import start
 
 
 def pytest_configure(config):
@@ -10,3 +16,19 @@ def pytest_configure(config):
         tags.update(re.findall(r"@(slice-\d+)", feature.read_text()))
     for tag in sorted(tags):
         config.addinivalue_line("markers", f"{tag}: scenario of that slice in the plan")
+
+
+@pytest.fixture
+def shop(tmp_path):
+    """The directory the shop's knowledge base is started in; the store is its kb/ subdirectory."""
+    return tmp_path / "shop"
+
+
+@pytest.fixture
+def env(shop):
+    return {**os.environ, "KB_ROOT": str(shop), "KB_ACTOR": "shopkeeper"}
+
+
+@given("a shop knowledge base holding the shop's types")
+def _shop_knowledge_base(env, shop):
+    start(env, shop)

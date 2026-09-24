@@ -18,8 +18,14 @@ dev = [
   "pytest-bdd>=8",
 ]
 
+[project.scripts]
+shop-knol = "shop_knowledge.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"shop_knowledge.types" = ["*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
