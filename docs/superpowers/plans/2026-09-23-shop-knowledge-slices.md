@@ -54,7 +54,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: An operator opens the file of a decision whose purpose is one short line and finds every piece of prose standing as a block of its own however short, each list written beneath and indented under the name it belongs to, no line of prose broken to fit a width, and nothing that tells a reader how to build a value.
 - Unknown: Can the YAML emitter kb writes with be made to give every prose body as a literal block however short, every sequence indented under its key, no line folded at any width and no tag, or must kb write the canonical form itself?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 55: The title travels beside the content, never inside it
 
@@ -666,3 +666,29 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 slice 1 green again. Someone can now: start a store saying which role they are, and find that role as the author of the store's first commit; the other five scenarios of the skeleton are as they were.
   Surprised by: nothing.
   Open questions: none. Next: slice 54.
+- 2026-09-24 slice 54 green. Someone can now: open any artifact's file and find every body a literal block however short, every list indented under its key, no line folded, and no tag.
+  Assumption "PyYAML's emitter can be made to write the canonical form": held. Evidence:
+  ```
+  id: decision/price-reviews-happen-weekly
+  type: decision
+  schema_version: 1
+  revision: 1
+  title: Price reviews happen weekly
+  sections:
+    - title: Purpose
+      body: |
+        Keep prices in step with costs.
+    - title: Rationale
+      body: |
+        Costs move weekly.
+  options:
+    - id: keep-weekly
+      title: Keep weekly
+      body: |-
+        Review every Monday.
+  ```
+  A marker class on `body` values, an `increase_indent` override, and `width=float("inf")` were enough; kb writes no YAML of its own.
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC: a body with a space at the end of a line, or an empty body, cannot be a block scalar in YAML; PyYAML writes it double-quoted. Is such a body refused on the way in, or is a quoted string acceptable in the canonical form? No scenario pins it.
+  Next: slice 55.
