@@ -135,7 +135,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client starts a store without saying which role it is and is refused because a store can only be started under a role, and the directory holds no store.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 kb 0.1 is tagged here, once slices 1 and 54 to 63 are green, and not before.
 The "After slice 1" step of the skeleton implementation plan runs at this
@@ -759,3 +759,8 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 slice 62 green. Someone can now: write the same decision into two stores and diff the files to nothing.
   Surprised by: the scenario went green on its step definitions; the canonical emitter of slice 54 is deterministic and the file carries no time or actor.
   Open questions: none. Next: slice 63.
+- 2026-09-24 slice 63 green. Someone can now: try to start a store without saying which role they are and be refused, the directory left empty.
+  Surprised by: nothing.
+  Open questions:
+  - shop-knol init with KB_ACTOR unset raises KeyError before reaching kb; slice 52 pins what the user sees.
+  Next: tag kb 0.1, pin it here, then slicing moves the kb-only slices to kb's own plan.
