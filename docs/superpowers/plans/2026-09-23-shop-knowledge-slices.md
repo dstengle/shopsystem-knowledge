@@ -81,7 +81,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client starts a store saying which role it is and the store's history holds one entry, under that role, with the message "initialise store", being the writing of the type that describes types at its first version with a fingerprint of what was written.
 - Unknown: What does the first entry in a store's history hold and how is it read back, when it is written for the type that describes types before any other type exists?
 - Needs: the journal entry the metaschema write leaves, inside the commit that starts the store (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 58: A title that reads as a date is still a title
 
@@ -706,3 +706,32 @@ point in the order, not after slice 1 alone.
   Open questions:
   - Slice 50's unknown (how a directory is known to sit inside a store) is this walk; slicing decides at the next re-plan whether 50 is spent.
   Next: slice 57.
+- 2026-09-24 slice 57 green. Someone can now: start a store and find, in its history, one entry under their role with the message "initialise store", being the metaschema write at revision 1 with the digest of the file, inside the commit that started the store.
+  Assumption "the first entry is written like any later one, one file under journal/<date>/, read back from disk": held. Evidence: `cat kb/journal/*/*/*/*.yaml` gave:
+  ```
+  id: 20260924T162924536104Z-1
+  at: '2026-09-24T16:29:24.536104+00:00'
+  actor:
+    role: client
+    execution: ''
+  op: create
+  artifact: schema/schema
+  path: ''
+  revision: 1
+  schema_version: 1
+  digest: 47fd035f39bc977175f29de65c91a585d451112a907b7e67a0c195d89d1bbaa0
+  message: initialise store
+  batch: 20260924T162924536104Z-1
+  ```
+  and `git -C kb show --stat --format='%an %s' HEAD` gave:
+  ```
+  client initialise store
+
+   journal/2026/09/24/20260924T162924536104Z-1.yaml | 13 +++++++++++++
+   schema/schema.yaml                               | 19 +++++++++++++++++++
+   store.yaml                                       |  1 +
+   3 files changed, 33 insertions(+)
+  ```
+  The step reads the file; the Journal rpc arrives with slice 9.
+  Surprised by: nothing.
+  Open questions: none. Next: slice 58.
