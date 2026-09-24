@@ -2199,6 +2199,8 @@ Commit the plan: `Slice 63 green`.
 
 ## After slice 63: tag kb 0.1, pin it, split the plans
 
+> **Moved, 2026-09-24:** this section now runs after slice 70, the last task of `2026-09-24-pretag2-implementation.md`, not after slice 63. The slice plan's log says why: slices 64 to 70 decide what kb 0.1 writes or refuses.
+
 Not a slice; the close of the one-effort phase both specs describe, moved here from the skeleton plan's "After slice 1" by the slice plan's log entry of 2026-09-24. Do it right after the slice-63 checkpoint, then stop: later slices get their tasks from a fresh run of `slicing-into-increments` and `writing-plans`.
 
 - [ ] **The shell walk-through, once, before tagging**
