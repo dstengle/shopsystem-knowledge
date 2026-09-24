@@ -200,7 +200,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A user records a decision from a file whose title is written 2026-09-24, or yes, and reads the title back as that text, with the name made from it.
 - Unknown: none
 - Needs: every file shop-knol reads, the shop's own type files included, and everything it prints, read and written the way kb reads content, in place of the YAML 1.1 reading and writing it does now (both scenarios, and slice 1's two shop scenarios, which must stay green)
-- Status: planned
+- Status: green
 
 kb 0.1 is tagged here, once slices 1 and 54 to 70 are green, and not before.
 The "After slice 1" step of the skeleton implementation plan runs at this
@@ -906,3 +906,8 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 slice 69 green. Someone can now: start a store in a directory they name while working inside another store, and find the other store as it was.
   Surprised by: nothing; the scenario went green on its step definitions, as the task predicted. It is not the first stop condition: nothing passed before the steps existed, since the red was StepDefinitionNotFoundError for Given "the client is working inside a store", and no code was written. Evidence: `-m slice-69` `1 passed`; kb full suite `73 failed, 34 passed`; shop-knowledge `-m slice-1` `2 passed`; no diff under features/.
   Open questions: none. Next: slice 70.
+- 2026-09-24 slice 70 green. Someone can now: record a decision from a file whose title is written 2026-09-24 or yes and read that title back as text, with the name made from it.
+  Surprised by: the shop-knowledge full suite before the change was `57 failed, 2 passed` (the two slice-70 scenarios red, so 55 failed once they are green). Scenario 2 had no red of its own on code: after scenario 1's production change only its Then step was missing (StepDefinitionNotFoundError), so it went green on that step definition alone, as with slice 69. Red for scenario 1 was the StepDefinitionNotFoundError for the new Given, then the create's `TypeError: bad argument type for built-in operation` from PyYAML's date. The grep for `import yaml` over src and tests prints nothing, and no diff under features/. Evidence: `-m "slice-70 or slice-1"` `4 passed, 55 deselected`; shop-knowledge full suite `55 failed, 4 passed`; kb full suite `73 failed, 34 passed`.
+  Open questions:
+  - QUESTION FOR THE SPEC: a title in a file that YAML 1.2 still reads as something other than text (`title: true`, `title: 12`, `title: 2026-9-24`) reaches kb as `True`, `12`, `2026-09-24`, not as the text written. No scenario pins it.
+  Next: the plan's remaining work (tag kb 0.1, pin it here, move the kb-only slices to kb's own plan) is deliberately not done here and awaits the user.
