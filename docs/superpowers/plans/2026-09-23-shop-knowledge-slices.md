@@ -260,7 +260,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A user records a decision from a file that names the same entry twice and is told in plain words that an entry is named once and only once, with the place in the file, the command reporting failure and no traceback shown.
 - Unknown: How does shop-knol give every refusal, kb's and its own reading of the user's file alike, as plain words and a non-zero exit, so that no traceback reaches the user?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.25: Create refuses a kind with no type, keeps typed values typed, and takes a number as a title
 
@@ -1033,3 +1033,9 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Assumption "Init's root can be a checked value at the boundary": held. Evidence: connect().Init(InitRequest(root="", actor=Actor(role="client"))).faults gave rule "root", message "a store is started in a directory that was named and that exists; no directory was named"; grep "Store(request" over src/kb printed nothing.
   Surprised by: nothing. (Suites: slice 1.23 1 passed; kb 78 failed, 40 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
   Open questions: none. Next: slice 1.24.
+- 2026-09-24 slice 1.24 green. Someone can now: record a file that names an entry twice and be told in plain words where, with a non-zero exit and no traceback; any fault kb returns on create is printed the same way.
+  Assumption "one printer serves kb's faults and shop-knol's own reading of a file": held. Evidence: in a scratch shop, `shop-knol create decision --from f.yaml -m why` with a repeated `body` key printed on stderr "/tmp/tmp.EYVgDOqnrX/f.yaml at sections/0/body: an entry is named once and only once; 'body' is named again at line 5" and exited 1.
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC: shop-knol still shows a traceback with KB_ACTOR unset (KeyError) and for --from a file that is not there (FileNotFoundError); the spec says never. (Review Focus 4)
+  Next: slice 1.25.
