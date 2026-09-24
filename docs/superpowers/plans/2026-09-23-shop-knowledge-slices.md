@@ -686,6 +686,10 @@ point in the order, not after slice 1 alone.
       title: Keep weekly
       body: |-
         Review every Monday.
+    - id: go-monthly
+      title: Go monthly
+      body: |-
+        Review on the first of the month.
   ```
   A marker class on `body` values, an `increase_indent` override, and `width=float("inf")` were enough; kb writes no YAML of its own.
   Surprised by: nothing.
