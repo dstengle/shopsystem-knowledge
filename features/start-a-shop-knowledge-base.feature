@@ -9,7 +9,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop can hold decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
-  @slice-52
+  @slice-47
   Scenario: Starting a knowledge base asks for no reason
     Pins the one exception to always saying why: starting the shop explains itself, and the setting up still shows in the history.
     Given an empty directory for the shop's knowledge
@@ -17,7 +17,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop's knowledge base is started
     And everything it was given is recorded in the shop's history under a reason the command writes itself
 
-  @slice-52
+  @slice-47
   Scenario: Starting a knowledge base without saying who is refused
     Pins that the who rule holds from the very first change, and that a refused start leaves nothing half-made behind.
     Given an empty directory for the shop's knowledge
@@ -27,7 +27,7 @@ So that the shop has one place that holds everything it knows, the user can star
     And that directory holds no knowledge base
     And the command reports failure to whatever ran it
 
-  @slice-52
+  @slice-47
   Scenario: The shop's knowledge sits in a place of its own inside the directory it was started in
     Pins that the shop's knowledge keeps to its own corner, so it can live alongside the shop's other work without mingling with it.
     Given a directory holding work of the shop's that is not its knowledge
@@ -35,7 +35,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop's knowledge is kept in a place of its own inside that directory
     And the work that was already in that directory is left as it was
 
-  @slice-52
+  @slice-47
   Scenario: Starting a knowledge base where the directory already holds one is refused
     Pins the protection against starting over by accident: an existing knowledge base is never overwritten.
     Given a directory that already holds the shop's knowledge
@@ -43,7 +43,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory already holds a knowledge base
     And everything the shop already knows is still there, unchanged
 
-  @slice-52
+  @slice-47
   Scenario: Starting a knowledge base inside one the shop already has is refused
     Pins that knowledge bases never nest, so looking upward from anywhere can only ever find one.
     Given a directory that sits inside the shop's knowledge
@@ -51,7 +51,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
-  @slice-46
+  @slice-49
   Scenario: A role keeps its harness fields apart from its shop identity
     Pins the split in the role type that lets a role be published to the harness later: what the harness needs is one group, who the role is in the shop is another.
     Given a shop knowledge base
@@ -59,7 +59,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the fields the harness needs are kept as one named group
     And the fields that say who the role is in the shop are kept as another
 
-  @slice-46
+  @slice-49
   Scenario: Anything the shop knows can be tagged
     Pins the bet that a tag is a thing in its own right rather than a word in prose: the meaning is written down once, on the tag, and everything else just names it.
     Given a shop knowledge base holding a tag "pricing" with a title and a description

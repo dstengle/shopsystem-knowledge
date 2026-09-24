@@ -4,7 +4,7 @@ So that a set of changes that only makes sense together lands together, the user
   Background:
     Given a shop knowledge base holding the shop's types and a work item
 
-  @slice-14
+  @slice-15
   Scenario: The user makes several changes at once
     Pins that related changes land as one: both are in the shop, and the history records one change rather than two half-stories.
     Given a batch that records a decision and points the work item at it
@@ -12,7 +12,7 @@ So that a set of changes that only makes sense together lands together, the user
     Then both changes are in the shop
     And the shop's history shows them as one change
 
-  @slice-45
+  @slice-48
   Scenario: One bad change in a batch leaves the shop untouched
     Pins all-or-nothing: a single bad change rolls the whole batch back, and the user is told every fault at once so the batch can be fixed in one pass.
     Given a batch whose second change does not fit its type
