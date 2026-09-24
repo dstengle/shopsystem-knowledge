@@ -126,7 +126,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: An operator compares the files two stores wrote for the same decision from the same client and finds them the same, byte for byte.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 63: Starting a store without saying which role is refused
 
@@ -756,3 +756,6 @@ point in the order, not after slice 1 alone.
   - QUESTION FOR THE SPEC: KB_ROOT set but empty is taken as naming the working directory, and refused as holding no store. Is an empty KB_ROOT "unset"? No scenario pins it.
   - shop-knol still passes KB_ROOT to connect() outright and so never walks upward nor sees these refusals; slice 21 changes that.
   Next: slice 62.
+- 2026-09-24 slice 62 green. Someone can now: write the same decision into two stores and diff the files to nothing.
+  Surprised by: the scenario went green on its step definitions; the canonical emitter of slice 54 is deterministic and the file carries no time or actor.
+  Open questions: none. Next: slice 63.
