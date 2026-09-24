@@ -57,8 +57,11 @@ should watch once the system runs.
 
 ## The CLI
 
-`shop-knol` is the working name. The repository is found through
-`KB_ROOT`; the actor through `KB_ACTOR` as `role` or `role:execution-id`.
+`shop-knol` is the working name. The store is found the way git finds a
+repository, upward from the working directory to a directory holding
+`kb/store.yaml`, or through `KB_ROOT` when set; none found, the command
+refuses and says so. The actor comes from `KB_ACTOR` as `role` or
+`role:execution-id`.
 Every mutating command requires an actor and `-m`.
 
 | command | maps to |
