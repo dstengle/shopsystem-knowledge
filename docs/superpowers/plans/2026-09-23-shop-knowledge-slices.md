@@ -63,7 +63,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client creates a decision giving a title alongside content that also carries a title and is refused, told that a title is given alongside the content and never inside it, with the title the content carried named back.
 - Unknown: When the title travels beside the content as a field of the message, what becomes of the title every type, and the type that describes types, declares among its content, while the file on disk still carries the title among its identity keys?
 - Needs: the shop's record command lifting the title out of the user's file and sending it beside the rest, so slice 1's record scenario stays green (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 56: The store is found above where the client works
 
@@ -696,3 +696,7 @@ point in the order, not after slice 1 alone.
   Open questions:
   - QUESTION FOR THE SPEC: a body with a space at the end of a line, or an empty body, cannot be a block scalar in YAML; PyYAML writes it double-quoted. Is such a body refused on the way in, or is a quoted string acceptable in the canonical form? No scenario pins it.
   Next: slice 55.
+- 2026-09-24 slice 55 green. Someone can now: create an artifact giving its title beside its content, and is refused, with the title named back, when the content carries one too; shop-knol lifts the title out of the user's file.
+  Assumption "the title as a message field leaves the types and the metaschema as they are": held. Evidence: kb validates the artifact with its title in place, so every type's `title` property and `required: [title]` still hold, and `schema/decision.yaml` on disk is unchanged but for the emitter.
+  Surprised by: nothing.
+  Open questions: none. Next: slice 56.
