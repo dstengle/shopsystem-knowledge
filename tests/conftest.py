@@ -20,8 +20,10 @@ def pytest_configure(config):
 
 @pytest.fixture
 def shop(tmp_path):
-    """The directory the shop's knowledge base is started in; the store is its kb/ subdirectory."""
-    return tmp_path / "shop"
+    """The directory the shop's knowledge base is started in, there before it starts; the store is its kb/ subdirectory."""
+    shop = tmp_path / "shop"
+    shop.mkdir()
+    return shop
 
 
 @pytest.fixture
