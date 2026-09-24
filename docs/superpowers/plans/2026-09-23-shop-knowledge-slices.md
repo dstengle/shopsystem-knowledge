@@ -215,7 +215,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client reads a decision whose file someone left in a shape the store cannot read, and is refused with the file named, the call answering the way it answers any refusal.
 - Unknown: Can a stored file that fails to parse become a fault naming the file wherever kb loads a stored file, so that nothing kb does raises on it?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.20: A check of the store reports a file it cannot read and goes on
 
@@ -1008,3 +1008,10 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Assumption "a title that is not text becomes text in the client, through one function kb supplies, since the contract carries text": held. Evidence: `['true', 'false', '', '12', '12.5']`, the output of python -c "from kb.content import text; print([text(v) for v in (True, False, None, 12, 12.5)])".
   Surprised by: nothing.
   Open questions: none. Next: slice 1.19.
+- 2026-09-24 slice 1.19 green. Someone can now: read an artifact whose file was mangled by hand and be refused with the file named, the call answering like any other refusal.
+  Assumption "every YAML error can become NotCanonical in canonical, and every unreadable stored file an Unreadable fault in Store.load": held. Evidence: reading a mangled decision in a scratch store gave `faults { artifact: "decision/price-reviews-happen-weekly" rule: "unreadable" message: "the stored file decision/price-reviews-happen-weekly.yaml cannot be read: it is not YAML that can be read: expected ',' or ']', but got '<stream end>' at line 2" }`.
+  Surprised by: nothing. (Suite baseline was kb 83 failed, 35 passed after slice 1.18, so 82 failed, 36 passed after this one.)
+  Open questions:
+  - QUESTION FOR THE SPEC: reading a sound artifact while a different stored file is unreadable is refused with the other file's fault, because the inbound count loads every artifact. Should the read answer, leaving the broken file to Validate? No scenario pins it. (Review Focus 1)
+  - QUESTION FOR THE SPEC: Create of a kind whose schema file is unreadable raises store.Unreadable through the client. No scenario pins it. (Review Focus 2)
+  Next: slice 1.20.
