@@ -87,7 +87,10 @@ and `append` print the id kb chose. Every file shop-knol reads or writes, on
 `create`, `write`, `append`, `apply`, and in its own output, is YAML 1.2,
 read and written the way kb reads content, so a title that looks like a
 date or a yes is still text when it reaches kb. Output is YAML by default and `--json`
-for the same structure. Errors are
+for the same structure. shop-knol never shows a traceback: a file it cannot
+read, for a tag, an anchor, a directive, a second document, or a duplicate
+key, is refused the way kb refuses it, naming the place, with a non-zero
+exit. Errors are
 printed as returned by kb, with artifact, path, and message, and exit
 non-zero. The boundary for a corpus-only role is a harness permission
 allowlist of exactly `shop-knol *`.
