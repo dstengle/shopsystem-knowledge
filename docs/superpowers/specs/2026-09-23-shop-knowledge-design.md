@@ -83,7 +83,9 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
 Ids are minted by kb from titles and never supplied by the user; `create`
-and `append` print the id kb chose. Output is YAML by default and `--json`
+and `append` print the id kb chose. A file given to `--from` is read the way
+kb reads content, as YAML 1.2, so a title that looks like a date or a yes
+is still text when it reaches kb. Output is YAML by default and `--json`
 for the same structure. Errors are
 printed as returned by kb, with artifact, path, and message, and exit
 non-zero. The boundary for a corpus-only role is a harness permission
