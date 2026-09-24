@@ -6,6 +6,7 @@ So that a set of changes that only makes sense together lands together, the user
 
   @slice-14
   Scenario: The user makes several changes at once
+    Pins that related changes land as one: both are in the shop, and the history records one change rather than two half-stories.
     Given a batch that records a decision and points the work item at it
     When the user applies the batch, saying who they are and why
     Then both changes are in the shop
@@ -13,6 +14,7 @@ So that a set of changes that only makes sense together lands together, the user
 
   @slice-45
   Scenario: One bad change in a batch leaves the shop untouched
+    Pins all-or-nothing: a single bad change rolls the whole batch back, and the user is told every fault at once so the batch can be fixed in one pass.
     Given a batch whose second change does not fit its type
     When the user applies the batch, saying who they are and why
     Then the batch is rejected because a change in it does not fit its type
