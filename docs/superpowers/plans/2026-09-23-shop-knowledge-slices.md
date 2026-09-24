@@ -108,7 +108,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client reading by a name the store holds nothing under is refused with that name given back, and reading by a name that climbs out of its kind, a name that begins at the root of the disk, or a place inside the decision that climbs out of it, is refused before any content, from inside the store or outside it, comes back.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 61: The store KB_ROOT names is used, and a store that cannot be found or is named twice is refused
 
@@ -745,3 +745,8 @@ point in the order, not after slice 1 alone.
   - QUESTION FOR THE SPEC: content that is not a mapping (a list, a bare scalar) or is not YAML at all raises through to the client instead of coming back as a fault. What is shown? No scenario pins it.
   - QUESTION FOR THE SPEC: `sections` that is not a list (a string, a number) reaches the section check before JSON Schema has refused it, and the check reports nonsense paths or raises. No scenario pins it.
   Next: slice 60.
+- 2026-09-24 slice 60 green. Someone can now: read by a name the store lacks and be told so with the name given back, and read by a name or a place that is not plain and be refused before any file, inside the store or outside it, is opened.
+  Surprised by: nothing; scenarios 3 and 4 went green on their step definitions alone, answered by the ID and PLACE grammar written for scenario 2, exactly as the brief predicted.
+  Open questions:
+  - shop-knol read of a refused name prints an empty artifact and exits 0; slice 21 pins the shop's discovery refusals, but a not-found or not-plain name has no shop scenario. QUESTION FOR THE SPEC, or a scenario for slice 21.
+  Next: slice 61.
