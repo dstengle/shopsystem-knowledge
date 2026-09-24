@@ -40,28 +40,33 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision asking for JSON
     Then the user gets the same answer as the default, written as JSON
 
+  @slice-21
   Scenario: The user reads from a folder inside the shop's knowledge
     Given the user is working in a folder deep inside the directory that holds the shop's knowledge
     When the user reads the decision
     Then the user sees the decision, from the knowledge base found above where they are working
 
+  @slice-21
   Scenario: The user reads while working elsewhere, having named the knowledge base
     Given the user is working outside any knowledge base, with KB_ROOT naming the shop's
     When the user reads the decision
     Then the user sees the decision, from the knowledge base KB_ROOT names
 
+  @slice-21
   Scenario: Reading where no knowledge base can be found is refused
     Given the user is working outside any knowledge base and nothing names one
     When the user reads the decision
     Then the command is rejected because no knowledge base was found, neither above where they are working nor named outright
     And the command reports failure to whatever ran it
 
+  @slice-21
   Scenario: Reading with KB_ROOT naming somewhere that holds no knowledge base is refused
     Given the user is working outside any knowledge base, with KB_ROOT naming a directory that holds no knowledge base
     When the user reads the decision
     Then the command is rejected because KB_ROOT names a directory that holds no knowledge base
     And the command reports failure to whatever ran it
 
+  @slice-21
   Scenario: Reading from inside one knowledge base while KB_ROOT names another is refused
     Given the user is working inside the shop's knowledge base, with KB_ROOT naming a different one
     When the user reads the decision

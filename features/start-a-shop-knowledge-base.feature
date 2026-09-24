@@ -8,12 +8,14 @@ So that the shop has one place that holds everything it knows, the user can star
     Then the shop can hold decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
+  @slice-52
   Scenario: Starting a knowledge base asks for no reason
     Given an empty directory for the shop's knowledge
     When the user starts a shop knowledge base in that directory, saying who they are and giving no reason
     Then the shop's knowledge base is started
     And everything it was given is recorded in the shop's history under a reason the command writes itself
 
+  @slice-52
   Scenario: Starting a knowledge base without saying who is refused
     Given an empty directory for the shop's knowledge
     And the user has not said which role they are
