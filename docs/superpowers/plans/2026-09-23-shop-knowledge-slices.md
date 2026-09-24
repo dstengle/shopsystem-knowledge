@@ -72,7 +72,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client working in a folder deep inside the directory a store sits in reads a decision and is answered from the store found above where it is working, having named no store.
 - Unknown: How does a client's call find the store from the folder it works in, upward like git, when the store is marked only by a file inside its own subdirectory and the folder may be any depth below?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 57: Starting a store is recorded in its history
 
@@ -663,6 +663,12 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 Order: slices 54 to 63 sit between slice 1 and slice 2, the five with an unknown first by the size of it (an emitter that may have to be written, a contract change that reaches every type, a discovery walk, a journal entry, a scalar's quoting), then the five without, each after the slice it stands on. kb 0.1 is tagged only when slices 1 and 54 to 63 are green; the skeleton plan's "After slice 1" step waits on all eleven. Slices 0 and 2 to 53 keep their order and their tags.
 - 2026-09-24 Slice 56's unknown, how a directory is known to sit inside a store, is the mechanism slice 50 also needs. Slice 50 keeps its place; if 56 settles it, 50 is a slice with a spent unknown at the next re-plan and is dropped or bundled into 51 then, not now.
 - 2026-09-24 Next: writing-plans over slices 1 and 54 to 63, one task per slice in that order, to `2026-09-24-pretag-implementation.md`.
+- 2026-09-24 slice 56 green. Someone can now: work in any folder inside the directory a store sits in and have a client's call go to that store without naming it.
+  Assumption "a walk upward from the working directory to the first directory holding kb/store.yaml finds the store at any depth": held. Evidence: the scenario "kb / read-an-artifact / The client works in a folder inside the store" put the client three folders down, at `<root>/shelves/pricing/notes`, with `KB_ROOT` unset, and `kb.client.connect()` with no root walked up through `notes`, `pricing`, and `shelves` to find `<root>/kb/store.yaml` and answer with the decision; `cd /home/vscode/shopsystem-kb && python -m pytest -q -m slice-56` gave `1 passed, 99 deselected`.
+  Surprised by: nothing.
+  Open questions:
+  - Slice 50's unknown (how a directory is known to sit inside a store) is this walk; slicing decides at the next re-plan whether 50 is spent.
+  Next: slice 57.
 - 2026-09-24 slice 1 green again. Someone can now: start a store saying which role they are, and find that role as the author of the store's first commit; the other five scenarios of the skeleton are as they were.
   Surprised by: nothing.
   Open questions: none. Next: slice 54.
