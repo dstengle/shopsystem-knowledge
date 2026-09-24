@@ -5,7 +5,7 @@ import yaml
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-TYPES = ("decision",)
+TYPES = ("tag", "decision", "work-item")
 
 
 def load(client, actor):

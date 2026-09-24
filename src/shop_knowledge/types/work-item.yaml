@@ -1,0 +1,18 @@
+title: Work item
+version: 1
+schema:
+  type: object
+  properties:
+    title:
+      type: string
+    decisions:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [decision]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title]
+  summary: [decisions]

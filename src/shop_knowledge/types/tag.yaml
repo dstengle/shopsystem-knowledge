@@ -1,0 +1,11 @@
+title: Tag
+version: 1
+schema:
+  type: object
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+  required: [title, description]
+  summary: []
