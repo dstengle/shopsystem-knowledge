@@ -4,20 +4,22 @@ One living plan for shop-knowledge and kb until slice 1 is green, as both
 specs' "Order of building" say. Every slice names the repository each
 scenario runs in: `kb / <feature file> / <scenario>` runs in
 `shopsystem-kb`, `shop-knowledge / <feature file> / <scenario>` runs here.
-When slice 1 and slices 54 to 63 are green, kb is tagged 0.1, this
+When slice 1 and slices 54 to 70 are green, kb is tagged 0.1, this
 repository pins it, and the slices made only of kb scenarios move to kb's
-own plan. Slices 54 to 63 sit between slice 1 and the tag because each one
+own plan. Slices 54 to 70 sit between slice 1 and the tag because each one
 decides what kb 0.1 writes to disk or refuses on Init, Create, or Read: the
 canonical form of a file, the title travelling beside the content, how a
-store is found, the first entry in the history, and what a bad title, bad
-content, or bad name is met with. Tagging before them would tag a disk
-form and a contract that the next slice rewrites.
+store is found, the first entry in the history, what a bad title, bad
+content, bad kind, or bad name is met with, which YAML every file is read
+and written as, and when a client finds its store. Tagging before them
+would tag a disk form and a contract that the next slice rewrites.
 
 Slice 0 is the enabling slice the skeleton stands on: both checkouts run
 their feature suites and this repository imports kb from the checkout
 beside it. Slice 1 is the walking skeleton the specs define. Then the slices
 kb 0.1 waits on: five that each settle one unknown, ordered by the size of
-it, then five with none, then the tag. Then come the slices
+it, then five with none, then a second cut of five with an unknown and two
+with none, then the tag. Then come the slices
 that each settle one unknown, ordered by the size of it. Then the slices with
 no unknown: scenarios that share a feature and step definitions bundle into
 one slice, and the slices are ordered by value, kb's slice ahead of the
@@ -27,7 +29,7 @@ The order of the sections in this file is the order of the work. A slice's
 number is the name its tag carries and does not change once given, so slices
 cut after the first plan carry numbers above 47 wherever they sit: 48 and 49
 among the slices with an unknown, 50 at the end of them, 51 to 53 in the
-tail, 54 to 63 between slice 1 and the tag.
+tail, 54 to 70 between slice 1 and the tag.
 
 ## Slice 0: Both checkouts run their feature suites
 
@@ -137,7 +139,70 @@ tail, 54 to 63 between slice 1 and the tag.
 - Needs: none
 - Status: green
 
-kb 0.1 is tagged here, once slices 1 and 54 to 63 are green, and not before.
+## Slice 64: Every value is read and written as YAML 1.2
+
+- Kind: capability
+- Scenarios: kb / create-an-artifact / A value that reads as a switch or as a clock time is still the text that was written
+- Observable: A client creates a decision with one field written "on" and another written "1:20" and reads both back as the text that was written, not as a yes or a no and not as a number.
+- Unknown: Does a YAML 1.2 library, put in PyYAML's place everywhere kb reads or writes YAML, still give the canonical form of slices 54 and 62 byte for byte?
+- Needs: the YAML 1.2 library as kb's dependency in place of PyYAML (this scenario); the files, the journal, the marker file, and the metaschema read and written by it too, since the spec allows no YAML 1.1 anywhere in kb and slices 54, 57, 58, and 62 must stay green (this scenario)
+- Status: planned
+
+## Slice 65: One check of the canonical form, on what comes in and what goes out
+
+- Kind: capability
+- Scenarios: kb / create-an-artifact / Content that writes a value once and points back at it elsewhere is refused
+- Observable: A client creates a decision whose content writes a value once and points back at it from another place, and is refused because nothing in content stands in for a value written somewhere else.
+- Unknown: Can the one check that refuses content after it is parsed also be run on the bytes kb is about to write, so that a write whose own output fails it is refused?
+- Needs: the tag and document refusals of slice 59 made by that same check, which replaces the one they have now (slice 59's two content scenarios, which must stay green)
+- Status: planned
+
+## Slice 66: A section missing its title or its body does not fit its type
+
+- Kind: capability
+- Scenarios: kb / create-an-artifact / A section with no title is refused; kb / create-an-artifact / A section with no body is refused
+- Observable: A client creates a decision whose first section has a body and no title, or whose purpose has a title and no body, and is refused the way anything that does not fit its type is refused.
+- Unknown: Can kb's own structural rules be written as one schema fragment that the standard validator checks together with the type's schema in one pass?
+- Needs: the section rule of slice 59 checked by that fragment, in place of the check it has now (slice 59's section scenario, which must stay green)
+- Status: planned
+
+## Slice 67: A kind that is not a plain name is refused like any other input
+
+- Kind: capability
+- Scenarios: kb / create-an-artifact / A kind that is not a plain name is refused
+- Observable: A client creates an artifact of the kind "../schema/decision" and is refused because a kind is a plain name and never a path, with nothing looked up or written, inside the store or outside it.
+- Unknown: Can every value a request carries be turned into a checked value where it enters kb, so that storage is handed nothing else and no path is made from anything but a checked name?
+- Needs: the name and place checks of slice 60 made by that same conversion, in place of the check they have now (slice 60's scenarios, which must stay green)
+- Status: planned
+
+## Slice 68: A client readied before there was a store finds it once it is started
+
+- Kind: capability
+- Scenarios: kb / read-an-artifact / A client readied before there was a store finds the store started since
+- Observable: A client readied where there was no store and nothing named one reads a decision from a store started there since, and is never readied again.
+- Unknown: Can finding the store move from when a client is readied to each call it makes, while starting a store still takes its directory from the request?
+- Needs: the refusals of slice 61 given on the call that finds no store, as they are now given by a client readied over a refusal (slice 61's scenarios, which must stay green)
+- Status: planned
+
+## Slice 69: A store is started where the client says, not where it works
+
+- Kind: capability
+- Scenarios: kb / start-a-store / Where a store is started is settled by the directory named, not by where the client is working
+- Observable: A client working inside one store starts a store in an empty directory elsewhere, and the new store is made where the client said while the store it works in is left as it was.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 70: A title in a user's file reaches kb as the text the user wrote
+
+- Kind: capability
+- Scenarios: shop-knowledge / record-a-decision / A title in a file that reads as a date is still a title; shop-knowledge / record-a-decision / A title in a file that reads as a yes is still a title
+- Observable: A user records a decision from a file whose title is written 2026-09-24, or yes, and reads the title back as that text, with the name made from it.
+- Unknown: none
+- Needs: every file shop-knol reads, the shop's own type files included, and everything it prints, read and written the way kb reads content, in place of the YAML 1.1 reading and writing it does now (both scenarios, and slice 1's two shop scenarios, which must stay green)
+- Status: planned
+
+kb 0.1 is tagged here, once slices 1 and 54 to 70 are green, and not before.
 The "After slice 1" step of the skeleton implementation plan runs at this
 point in the order, not after slice 1 alone.
 
@@ -772,3 +837,10 @@ point in the order, not after slice 1 alone.
   - QUESTION FOR THE SPEC (slice 61): a client built by `connect()` with no root over a refusal, or over no store, has no servicer, and `Init` on it raises `AttributeError`. Init takes its root on the request and never goes through discovery; what a client that discovers nothing and then starts a store is told has no scenario.
   - QUESTION FOR THE SPEC (slice 59): content is parsed by PyYAML, which is YAML 1.1: `1:20` loads as `80`, `yes`/`on`/`off` as booleans, and unquoted dates as dates, in field values. The spec names YAML 1.2.
   - Noted for the tag: Create writes no journal entry until slice 9, so stores started under 0.1 will hold no Create entries in their history.
+- 2026-09-24 Suite (kb): 27 passed, 80 failed. Suite (shop-knowledge): 2 passed, 57 failed. The 27 and the 2 are slices 1 and 54 to 63; none of the nine new scenarios passes, each failing for want of a step.
+- 2026-09-24 Both specs revised and both feature sets approved since the last cut: every request is turned into checked values where it enters kb; the canonical form is one check run on content in and bytes out; kb's structural rules are a schema fragment composed with the type's; a client is readied without a store and finds one on each call; all YAML in kb, and every file shop-knol reads or writes, is YAML 1.2. Nine scenarios added, seven in kb and two here, none changed.
+- 2026-09-24 QUESTIONS answered by the spec, from the whole-branch review: a kind that is not plain is refused like any input (slice 67); aliases are refused (slice 65); a section without a title or a body does not fit its type (slice 66); shop-knol reads a user's file as YAML 1.2 (slice 70); a client that finds no store is refused on the call, never raises (slice 68); content is YAML 1.2, so `1:20` and `on` are text (slice 64).
+- 2026-09-24 Placed: none of the nine joins a slice after the tag, since each decides what kb 0.1 writes or refuses on Init, Create, or Read. Five carry an unknown of their own and are new slices, ordered by the size of it: 64, a second YAML library under the canonical form; 65, one check on content in and bytes out, which stands on the library 64 chose; 66, the structural rules as a composed schema; 67, checked values at the boundary; 68, finding the store on each call. Two have none: 69, one start scenario, whose step definitions it shares with no other untagged scenario; 70, the two shop record scenarios, which share their steps and stand on 64's library. Slices 65, 66, 67, 68 and 70 each replace the check or the reading an earlier pre-tag slice built, rather than adding one beside it, and that slice's scenarios must stay green. Every scenario in both repositories carries one `@slice-<n>` tag.
+- 2026-09-24 kb 0.1 now waits on slices 64 to 70 as well as 1 and 54 to 63: the tag, the pin here, and the move of the kb-only slices to kb's own plan come after slice 70, and the skeleton plan's "After slice 1" step waits on all of them. Slices 0 to 63 keep their order and their tags.
+- 2026-09-24 The spec now says Create refuses, as its own fault, a plain kind that names no schema the store holds; no scenario asserts it, so no slice builds it. QUESTION FOR THE SPEC: is that fault wanted in 0.1? It needs a scenario if so. Likewise "a write whose own output fails the canonical check is refused" has no scenario of its own; slice 65 runs the check on the way out but nothing observes the refusal.
+- 2026-09-24 Next: writing-plans over slices 64 to 70, one task per slice in that order, to `2026-09-24-pretag2-implementation.md`.

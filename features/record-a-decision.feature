@@ -53,12 +53,14 @@ So that a choice the shop has made is written down where the whole shop can find
     And the user is told which artifact and which place in it is at fault
     And the command reports failure to whatever ran it
 
+  @slice-70
   Scenario: A title in a file that reads as a date is still a title
     Given a decision in a file whose title is written "2026-09-24"
     When the user records that file as a decision, saying who they are and why
     Then the shop reads the title back as the text that was written, not as a date
     And the name the decision was given is made from that text
 
+  @slice-70
   Scenario: A title in a file that reads as a yes is still a title
     Given a decision in a file whose title is written "yes"
     When the user records that file as a decision, saying who they are and why
