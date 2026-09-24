@@ -59,8 +59,9 @@ should watch once the system runs.
 
 `shop-knol` is the working name. The store is found the way git finds a
 repository, upward from the working directory to a directory holding
-`kb/store.yaml`, or through `KB_ROOT` when set; none found, the command
-refuses and says so. The actor comes from `KB_ACTOR` as `role` or
+`kb/store.yaml`, or through `KB_ROOT` when set; none found, `KB_ROOT` naming no store, or
+the working directory inside one store while `KB_ROOT` names another: the
+command refuses and says which. The actor comes from `KB_ACTOR` as `role` or
 `role:execution-id`.
 Every mutating command requires an actor and `-m`.
 
@@ -78,7 +79,7 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
 | `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
 | `shop-knol validate` | Validate |
-| `shop-knol init <root>` | Init, which creates `<root>/kb/`, then loads the bootstrap set through Create; refused where `<root>/kb/` exists or `<root>` is inside a store |
+| `shop-knol init <root>` | Init, which creates `<root>/kb/`, then loads the bootstrap set through Create; needs an actor but no `-m`, its messages are fixed; refused where `<root>/kb/` exists or `<root>` is inside a store |
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
 Ids are minted by kb from titles and never supplied by the user; `create`
