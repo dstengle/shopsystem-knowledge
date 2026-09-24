@@ -39,3 +39,19 @@ So that anyone in the shop can look up what has been recorded, the user can read
   Scenario: The user takes the same answer as JSON
     When the user reads the decision asking for JSON
     Then the user gets the same answer as the default, written as JSON
+
+  Scenario: The user reads from a folder inside the shop's knowledge
+    Given the user is working in a folder deep inside the directory that holds the shop's knowledge
+    When the user reads the decision
+    Then the user sees the decision, from the knowledge base found above where they are working
+
+  Scenario: The user reads while working elsewhere, having named the knowledge base
+    Given the user is working outside any knowledge base, with KB_ROOT naming the shop's
+    When the user reads the decision
+    Then the user sees the decision, from the knowledge base KB_ROOT names
+
+  Scenario: Reading where no knowledge base can be found is refused
+    Given the user is working outside any knowledge base and nothing names one
+    When the user reads the decision
+    Then the command is rejected because no knowledge base was found, neither above where they are working nor named outright
+    And the command reports failure to whatever ran it
