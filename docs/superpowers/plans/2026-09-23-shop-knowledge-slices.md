@@ -99,7 +99,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client creating a decision is refused when no title is given, when the title leaves nothing to make a name from, when the content carries a name or a version of its own with each named back, when a value carries a tag, when the content holds two documents, or when a section carries an entry besides its title, its body and its sections with the entry named; a title with capitals and punctuation gives a lower-case name with single hyphens and none at either end, and a title that reads as yes reads back as text.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 60: A read of a name the store lacks, or of a name or place that is not plain, is refused
 
@@ -739,3 +739,9 @@ point in the order, not after slice 1 alone.
   Assumption "a title YAML would read as a date survives as text": held with no code of this slice's own. Evidence: the file carries `title: '2026-09-24'`; the emitter quotes any string whose plain form resolves to another type, and the title has been a string field since slice 55.
   Surprised by: the unknown was spent by slices 54 and 55 together; the scenario went green on its step definitions.
   Open questions: none. Next: slice 59.
+- 2026-09-24 slice 59 green. Someone can now: create an artifact and be refused, with the cause named, for no title, a title that yields no name, an identity key in the content, a tag on a value, a second document, or a stray key in a section; a title with capitals and punctuation gives a plain hyphenated name, and "yes" reads back as text.
+  Surprised by: scenario 6's red was not the JSON Schema type refusal the brief expected. Sections aren't reachable by the top-level JSON Schema properties check (only "title" and "supersedes" are declared there), so before `content.py`'s tag check existed, `yaml.safe_load` quietly built the `!!binary` value into bytes and the create went straight through with `refused.faults == []`; the Then failed on a missing fault, not a wrong rule.
+  Open questions:
+  - QUESTION FOR THE SPEC: content that is not a mapping (a list, a bare scalar) or is not YAML at all raises through to the client instead of coming back as a fault. What is shown? No scenario pins it.
+  - QUESTION FOR THE SPEC: `sections` that is not a list (a string, a number) reaches the section check before JSON Schema has refused it, and the check reports nonsense paths or raises. No scenario pins it.
+  Next: slice 60.
