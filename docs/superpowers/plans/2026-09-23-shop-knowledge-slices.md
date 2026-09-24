@@ -296,7 +296,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A user checks a knowledge base holding a decision file mangled by hand and sees that file listed as a fault naming it, in plain words, alongside the check of everything else, with the command reporting failure.
 - Unknown: none
 - Needs: the shop's check command, as far as listing what kb's check reports; slice 44 extends it (this scenario)
-- Status: planned
+- Status: green
 
 kb 0.1 is tagged here, once slices 1 and 1.1 to 1.28 are green, and not before.
 The "After slice 1" step of the skeleton implementation plan runs at this
@@ -1050,3 +1050,7 @@ ahead of slice 2: every later finding is placed by its unknown among slices
 - 2026-09-24 slice 1.27 green. Someone can now: read a decision whose file was mangled by hand and be told in plain words which file cannot be read, with a non-zero exit; any refusal kb gives a read is printed the same way (slice 60's open question on the shop's read of a refused name).
   Surprised by: nothing.
   Open questions: none. Next: slice 1.28.
+- 2026-09-24 slice 1.28 green. Someone can now: check the shop's knowledge and see a file mangled by hand listed as a fault in plain words, beside every other fault, with a non-zero exit.
+  Surprised by: nothing.
+  Open questions: none.
+  Next: the tag, kb 0.1 (the section after the last task of 2026-09-24-pretag3-implementation.md).
