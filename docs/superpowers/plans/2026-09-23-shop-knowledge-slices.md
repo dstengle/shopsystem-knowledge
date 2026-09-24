@@ -191,7 +191,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client working inside one store starts a store in an empty directory elsewhere, and the new store is made where the client said while the store it works in is left as it was.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 70: A title in a user's file reaches kb as the text the user wrote
 
@@ -903,3 +903,6 @@ point in the order, not after slice 1 alone.
   Open questions:
   - ANSWERED: connect() with no store, then Init, no longer raises (the whole-branch review's question on slice 61).
   Next: slice 69.
+- 2026-09-24 slice 69 green. Someone can now: start a store in a directory they name while working inside another store, and find the other store as it was.
+  Surprised by: nothing; the scenario went green on its step definitions, as the task predicted. It is not the first stop condition: nothing passed before the steps existed, since the red was StepDefinitionNotFoundError for Given "the client is working inside a store", and no code was written. Evidence: `-m slice-69` `1 passed`; kb full suite `73 failed, 34 passed`; shop-knowledge `-m slice-1` `2 passed`; no diff under features/.
+  Open questions: none. Next: slice 70.
