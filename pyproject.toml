@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shop-knowledge"
+version = "0.1.0"
+description = "The shop's interface to its knowledge base: types, seed content, renderers, and the shop-knol command line"
+requires-python = ">=3.11"
+dependencies = [
+  "shopsystem-kb",
+  "PyYAML>=6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-bdd>=8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+bdd_features_base_dir = "features"
