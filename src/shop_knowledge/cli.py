@@ -45,7 +45,7 @@ def _show(document: dict) -> None:
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
-    client.Init(kb_pb2.InitRequest(root=str(root)))
+    client.Init(kb_pb2.InitRequest(root=str(root), actor=_actor()))
     bootstrap.load(client, _actor())
     return 0
 
