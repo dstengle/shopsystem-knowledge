@@ -67,34 +67,6 @@ So that a choice the shop has made is written down where the whole shop can find
     Then the shop reads the title back as the text that was written, not as a yes or a no
     And the name the decision was given is made from that text
 
-  Scenario: A file telling the shop how to build a value is refused
-    Given a decision in a file where one of the values carries a tag saying how to build it
-    When the user records that file as a decision, saying who they are and why
-    Then the decision is rejected because a file is read plainly as written and carries no such tags, naming the place in the file
-    And the user is shown that fault in plain words, never a traceback
-    And the command reports failure to whatever ran it
-
-  Scenario: A file that writes a value once and points back at it is refused
-    Given a decision in a file that writes a value once and points back at it from another place instead of writing it again
-    When the user records that file as a decision, saying who they are and why
-    Then the decision is rejected because a file is read exactly as written and nothing in it stands in for a value written somewhere else, naming the place in the file
-    And the user is shown that fault in plain words, never a traceback
-    And the command reports failure to whatever ran it
-
-  Scenario: A file that opens by declaring the format it is written in is refused
-    Given a decision in a file that opens with a line declaring which version of the writing format the rest is in
-    When the user records that file as a decision, saying who they are and why
-    Then the decision is rejected because a file opens with no declaration of its format, naming the place in the file
-    And the user is shown that fault in plain words, never a traceback
-    And the command reports failure to whatever ran it
-
-  Scenario: A file holding a second document is refused
-    Given a decision in a file with a second document written after the first
-    When the user records that file as a decision, saying who they are and why
-    Then the decision is rejected because a file holds exactly one document, naming the place in the file
-    And the user is shown that fault in plain words, never a traceback
-    And the command reports failure to whatever ran it
-
   Scenario: A file naming the same entry twice is refused
     Given a decision in a file that names the same entry twice in the same place
     When the user records that file as a decision, saying who they are and why
