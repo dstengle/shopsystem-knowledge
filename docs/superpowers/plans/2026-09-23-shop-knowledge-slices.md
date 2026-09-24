@@ -173,7 +173,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client creates an artifact of the kind "../schema/decision" and is refused because a kind is a plain name and never a path, with nothing looked up or written, inside the store or outside it.
 - Unknown: Can every value a request carries be turned into a checked value where it enters kb, so that storage is handed nothing else and no path is made from anything but a checked name?
 - Needs: the name and place checks of slice 60 made by that same conversion, in place of the check they have now (slice 60's scenarios, which must stay green)
-- Status: planned
+- Status: green
 
 ## Slice 68: A client readied before there was a store finds it once it is started
 
@@ -890,3 +890,9 @@ point in the order, not after slice 1 alone.
   - ANSWERED by the composed schema: `sections` that is not a list is refused as a `type` fault at `sections` (slice 59's question).
   - The part-item id and identity-key fragments are not composed yet: kb mints item ids after validation, and content carrying an identity key is refused before it. They arrive with the first slice that validates a stored artifact (slice 10 or 42).
   Next: slice 67.
+- 2026-09-24 slice 67 green. Someone can now: create an artifact of a kind that is not a plain name and be refused with nothing looked up or written; every name and place a request carries is checked in one module, and only a checked name makes a path.
+  Assumption "every request value can become a checked value at the boundary, storage taking nothing else": held. Evidence: red was the undefined When, then after the steps `subprocess.CalledProcessError: Command '['git', '-C', '.../store/kb', 'add', '--', '../schema/decision/price-reviews-happen...` (`1 failed`); green: `-m "slice-67 or slice-60 or slice-59 or slice-55"` gave `14 passed, 93 deselected`, kb full suite `75 failed, 32 passed`, shop-knowledge `-m slice-1` `2 passed`; `values.path(Path('/s'), 'decision/x')` printed `TypeError: a path is made only from a checked name, not 'decision/x'` and `values.path(Path('/s'), values.artifact_id('decision/x'))` printed `/s/decision/x.yaml`; the grep for `locators|store import.*slug|f"{request.|f"schema/{` over kb/src printed nothing.
+  Surprised by: nothing that differed from the brief. The current servicer had nothing the brief's version dropped; the differences are only that Read's reference stubs and `_inbound` now convert stored strings through `values.artifact_id` / `values.kind`, so a malformed stored reference or type would raise `Refused` uncaught (no scenario covers it).
+  Open questions:
+  - QUESTION FOR THE SPEC: the spec says Create refuses, as its own fault, a plain kind that names no schema; with no scenario, `CreateRequest(type="note")` in a store without `schema/note` still raises FileNotFoundError through the client.
+  Next: slice 68.
