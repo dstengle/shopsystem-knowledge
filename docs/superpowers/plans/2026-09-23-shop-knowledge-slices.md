@@ -45,7 +45,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: At a shell, a user starts a shop knowledge base, records a decision from a file saying who they are and why, is shown the name the decision was given without having chosen it, and reads it back by that name at a glance with stubs of what it points at and counts of what points at it, while the decision sits on disk as a file inside a commit.
 - Unknown: Does one round trip pass through every layer: the command line, the in-process client, the contract's messages, schema validation, canonical YAML on disk, and a git commit?
 - Needs: the contract's messages that starting a store, defining a type, creating, and reading a summary need (every scenario); the metaschema written when a store starts (the start scenario); writes landing as files and one commit in the store's git repository, which nothing here asserts on but without which the skeleton is not through every layer (the create and record scenarios); the shop's start command loading bootstrap types for decision, work item, and tag, flat or on a base as the implementer chooses since nothing here asserts on composition (the two shop-knowledge scenarios); the name of a new artifact made by kb from its title, since neither the client nor the user chooses one (the create and record scenarios); the role a store is started under, carried on the start request (the start scenario, rewritten 2026-09-24)
-- Status: in progress: green on 2026-09-24, re-opened the same day when the start scenario was rewritten to say which role starts the store; that scenario is red for want of the step, the other five pass
+- Status: green
 
 ## Slice 54: An artifact's file on disk is in canonical form
 
@@ -663,3 +663,6 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 Order: slices 54 to 63 sit between slice 1 and slice 2, the five with an unknown first by the size of it (an emitter that may have to be written, a contract change that reaches every type, a discovery walk, a journal entry, a scalar's quoting), then the five without, each after the slice it stands on. kb 0.1 is tagged only when slices 1 and 54 to 63 are green; the skeleton plan's "After slice 1" step waits on all eleven. Slices 0 and 2 to 53 keep their order and their tags.
 - 2026-09-24 Slice 56's unknown, how a directory is known to sit inside a store, is the mechanism slice 50 also needs. Slice 50 keeps its place; if 56 settles it, 50 is a slice with a spent unknown at the next re-plan and is dropped or bundled into 51 then, not now.
 - 2026-09-24 Next: writing-plans over slices 1 and 54 to 63, one task per slice in that order, to `2026-09-24-pretag-implementation.md`.
+- 2026-09-24 slice 1 green again. Someone can now: start a store saying which role they are, and find that role as the author of the store's first commit; the other five scenarios of the skeleton are as they were.
+  Surprised by: nothing.
+  Open questions: none. Next: slice 54.
