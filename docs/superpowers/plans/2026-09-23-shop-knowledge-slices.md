@@ -146,7 +146,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client creates a decision with one field written "on" and another written "1:20" and reads both back as the text that was written, not as a yes or a no and not as a number.
 - Unknown: Does a YAML 1.2 library, put in PyYAML's place everywhere kb reads or writes YAML, still give the canonical form of slices 54 and 62 byte for byte?
 - Needs: the YAML 1.2 library as kb's dependency in place of PyYAML (this scenario); the files, the journal, the marker file, and the metaschema read and written by it too, since the spec allows no YAML 1.1 anywhere in kb and slices 54, 57, 58, and 62 must stay green (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 65: One check of the canonical form, on what comes in and what goes out
 
@@ -845,3 +845,22 @@ point in the order, not after slice 1 alone.
 - 2026-09-24 The spec now says Create refuses, as its own fault, a plain kind that names no schema the store holds; no scenario asserts it, so no slice builds it. QUESTION FOR THE SPEC: is that fault wanted in 0.1? It needs a scenario if so. Likewise "a write whose own output fails the canonical check is refused" has no scenario of its own; slice 65 runs the check on the way out but nothing observes the refusal.
 - 2026-09-24 Next: writing-plans over slices 64 to 70, one task per slice in that order, to `2026-09-24-pretag2-implementation.md`.
 - 2026-09-24 writing-plans done: `2026-09-24-pretag2-implementation.md`, seven tasks for slices 64 to 70 in slice order. It was assembled and run in scratch copies of both repositories (kb 34 passed, 73 failed; shop-knowledge 4 passed, 55 failed once all seven are green). Slice 69 went green there on its step definitions alone. Next: execute it, then the tag.
+- 2026-09-24 slice 64 green. Someone can now: create content with values YAML 1.1 would have turned into a yes or a number and read them back as the text written; every file kb writes or reads is YAML 1.2.
+  Assumption "a YAML 1.2 library gives the canonical form byte for byte": held. Evidence: canonical.dump of a title "yes", time "1:20", date "2026-09-24", an empty body and a body "trailing \n" printed
+  ```
+  title: yes
+  time: 1:20
+  date: '2026-09-24'
+  sections:
+    - title: Purpose
+      body: |
+    - title: Rationale
+      body: |
+        trailing 
+  ```
+  (the trailing space is kept: repr shows `'    trailing \n'`); slices 1, 54 to 64 run `28 passed, 79 deselected`; slice 64 alone `1 passed`; kb full suite `79 failed, 28 passed`; shop-knowledge slice-1 `2 passed`; no `import yaml` left in kb src or tests. ruamel.yaml 0.19.1 installed.
+  Surprised by: nothing; red and green came out as the brief predicted (`assert (True, 80) == ('on', '1:20')` before the library swap).
+  Open questions:
+  - ANSWERED by the emitter: an empty body and a body with a trailing space are literal blocks (slice 54's question).
+  - QUESTION FOR THE SPEC: a field value written as a bare date (`reviewed: 2026-09-24`) loads as a date under ruamel's YAML 1.2 resolver, is stored as one, and fails a type that declares the field a string. Is a date in content text, as a title is? No scenario pins it.
+  Next: slice 65.
