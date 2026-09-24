@@ -117,7 +117,7 @@ tail, 54 to 63 between slice 1 and the tag.
 - Observable: A client working outside any store reads from the store KB_ROOT names; with nothing naming one it is refused for that reason; with KB_ROOT naming a directory that holds no store it is refused naming KB_ROOT; and working inside one store while KB_ROOT names another it is refused with neither store guessed at and no content from either.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 62: The same content always lands on disk as the same bytes
 
@@ -750,3 +750,9 @@ point in the order, not after slice 1 alone.
   Open questions:
   - shop-knol read of a refused name prints an empty artifact and exits 0; slice 21 pins the shop's discovery refusals, but a not-found or not-plain name has no shop scenario. QUESTION FOR THE SPEC, or a scenario for slice 21.
   Next: slice 61.
+- 2026-09-24 slice 61 green. Someone can now: name the store with KB_ROOT from anywhere, and be refused, told which, when no store can be found, when KB_ROOT names a directory with none, or when they work inside one store while KB_ROOT names another.
+  Surprised by: nothing; each scenario went red on its undefined Given and green on the steps and the one discovery.locate/client.py rewrite written for the whole decision table in Step 2, exactly as the brief predicted.
+  Open questions:
+  - QUESTION FOR THE SPEC: KB_ROOT set but empty is taken as naming the working directory, and refused as holding no store. Is an empty KB_ROOT "unset"? No scenario pins it.
+  - shop-knol still passes KB_ROOT to connect() outright and so never walks upward nor sees these refusals; slice 21 changes that.
+  Next: slice 62.
