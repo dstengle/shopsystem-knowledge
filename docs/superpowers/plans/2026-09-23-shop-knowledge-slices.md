@@ -278,7 +278,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client starts a store at a place where no directory exists and is refused with nothing made there, or at a place holding a file and is refused because what was named is not a directory, the file left as it was.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.27: Reading a decision whose file the shop cannot read is refused in plain words
 
@@ -1042,3 +1042,8 @@ ahead of slice 2: every later finding is placed by its unknown among slices
 - 2026-09-24 slice 1.25 green. Someone can now: create an artifact of a kind the store holds no type for and be refused with that alone and nothing written; send true, nothing and 12.5 and read them back typed; give 12 as a title and read back "12".
   Surprised by: two of the three scenarios went green on their step definitions alone, as the task predicted. Each was red first (a Given with no step definition), so bdd-red-green's first stop condition (passing before any step or code) was not met, and I did not hand back. The typed-values and number-title scenarios pass because ruamel's YAML 1.2 loader has typed true, null and 12.5 since slice 1.11 and content.text(12) is "12" since slice 1.18; only the kind scenario needed production code.
   Open questions: none. Next: slice 1.26.
+- 2026-09-24 slice 1.26 green. Someone can now: start a store at a place with no directory, or where a file sits, and be refused with nothing made and the file untouched.
+  Surprised by: shop-knowledge's fixture had started every knowledge base in a directory that did not exist, and kb had built it.
+  Open questions:
+  - QUESTION FOR THE SPEC: shop-knol init into a directory that is not there exits 0 having started nothing; it ignores kb's refusal and loads its types into no store. Slice 47 pins what the user sees on init. (Review Focus 3)
+  Next: slice 1.27.
