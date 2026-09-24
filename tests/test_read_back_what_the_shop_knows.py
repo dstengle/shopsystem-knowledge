@@ -1,7 +1,8 @@
+import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start
+from driver import knol, record, refused_plainly, reported_failure, start
 
 scenarios("read-back-what-the-shop-knows.feature")
 
@@ -38,9 +39,14 @@ def _shop_with_a_linked_decision(env, shop, tmp_path):
     return decision_id
 
 
-@when("the user reads the decision", target_fixture="shown")
+@when("the user reads the decision", target_fixture="result")
 def _read_the_decision(env, decision_id):
-    result = knol(env, "read", decision_id)
+    return knol(env, "read", decision_id)
+
+
+@pytest.fixture
+def shown(result):
+    """What the user is shown, for the steps that expect the read to succeed."""
     assert result.returncode == 0, result.stderr
     return loads(result.stdout)
 
@@ -65,3 +71,24 @@ def _stubs(shown):
 @then("the user sees how many things point back at it, and of what kind")
 def _inbound(shown):
     assert shown["inbound"] == [{"type": "work-item", "field": "decisions", "count": 2}]
+
+
+
+@given("someone edited the decision's file by hand and left it in a shape the shop cannot read")
+def _decision_file_mangled_by_hand(shop):
+    (shop / "kb" / f"{DECISION}.yaml").write_text("title: [a bracket opened by hand and never closed\n")
+
+
+@then("the command is rejected because that file cannot be read, naming the file")
+def _rejected_as_unreadable(result):
+    assert result.stderr.startswith(f"{DECISION}: the stored file {DECISION}.yaml cannot be read: ")
+
+
+@then("the user is shown that fault in plain words, never a traceback")
+def _shown_in_plain_words(result):
+    refused_plainly(result)
+
+
+@then("the command reports failure to whatever ran it")
+def _reports_failure(result):
+    reported_failure(result)

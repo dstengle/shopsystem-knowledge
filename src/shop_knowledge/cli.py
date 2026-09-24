@@ -83,6 +83,8 @@ def _create(args) -> int:
 
 def _read(args) -> int:
     response = _client().Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=args.locator)))
+    if response.faults:
+        return _refuse(response.faults)
     _show({
         "id": response.id,
         "type": response.type,
