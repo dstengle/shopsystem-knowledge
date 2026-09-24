@@ -242,7 +242,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client creates a decision from content that opens with a line declaring which version of the writing format the rest is in, and is refused because content opens with no declaration of its format, with the place of the declaration named.
 - Unknown: Can the one check of plain reading see a directive, and where it stands, before the reader has taken it up and changed how the rest is read?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.23: Starting a store without naming a directory is refused
 
@@ -1025,3 +1025,7 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Open questions:
   - QUESTION FOR THE SPEC (slice 59's, still open): content that is YAML but not a mapping (`- a`) raises TypeError through the client. (Review Focus 5)
   Next: slice 1.22.
+- 2026-09-24 slice 1.22 green. Someone can now: send content opening with a %YAML or %TAG line and be refused with the line named, so content cannot switch kb's reader.
+  Assumption "the check sees a directive before the reader takes it up": held. Evidence: line 1 declares %TAG !e! tag:example.com,2000: / line 2 declares %YAML 1.2 (after a comment) / {'a': '%YAML'} (a quoted string is not a directive).
+  Surprised by: nothing. (Suites: slice 1.22 1 passed; kb 79 failed, 39 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
+  Open questions: none. Next: slice 1.23.
