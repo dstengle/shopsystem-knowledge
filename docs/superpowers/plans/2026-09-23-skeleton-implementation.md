@@ -1979,6 +1979,8 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 ## After slice 1: tag kb, pin it, split the plans
 
+> **Superseded 2026-09-24.** The slice plan now puts slices 54 to 63 between slice 1 and the tag, and kb 0.1 is tagged only when slices 1 and 54 to 63 are green. This step runs as the closing section of `2026-09-24-pretag-implementation.md`, after slice 63, not here.
+
 Not a slice; the close of the one-effort phase both specs describe. Do it right after the slice-1 checkpoint, then stop: later slices get their tasks from a fresh run of `slicing-into-increments` and `writing-plans`.
 
 - [ ] **Tag kb 0.1**
