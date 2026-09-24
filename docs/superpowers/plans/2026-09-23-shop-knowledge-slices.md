@@ -233,7 +233,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client creates a decision whose content names the same entry twice in one place, and is refused because an entry is named once and only once, with the place of the second named.
 - Unknown: Can the place of the second of two entries with the same name be given in the form the contract gives places in, when the reader stops at it knowing only a line and a column?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.22: Content cannot declare the format it is read by
 
@@ -1019,3 +1019,9 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Assumption "the first check of a whole store goes on past an unreadable file": held. Evidence: [('decision/price-reviews-happen-weekly', '', 'unreadable'), ('decision/prices-are-reviewed-monthly', 'sections/0', 'required')].
   Surprised by: nothing. (Suites: slice 1.20 1 passed; kb 81 failed, 37 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
   Open questions: none. Next: slice 1.21.
+- 2026-09-24 slice 1.21 green. Someone can now: send content naming an entry twice and be refused with the node path and the line of the second.
+  Assumption "the place of a repeated entry can be given as a node path": held. Evidence: 'a' an entry is named once and only once; 'a' is named again at line 2 / 'x/0/b' an entry is named once and only once; 'b' is named again at line 2.
+  Surprised by: nothing. (Suites: slice 1.21 1 passed; kb 80 failed, 38 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
+  Open questions:
+  - QUESTION FOR THE SPEC (slice 59's, still open): content that is YAML but not a mapping (`- a`) raises TypeError through the client. (Review Focus 5)
+  Next: slice 1.22.
