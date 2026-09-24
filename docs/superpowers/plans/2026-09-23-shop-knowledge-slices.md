@@ -224,7 +224,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client checks a store holding a decision file mangled by hand and gets that file reported as a violation naming it, alongside the check of everything else in the store, and the check answers rather than breaking off.
 - Unknown: Does kb's first check of a whole store go on past a file that fails to parse, and report it among what it finds in the rest?
 - Needs: the store's check as a call a client makes, as far as this scenario needs it; slice 43 extends it to every violation and to what is behind its type (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 1.21: Content naming the same entry twice is refused
 
@@ -1015,3 +1015,7 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   - QUESTION FOR THE SPEC: reading a sound artifact while a different stored file is unreadable is refused with the other file's fault, because the inbound count loads every artifact. Should the read answer, leaving the broken file to Validate? No scenario pins it. (Review Focus 1)
   - QUESTION FOR THE SPEC: Create of a kind whose schema file is unreadable raises store.Unreadable through the client. No scenario pins it. (Review Focus 2)
   Next: slice 1.20.
+- 2026-09-24 slice 1.20 green. Someone can now: check a whole store and be told of a file that cannot be read and of every artifact that does not fit its type, the check going on past the broken file.
+  Assumption "the first check of a whole store goes on past an unreadable file": held. Evidence: [('decision/price-reviews-happen-weekly', '', 'unreadable'), ('decision/prices-are-reviewed-monthly', 'sections/0', 'required')].
+  Surprised by: nothing. (Suites: slice 1.20 1 passed; kb 81 failed, 37 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
+  Open questions: none. Next: slice 1.21.
