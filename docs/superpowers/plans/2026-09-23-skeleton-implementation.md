@@ -35,8 +35,7 @@ The kb spec lists "the exact protobuf message shapes" as Open. The slice plan's 
 2. **Everything is under `<root>/kb/`**: `store.yaml`, `schema/<type>.yaml`, `<type>/<slug>.yaml`. The spec's "Schemas at `<root>/schema/<type>.yaml`" predates the `kb/` subdirectory decision and is read as `<root>/kb/schema/`. Logged as a question.
 3. **The git repository is `<root>/kb/` itself**, so "Nothing else in `<root>` is the store's concern" holds and a shell-bearing role can run in `<root>` "where the repository is not". Logged as a question.
 4. **Bootstrap types are flat** (no `shop-artifact` base); slice 4 introduces composition. Slice 1 loads `tag`, `decision`, `work-item`; the other four arrive in slice 4.
-5. **JSON numbers cross a Struct as doubles.** kb reads a whole-valued double back as an int (`version: 1`, not `1.0`). JSON Schema treats `1.0` as an integer, so validation agrees.
-6. **Struct does not preserve key order.** A type's `properties` reach kb in whatever order the Struct yields, so "fields in schema order" is only as canonical as that, and the order of reference stubs in a summary follows it. This already shows in slice 1: the shop's decision type has `supersedes` and `tags`, and a dry run of this plan's code returned the `tags` stub first. The Then lines that say "a stub of each thing it points at" therefore compare as sets, which is what those lines say. Logged as a question for the spec: either the contract carries content as text (YAML or JSON, both ordered) or the schema states field order explicitly.
+5. **Content crosses the contract as canonical YAML text** (spec decision of 2026-09-24, replacing the Struct this plan first used): the same bytes kb writes to disk, so key order and number types survive by construction. `kb.content.dumps(dict) -> str` and `kb.content.loads(str) -> dict` are the only conversions.
 7. **`init` takes no `-m`**; its bootstrap creates use the `KB_ACTOR` role and the message `Define the shop's <type> type`. Slice 4 and 25 may revisit.
 8. **The record-a-decision Given** ("a decision in a file, with … the decision it supersedes") first records the older decision through `shop-knol` so the file names something the shop holds, then writes the file. Reference targets are not checked in slice 1 (slice 24 pins that), but a summary read builds a stub of the target, so it must exist.
 
@@ -404,7 +403,7 @@ Run the cycle per scenario: run it red, write only its steps, write the least co
 - Consumes: `kb.contract.CONTRACT_VERSION`, the generated `kb_pb2` / `kb_pb2_grpc` modules from Task 1.
 - Produces (kb, used by shop-knowledge and by every later slice):
   - `kb.client.connect(root: str | Path) -> InProcessClient`; `InProcessClient.Init(request, timeout=None)`, `.Create(...)`, `.Read(...)`, same names and message types as `kb_pb2_grpc.KbStub`.
-  - `kb.content.to_struct(value: dict) -> google.protobuf.struct_pb2.Struct`; `kb.content.from_struct(struct) -> dict` (whole-valued doubles become ints).
+  - `kb.content.dumps(value: dict) -> str` and `kb.content.loads(text: str) -> dict`, canonical YAML both ways.
   - Messages: `Actor{role, execution}`, `Locator{id, path}`, `Fault{artifact, path, rule, message}`, `InitRequest{root}`, `InitResponse{}`, `CreateRequest{type, content, actor, message}`, `CreateResponse{id, revision, faults}`, `ReadRequest{locator}`, `ReadResponse{id, type, schema_version, revision, title, content, references, parts, inbound}`, `Stub{field, id, type, title, fields}`, `PartStub{collection, id, title}`, `InboundCount{type, field, count}`.
   - `kb.store.Store(root)` with `.dir`, `.path(id)`, `.start()`, `.save(artifact) -> Path`, `.load(id) -> dict`, `.schema(type) -> dict`, `.commit(paths, role, message)`, `.artifacts()`; `kb.store.slug(title) -> str`.
   - `kb.canonical.dump(artifact) -> str`, `.load(text) -> dict`, `.order(artifact, schema) -> dict`, `IDENTITY`.
@@ -429,7 +428,7 @@ Replace `/home/vscode/shopsystem-kb/src/kb/contract/kb.proto` with the messages 
 ```proto
 // kb contract, version 0.1. Regenerate with `make contract`.
 //
-// Artifact content crosses as google.protobuf.Struct beside the fixed
+// Artifact content crosses as canonical YAML text beside the fixed
 // identity fields, since content shape is schema-defined at runtime.
 // Errors are a typed list of faults on the response; a response that
 // carries faults is a refusal and nothing was written.
@@ -437,7 +436,6 @@ syntax = "proto3";
 
 package kb;
 
-import "google/protobuf/struct.proto";
 
 service Kb {
   rpc Init(InitRequest) returns (InitResponse);
@@ -471,7 +469,7 @@ message InitResponse {}
 
 message CreateRequest {
   string type = 1;
-  google.protobuf.Struct content = 2;
+  string content = 2;  // canonical YAML
   Actor actor = 3;
   string message = 4;
 }
@@ -494,7 +492,7 @@ message ReadResponse {
   int32 schema_version = 3;
   int32 revision = 4;
   string title = 5;
-  google.protobuf.Struct content = 6;
+  string content = 6;  // canonical YAML
   repeated Stub references = 7;
   repeated PartStub parts = 8;
   repeated InboundCount inbound = 9;
@@ -505,7 +503,7 @@ message Stub {
   string id = 2;
   string type = 3;
   string title = 4;
-  google.protobuf.Struct fields = 5;
+  string fields = 5;   // canonical YAML
 }
 
 message PartStub {
@@ -533,7 +531,7 @@ Expected: exits 0 and lists the nine field names.
 
 ```python
 """How the steps call the contract: one helper per rpc, plus the types the Backgrounds define."""
-from kb.content import to_struct
+from kb.content import dumps
 from kb.contract import kb_pb2
 
 CLIENT = kb_pb2.Actor(role="client")
@@ -587,14 +585,14 @@ WORK_ITEM_TYPE = {
 def define(client, type_content):
     """Define a type: a Create of type `schema`."""
     return client.Create(kb_pb2.CreateRequest(
-        type="schema", content=to_struct(type_content), actor=CLIENT,
+        type="schema", content=dumps(type_content), actor=CLIENT,
         message=f"Define {type_content['title']}",
     ))
 
 
 def create(client, type_name, content, message="Create an artifact"):
     return client.Create(kb_pb2.CreateRequest(
-        type=type_name, content=to_struct(content), actor=CLIENT, message=message,
+        type=type_name, content=dumps(content), actor=CLIENT, message=message,
     ))
 
 
@@ -670,30 +668,25 @@ Expected: `1 failed`, `ModuleNotFoundError: No module named 'kb.client'` (or `kb
 `/home/vscode/shopsystem-kb/src/kb/content.py`:
 
 ```python
-"""Artifact content crossing the contract as google.protobuf.Struct."""
-from google.protobuf.json_format import MessageToDict
-from google.protobuf.struct_pb2 import Struct
+"""Artifact content crossing the contract as canonical YAML text."""
+from io import StringIO
+
+from ruamel.yaml import YAML
+
+_yaml = YAML(typ="rt")
+_yaml.default_flow_style = False
+_yaml.indent(mapping=2, sequence=2, offset=0)
 
 
-def to_struct(value: dict) -> Struct:
-    struct = Struct()
-    struct.update(value)
-    return struct
+def dumps(value: dict) -> str:
+    """Canonical text: block style, two-space indent, keys in the order given."""
+    out = StringIO()
+    _yaml.dump(value, out)
+    return out.getvalue()
 
 
-def from_struct(struct: Struct) -> dict:
-    return _integral(MessageToDict(struct))
-
-
-def _integral(value):
-    """JSON numbers cross a Struct as doubles; a whole-valued double reads back as an int."""
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, dict):
-        return {key: _integral(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_integral(item) for item in value]
-    return value
+def loads(text: str) -> dict:
+    return dict(_yaml.load(text) or {})
 ```
 
 `/home/vscode/shopsystem-kb/src/kb/canonical.py`:
@@ -851,7 +844,7 @@ def _git(*args):
 ```python
 """The contract's servicer: every rpc, over one store. Hosted in-process today; grpc.server can host it later."""
 from kb import canonical, validation
-from kb.content import from_struct
+from kb.content import loads
 from kb.contract import kb_pb2, kb_pb2_grpc
 from kb.metaschema import METASCHEMA
 from kb.store import Store, slug
@@ -870,7 +863,7 @@ class KbServicer(kb_pb2_grpc.KbServicer):
         return kb_pb2.InitResponse()
 
     def Create(self, request, context):
-        content = from_struct(request.content)
+        content = loads(request.content)
         schema = self._store.schema(request.type)
         artifact_id = f"{request.type}/{slug(content['title'])}"
         faults = validation.validate(artifact_id, content, schema["schema"])
@@ -1274,7 +1267,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from calls import DECISION_TYPE, WORK_ITEM_TYPE, create, define, read
 from kb import client as kb_client
-from kb.content import from_struct
+from kb.content import loads
 from kb.contract import kb_pb2
 
 scenarios("read-an-artifact.feature")
@@ -1325,7 +1318,7 @@ def _read_at_a_glance(client):
 @then("the client is given its name, its kind, its title and the few fields the type shows at a glance")
 def _identity_and_summary_fields(summary):
     assert (summary.id, summary.type, summary.title) == (DECISION, "decision", "Price reviews happen weekly")
-    assert from_struct(summary.content) == {"supersedes": OLDER}
+    assert loads(summary.content) == {"supersedes": OLDER}
 
 
 @then("a stub of each thing it points at and of each of its parts")
@@ -1365,7 +1358,7 @@ Add to `/home/vscode/shopsystem-kb/src/kb/store.py`, inside `Store`:
             yield canonical.load(path.read_text())
 ```
 
-In `/home/vscode/shopsystem-kb/src/kb/servicer.py`, change the content import to `from kb.content import from_struct, to_struct`, replace `Read`, and add the helpers:
+In `/home/vscode/shopsystem-kb/src/kb/servicer.py`, keep the content import `from kb.content import loads, dumps`, replace `Read`, and add the helpers:
 
 ```python
     def Read(self, request, context):
@@ -1375,7 +1368,7 @@ In `/home/vscode/shopsystem-kb/src/kb/servicer.py`, change the content import to
             id=artifact["id"], type=artifact["type"],
             schema_version=artifact["schema_version"], revision=artifact["revision"],
             title=artifact["title"],
-            content=to_struct(_summary_fields(artifact, schema)),
+            content=dumps(_summary_fields(artifact, schema)),
         )
         for field in _reference_fields(schema):
             for target_id in _as_list(artifact.get(field)):
@@ -1392,7 +1385,7 @@ In `/home/vscode/shopsystem-kb/src/kb/servicer.py`, change the content import to
         schema = self._store.schema(target["type"])["schema"]
         return kb_pb2.Stub(
             field=field, id=target["id"], type=target["type"], title=target["title"],
-            fields=to_struct(_summary_fields(target, schema)),
+            fields=dumps(_summary_fields(target, schema)),
         )
 
     def _inbound(self, artifact_id):
@@ -1656,7 +1649,7 @@ schema:
 from importlib import resources
 
 import yaml
-from kb.content import to_struct
+from kb.content import dumps
 from kb.contract import kb_pb2
 
 TYPES = ("decision",)
@@ -1667,7 +1660,7 @@ def load(client, actor):
         text = resources.files("shop_knowledge.types").joinpath(f"{name}.yaml").read_text()
         content = yaml.safe_load(text)
         client.Create(kb_pb2.CreateRequest(
-            type="schema", content=to_struct(content), actor=actor,
+            type="schema", content=dumps(content), actor=actor,
             message=f"Define the shop's {content['title'].lower()} type",
         ))
 ```
@@ -1682,7 +1675,7 @@ from pathlib import Path
 
 import yaml
 from kb import client as kb_client
-from kb.content import from_struct, to_struct
+from kb.content import loads, dumps
 from kb.contract import kb_pb2
 
 from shop_knowledge import bootstrap
@@ -1730,7 +1723,7 @@ def _init(args) -> int:
 def _create(args) -> int:
     content = yaml.safe_load(Path(args.source).read_text())
     response = _client().Create(kb_pb2.CreateRequest(
-        type=args.type, content=to_struct(content), actor=_actor(), message=args.message,
+        type=args.type, content=dumps(content), actor=_actor(), message=args.message,
     ))
     _show({"id": response.id, "revision": response.revision})
     return 0
@@ -1744,9 +1737,9 @@ def _read(args) -> int:
         "schema_version": response.schema_version,
         "revision": response.revision,
         "title": response.title,
-        **from_struct(response.content),
+        **loads(response.content),
         "references": [
-            {"field": stub.field, "id": stub.id, "type": stub.type, "title": stub.title, **from_struct(stub.fields)}
+            {"field": stub.field, "id": stub.id, "type": stub.type, "title": stub.title, **loads(stub.fields)}
             for stub in response.references
         ],
         "parts": [{"collection": stub.collection, "id": stub.id, "title": stub.title} for stub in response.parts],
@@ -1969,7 +1962,7 @@ Follow bdd-red-green's checkpoint in `docs/superpowers/plans/2026-09-23-shop-kno
   Open questions:
   - QUESTION FOR THE SPEC: schemas and journal under <root>/kb/ (as built) or <root>/ (as the Layout paragraph still says)?
   - QUESTION FOR THE SPEC: is the git repository <root>/kb/ itself (as built), or <root>?
-  - QUESTION FOR THE SPEC: google.protobuf.Struct preserves neither key order nor int-ness; "fields in schema order" needs the order carried explicitly, or content as text on the wire.
+  - ANSWERED 2026-09-24: content crosses the contract as canonical YAML text, so order and number types are preserved by construction.
   - QUESTION FOR THE SPEC: init's bootstrap creates use KB_ACTOR and a fixed message; does init take -m?
   - QUESTION FOR THE SPEC: a create without a title, a read of an id the store lacks, KB_ROOT unset: what is shown?
   Next: tag kb 0.1, pin it here, then slicing moves the kb-only slices to kb's own plan.
