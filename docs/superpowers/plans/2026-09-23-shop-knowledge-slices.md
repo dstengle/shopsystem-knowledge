@@ -155,7 +155,7 @@ tail, 54 to 70 between slice 1 and the tag.
 - Observable: A client creates a decision whose content writes a value once and points back at it from another place, and is refused because nothing in content stands in for a value written somewhere else.
 - Unknown: Can the one check that refuses content after it is parsed also be run on the bytes kb is about to write, so that a write whose own output fails it is refused?
 - Needs: the tag and document refusals of slice 59 made by that same check, which replaces the one they have now (slice 59's two content scenarios, which must stay green)
-- Status: planned
+- Status: green
 
 ## Slice 66: A section missing its title or its body does not fit its type
 
@@ -864,3 +864,16 @@ point in the order, not after slice 1 alone.
   - ANSWERED by the emitter: an empty body and a body with a trailing space are literal blocks (slice 54's question).
   - QUESTION FOR THE SPEC: a field value written as a bare date (`reviewed: 2026-09-24`) loads as a date under ruamel's YAML 1.2 resolver, is stored as one, and fails a type that declares the field a string. Is a date in content text, as a title is? No scenario pins it.
   Next: slice 65.
+- 2026-09-24 slice 65 green. Someone can now: send content that writes a value once and points back at it, and be refused; the same check refuses tags and second documents, and runs on every file kb writes and reads.
+  Assumption "the one check that refuses content can run on kb's own output": held. Evidence: slices 65 and 59 `9 passed, 98 deselected`; kb full suite `78 failed, 29 passed`; shop-knowledge slice-1 `2 passed`; grep for `ContentFault|yaml.scan|TagToken` in kb src and tests prints nothing. Outbound, with no scenario:
+  ```
+  'a:\n  - a\nb:\n  - a\n'
+  refused: content is read plainly as written and carries no tags
+  ```
+  (a shared value is written twice with no anchor; bytes would carry `!!binary`, so the dump is refused).
+  Surprised by: nothing; red and green came out as the brief predicted (`StepDefinitionNotFoundError`, then `assert ('decision/pr...en-weekly', 1) == ('', 0)`).
+  Open questions:
+  - QUESTION FOR THE SPEC: a file in the store that no longer reads plainly (hand-edited to hold `&a`) now makes Read raise NotCanonical through the client, since load checks every file. Is it a fault on Read, or only a violation for Validate? No scenario pins it.
+  - QUESTION FOR THE SPEC (still open from slice 59, now on ruamel): content that is not YAML (`title: [unclosed`) raises ParserError, and content that is not a mapping (`- a`) raises TypeError, through the client.
+  - QUESTION FOR THE SPEC (from the slice 64 review): content beginning with a `%YAML 1.1` directive is read by ruamel as YAML 1.1, so a client can switch kb's reader back to 1.1: `content.loads('%YAML 1.1\n---\na: on\n')` gives `{'a': True}` (confirmed again at slice 65). Should kb refuse the directive? No scenario asserts it, so it is not coded.
+  Next: slice 66.
