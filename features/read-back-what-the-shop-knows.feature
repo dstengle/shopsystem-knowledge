@@ -72,3 +72,10 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision
     Then the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at
     And the command reports failure to whatever ran it
+
+  Scenario: Reading something whose file the shop cannot read is refused
+    Given someone edited the decision's file by hand and left it in a shape the shop cannot read
+    When the user reads the decision
+    Then the command is rejected because that file cannot be read, naming the file
+    And the user is shown that fault in plain words, never a traceback
+    And the command reports failure to whatever ran it

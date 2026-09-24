@@ -20,3 +20,11 @@ So that the shop can trust what it has recorded, the user can check its knowledg
     When the user checks the shop's knowledge
     Then that decision is listed as behind its type
     And it is not listed as a fault
+
+  Scenario: The user checks a knowledge base holding a file the shop cannot read
+    Given a shop knowledge base where someone edited a decision's file by hand and left it in a shape the shop cannot read
+    When the user checks the shop's knowledge
+    Then that file is listed as a fault, naming the file
+    And everything else the shop knows is checked and listed alongside it
+    And the user is shown that fault in plain words, never a traceback
+    And the command reports failure to whatever ran it
