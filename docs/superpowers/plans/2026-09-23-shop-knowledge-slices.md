@@ -251,7 +251,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client starts a store naming no directory and is refused because a store is started in a directory that was named and that exists, with no store made anywhere, the directory it works in included.
 - Unknown: Can the directory a store is started in become a checked value where it enters kb, like every other value a request carries, when it may be relative and no store exists yet?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.24: shop-knol refuses a file it cannot read in plain words
 
@@ -1029,3 +1029,7 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Assumption "the check sees a directive before the reader takes it up": held. Evidence: line 1 declares %TAG !e! tag:example.com,2000: / line 2 declares %YAML 1.2 (after a comment) / {'a': '%YAML'} (a quoted string is not a directive).
   Surprised by: nothing. (Suites: slice 1.22 1 passed; kb 79 failed, 39 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
   Open questions: none. Next: slice 1.23.
+- 2026-09-24 slice 1.23 green. Someone can now: start a store naming no directory and be refused, with nothing made where they work.
+  Assumption "Init's root can be a checked value at the boundary": held. Evidence: connect().Init(InitRequest(root="", actor=Actor(role="client"))).faults gave rule "root", message "a store is started in a directory that was named and that exists; no directory was named"; grep "Store(request" over src/kb printed nothing.
+  Surprised by: nothing. (Suites: slice 1.23 1 passed; kb 78 failed, 40 passed; shop-knowledge pre-tag 4 passed, all as the brief expected.)
+  Open questions: none. Next: slice 1.24.
