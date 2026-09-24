@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 from kb import client as kb_client
-from kb.content import loads, dumps
+from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
 from shop_knowledge import bootstrap
@@ -44,13 +44,6 @@ def _show(document: dict) -> None:
     print(dumps(document), end="")
 
 
-def _text(title) -> str:
-    """A title is text. YAML 1.2 still reads a bare date as a date, so a title that is not text is turned back into it."""
-    if title is None:
-        return ""
-    return title if isinstance(title, str) else str(title)
-
-
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
@@ -61,7 +54,7 @@ def _init(args) -> int:
 
 def _create(args) -> int:
     content = loads(Path(args.source).read_text())
-    title = _text(content.pop("title", None))
+    title = text(content.pop("title", None))
     response = _client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
     ))
