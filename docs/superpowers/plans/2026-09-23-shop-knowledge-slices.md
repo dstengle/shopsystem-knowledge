@@ -269,7 +269,7 @@ are renumbered and their tags rewritten to match.
 - Observable: A client creating an artifact of a kind the store holds no type for is refused with the kind given back, as a fault of its own apart from anything in the content, and nothing is written; content with one field written true, one left as nothing and one written 12.5 reads back as a yes-or-no, nothing, and a number, none of them text; and a title that arrives as the number 12 reads back as the text "12", with the name made from it.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 1.26: Starting a store where no directory stands is refused
 
@@ -1039,3 +1039,6 @@ ahead of slice 2: every later finding is placed by its unknown among slices
   Open questions:
   - QUESTION FOR THE SPEC: shop-knol still shows a traceback with KB_ACTOR unset (KeyError) and for --from a file that is not there (FileNotFoundError); the spec says never. (Review Focus 4)
   Next: slice 1.25.
+- 2026-09-24 slice 1.25 green. Someone can now: create an artifact of a kind the store holds no type for and be refused with that alone and nothing written; send true, nothing and 12.5 and read them back typed; give 12 as a title and read back "12".
+  Surprised by: two of the three scenarios went green on their step definitions alone, as the task predicted. Each was red first (a Given with no step definition), so bdd-red-green's first stop condition (passing before any step or code) was not met, and I did not hand back. The typed-values and number-title scenarios pass because ruamel's YAML 1.2 loader has typed true, null and 12.5 since slice 1.11 and content.text(12) is "12" since slice 1.18; only the kind scenario needed production code.
+  Open questions: none. Next: slice 1.26.
