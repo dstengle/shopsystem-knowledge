@@ -55,3 +55,15 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision
     Then the command is rejected because no knowledge base was found, neither above where they are working nor named outright
     And the command reports failure to whatever ran it
+
+  Scenario: Reading with KB_ROOT naming somewhere that holds no knowledge base is refused
+    Given the user is working outside any knowledge base, with KB_ROOT naming a directory that holds no knowledge base
+    When the user reads the decision
+    Then the command is rejected because KB_ROOT names a directory that holds no knowledge base
+    And the command reports failure to whatever ran it
+
+  Scenario: Reading from inside one knowledge base while KB_ROOT names another is refused
+    Given the user is working inside the shop's knowledge base, with KB_ROOT naming a different one
+    When the user reads the decision
+    Then the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at
+    And the command reports failure to whatever ran it
