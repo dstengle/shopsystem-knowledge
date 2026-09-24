@@ -2,7 +2,7 @@
 import subprocess
 import sys
 
-import yaml
+from kb.content import dumps, loads
 
 
 def knol(env, *args):
@@ -20,7 +20,7 @@ def start(env, shop):
 def record(env, tmp_path, type_name, content, message):
     """Write content to a file, record it, and return the id the user is shown."""
     path = tmp_path / f"{content['title']}.yaml"
-    path.write_text(yaml.safe_dump(content, sort_keys=False, allow_unicode=True))
+    path.write_text(dumps(content))
     result = knol(env, "create", type_name, "--from", str(path), "-m", message)
     assert result.returncode == 0, result.stderr
-    return yaml.safe_load(result.stdout)["id"]
+    return loads(result.stdout)["id"]

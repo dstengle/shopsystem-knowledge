@@ -1,4 +1,4 @@
-import yaml
+from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
@@ -42,7 +42,7 @@ def _shop_with_a_linked_decision(env, shop, tmp_path):
 def _read_the_decision(env, decision_id):
     result = knol(env, "read", decision_id)
     assert result.returncode == 0, result.stderr
-    return yaml.safe_load(result.stdout)
+    return loads(result.stdout)
 
 
 @then("the user sees its name, its title and the few fields the shop shows for a decision")
