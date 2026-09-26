@@ -166,7 +166,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user publishes a process into a directory and finds a skill whose heading block is the process's identity and whose body is its steps with the reused step written out in full; the knowledge base is unchanged.
 - Unknown: Is a resolved whole read, with the stubs of its references and its type, enough for a renderer to write a reused step out in full?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 18: A skill the harness would reject is not published
 
@@ -516,3 +516,39 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 4): `shop-knol journal` with `KB_ROOT` unset gives `KeyError: 'KB_ROOT'`; slice 22 owns finding the knowledge base.
   Next: slice 17.
+- 2026-09-26 slice 17 green. A user can now: publish a process into a directory as a skill whose heading block is its identity and whose body is its steps, the reused step written out in full with its settings, leaving the shop's knowledge unchanged.
+  Assumption "a resolved whole read, with the stubs of its references and its type, is enough for a renderer to write a reused step out in full": failed, and no kb change was needed. kb v0.2.0 fills in only links in an artifact's own fields ("a link inside one of its items stays a name", kb/read.py), and stubs come only with a summary read. The renderer reads the process whole, then each reused step whole. Evidence: the SKILL.md the scenario publishes, restock-a-shelf/SKILL.md, complete:
+    ---
+    name: restock-a-shelf
+    description: Restock a shelf
+    ---
+
+    # Restock a shelf
+
+    ## 1. Check it
+
+    This is the shared step Check the stock, where shelf is dairy.
+
+    Count what is on the shelf, front and back.
+
+    ## 2. Decide
+
+    Decide whether the shelf is short.
+
+    - If the shelf is short, go to step 3 (Order more).
+    - If it is not, go to step 4 (Stop).
+
+    ## 3. Order more
+
+    Order enough to fill the shelf.
+
+    ## 4. Stop
+
+    Leave the shelf as it is.
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 2): `shop-knol render skill tag/pricing` writes a SKILL.md with no steps and succeeds. Refuse anything that is not a process?
+  - QUESTION FOR THE SPEC (Review Focus 4): `render --to` a path that is a file gives a `NotADirectoryError` traceback.
+  - QUESTION FOR THE SPEC (Review Focus 5): a branch whose go_to names no step is published as "go to nowhere."
+  - The spec says a renderer reads "the resolved whole artifact, the stubs of its references, and its schema"; the skill renderer needs a whole read of each step it reuses as well. If the spec should keep that sentence, the request is for kb to fill in links inside items on a resolved read, a bump of the pin.
+  Next: slice 18.

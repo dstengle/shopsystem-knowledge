@@ -13,6 +13,7 @@ from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
 from shop_knowledge import batch, bootstrap
+from shop_knowledge.renderers import RENDERERS
 
 
 class Refused(Exception):
@@ -62,6 +63,12 @@ def _parser() -> argparse.ArgumentParser:
     journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
     journal.add_argument("--artifact", default="", help="only the changes to this one")
     journal.set_defaults(handler=_journal)
+
+    render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
+    render.add_argument("renderer", choices=sorted(RENDERERS))
+    render.add_argument("locator")
+    render.add_argument("--to", required=True, metavar="DIR")
+    render.set_defaults(handler=_render)
     return parser
 
 
@@ -184,3 +191,18 @@ def _change(entry: kb_pb2.Entry) -> dict:
         "revision": entry.revision,
         "message": entry.message,
     }
+
+
+def _render(args) -> int:
+    rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
+    _write(rendered.files, Path(args.to))
+    _show({"written": sorted(rendered.files)})
+    return 0
+
+
+def _write(files: dict[str, str], directory: Path) -> None:
+    """The files a renderer gave back, each written at its path under the directory asked for."""
+    for relative, content in files.items():
+        path = directory / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
