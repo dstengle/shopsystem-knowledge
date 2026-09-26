@@ -63,5 +63,6 @@ def _holds_the_seven(env, tmp_path, result):
 
 @then("the user defines nothing of their own before recording the first one")
 def _defines_nothing(shop):
+    # Reads kb's schema directory directly because no shop-knol command lists the types yet (CLAUDE.md, Step definitions).
     held = {path.stem for path in (shop / "kb" / "schema").glob("*.yaml")}
     assert held == THE_SHOPS_TYPES | {"schema"}

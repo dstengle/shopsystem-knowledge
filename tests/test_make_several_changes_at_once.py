@@ -48,6 +48,7 @@ def _both_in_the_shop(env, result):
 
 @then("the shop's history shows them as one change")
 def _one_change(shop, result):
+    # Calls kb's in-process Journal with the batch because `shop-knol journal` has no --batch filter and does not show the batch.
     batch = loads(result.stdout)["batch"]
     history = kb_client.connect(shop).Journal(kb_pb2.JournalRequest(batch=batch))
     assert [(entry.op, entry.artifact) for entry in history.entries] == [("create", WEEKLY), ("write", WORK_ITEM)]
