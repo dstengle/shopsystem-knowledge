@@ -29,7 +29,8 @@ own it.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
    No other YAML library is imported.
 4. **One way to refuse.** Every refusal, kb's or shop-knol's own, is a `Fault` printed by the one printer in
-   `cli.py`, one line each, with exit 1. shop-knol never shows a traceback.
+   `cli.py`, one line each, with exit 1. shop-knol never shows a traceback. Code that refuses raises `cli.Refused`
+   with its faults and `main` alone prints them, so no handler prints a refusal of its own.
 5. **Types are data.** The shop's types reach kb only as schema artifacts created at `init`. No code outside a
    renderer for that type, and the step definitions, knows a type's fields.
 6. **Renderers only read.** A renderer reads through the contract and gives back the files to write, or faults.
@@ -40,7 +41,8 @@ own it.
 - No module over 250 lines. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
-- A file a user gives is read in one place, `cli._document`, and a kb answer's faults are refused in one way.
+- A file a user gives is read in one place, `cli._document`, and a kb answer's faults are refused in one way,
+  `cli._answered`.
 
 ## Step definitions
 

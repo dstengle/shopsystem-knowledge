@@ -80,6 +80,13 @@ def _refuse(faults) -> int:
     return 1
 
 
+def _answered(response):
+    """kb's answer, or the refusal it carries: every kb answer's faults are refused this one way."""
+    if response.faults:
+        raise Refused(response.faults)
+    return response
+
+
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
@@ -99,20 +106,22 @@ def _document(source: str) -> dict:
 def _create(args) -> int:
     content = _document(args.source)
     title = text(content.pop("title", None))
-    response = _client().Create(kb_pb2.CreateRequest(
+    response = _answered(_client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
-    ))
-    if response.faults:
-        return _refuse(response.faults)
+    )))
     _show({"id": response.id, "revision": response.revision})
     return 0
 
 
 def _read(args) -> int:
-    response = _client().Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=args.locator)))
-    if response.faults:
-        return _refuse(response.faults)
-    _show({
+    response = _answered(_client().Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=args.locator))))
+    _show(_glance(response))
+    return 0
+
+
+def _glance(response: kb_pb2.ReadResponse) -> dict:
+    """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
+    return {
         "id": response.id,
         "type": response.type,
         "schema_version": response.schema_version,
@@ -125,10 +134,12 @@ def _read(args) -> int:
         ],
         "parts": [{"collection": stub.collection, "id": stub.id, "title": stub.title} for stub in response.parts],
         "inbound": [{"type": count.type, "field": count.field, "count": count.count} for count in response.inbound],
-    })
-    return 0
+    }
 
 
 def _validate(args) -> int:
+    """kb's check answers with the store's faults and violations alike; any of either is a refusal."""
     response = _client().Validate(kb_pb2.ValidateRequest())
-    return _refuse([*response.faults, *response.violations]) if response.faults or response.violations else 0
+    if response.faults or response.violations:
+        raise Refused([*response.faults, *response.violations])
+    return 0

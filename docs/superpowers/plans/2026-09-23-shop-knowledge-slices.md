@@ -130,7 +130,7 @@ slices 2 onward, never ahead of them.
 - Observable: The read command makes its call, refuses or shows, and the shaping of a whole answer sits apart, so the depth, format and follow-the-links slices that extend it add to one function rather than a growing handler.
 - Unknown: none
 - Needs: the read handler split so it does one thing at one level (the check)
-- Status: planned
+- Status: green
 
 ## Slice 4: The shop's seven types
 
@@ -487,3 +487,7 @@ slices 2 onward, never ahead of them.
 - 2026-09-26 slice 1.31 green. A file the user gives is read only by `cli._document`, which raises `cli.Refused` where kb cannot read it; `main` catches `Refused` and prints it through `_refuse`, the one printer, and each subparser names its handler. Check: `same 55`, `55 failed, 7 passed, 48 warnings in 14.01s` from make test, `create reads no file`, and `1` from the grep count of read_text in cli.py.
   Surprised by: nothing.
   Next: slice 1.32.
+- 2026-09-26 slice 1.32 green. Every kb answer is refused through `cli._answered`, which raises `Refused`, so `main` is the only caller of `_refuse`; `_read` calls, refuses or shows, and `_glance` shapes the answer. `_validate` raises its faults and violations together, as it printed them before. Check: `same 55`, `55 failed, 7 passed, 48 warnings in 13.87s` from make test, `read calls, refuses or shows`; shape check: grep counts `2`, `1`, `1` (`_refuse(`, `if response.faults:`, `read_text`) and no module over 250 lines.
+  Surprised by: nothing.
+  Open questions: none. The review's rule-4 breaks that change behaviour (Init's answer and bootstrap's Create answers dropped, the `KB_ACTOR` and `KB_ROOT` tracebacks) stay with slices 22, 26 and 47.
+  Next: slice 4.
