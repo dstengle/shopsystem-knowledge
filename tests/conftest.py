@@ -1,10 +1,10 @@
-"""Suite wiring. Step definitions live beside the scenarios they serve; shared Givens are added here by slice 1."""
+"""Suite wiring, and the fixtures and steps more than one feature shares. The rest live beside their scenarios."""
 import os
 import re
 from pathlib import Path
 
 import pytest
-from pytest_bdd import given
+from pytest_bdd import given, then
 
 from driver import start
 
@@ -34,3 +34,16 @@ def env(shop):
 @given("a shop knowledge base holding the shop's types")
 def _shop_knowledge_base(env, shop):
     start(env, shop)
+
+
+@then("the user is shown that fault in plain words, never a traceback")
+def _shown_in_plain_words(result):
+    """Something said on stderr, no traceback anywhere, nothing on stdout."""
+    assert result.stderr.strip(), "nothing was said"
+    assert "Traceback" not in result.stderr + result.stdout, result.stderr
+    assert result.stdout == ""
+
+
+@then("the command reports failure to whatever ran it")
+def _reports_failure(result):
+    assert result.returncode != 0, result.stdout

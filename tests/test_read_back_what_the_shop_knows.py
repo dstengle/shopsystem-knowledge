@@ -2,7 +2,7 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, refused_plainly, reported_failure, start
+from driver import knol, record, start
 
 scenarios("read-back-what-the-shop-knows.feature")
 
@@ -82,13 +82,3 @@ def _decision_file_mangled_by_hand(shop):
 @then("the command is rejected because that file cannot be read, naming the file")
 def _rejected_as_unreadable(result):
     assert result.stderr.startswith(f"{DECISION}: the stored file {DECISION}.yaml cannot be read: ")
-
-
-@then("the user is shown that fault in plain words, never a traceback")
-def _shown_in_plain_words(result):
-    refused_plainly(result)
-
-
-@then("the command reports failure to whatever ran it")
-def _reports_failure(result):
-    reported_failure(result)

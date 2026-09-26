@@ -1,7 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import knol, record, refused_plainly, reported_failure
+from driver import knol, record
 
 scenarios("record-a-decision.feature")
 
@@ -33,24 +33,24 @@ def _decision_in_a_file(env, tmp_path):
     return path
 
 
-@when("the user records that file as a decision, saying who they are and why", target_fixture="recorded")
+@when("the user records that file as a decision, saying who they are and why", target_fixture="result")
 def _record_it(env, decision_file):
     return knol(env, "create", "decision", "--from", str(decision_file), "-m", "Move price reviews to weekly")
 
 
 @then("the user is shown the name the decision was given, which the user did not choose")
-def _shown_the_name(recorded, decision_file):
-    assert recorded.returncode == 0, recorded.stderr
-    assert loads(recorded.stdout)["id"] == "decision/price-reviews-happen-weekly"
+def _shown_the_name(result, decision_file):
+    assert result.returncode == 0, result.stderr
+    assert loads(result.stdout)["id"] == "decision/price-reviews-happen-weekly"
     assert "id" not in loads(decision_file.read_text())
 
 
 @then("the shop holds the decision under that name and reads it back by it", target_fixture="read_back")
-def _reads_back_by_name(env, recorded):
-    name = loads(recorded.stdout)["id"]
-    result = knol(env, "read", name)
-    assert result.returncode == 0, result.stderr
-    shown = loads(result.stdout)
+def _reads_back_by_name(env, result):
+    name = loads(result.stdout)["id"]
+    read = knol(env, "read", name)
+    assert read.returncode == 0, read.stderr
+    shown = loads(read.stdout)
     assert shown["id"] == name
     assert shown["title"] == "Price reviews happen weekly"
     return shown
@@ -74,31 +74,31 @@ def _decision_in_a_file_titled(tmp_path, title):
     return path
 
 
-def _title_read_back(env, recorded, decision_file):
+def _title_read_back(env, result, decision_file):
     """The title as the shop reads it back under the name the decision was given, and the title as written."""
-    assert recorded.returncode == 0, recorded.stderr
-    result = knol(env, "read", loads(recorded.stdout)["id"])
     assert result.returncode == 0, result.stderr
+    read = knol(env, "read", loads(result.stdout)["id"])
+    assert read.returncode == 0, read.stderr
     written = decision_file.read_text().splitlines()[0].removeprefix("title: ")
-    return loads(result.stdout)["title"], written
+    return loads(read.stdout)["title"], written
 
 
 @then("the shop reads the title back as the text that was written, not as a date")
-def _title_is_text_not_a_date(env, recorded, decision_file):
-    shown, written = _title_read_back(env, recorded, decision_file)
+def _title_is_text_not_a_date(env, result, decision_file):
+    shown, written = _title_read_back(env, result, decision_file)
     assert shown == written == "2026-09-24"
 
 
 @then("the shop reads the title back as the text that was written, not as a yes or a no")
-def _title_is_text_not_a_bool(env, recorded, decision_file):
-    shown, written = _title_read_back(env, recorded, decision_file)
+def _title_is_text_not_a_bool(env, result, decision_file):
+    shown, written = _title_read_back(env, result, decision_file)
     assert shown == written == "yes"
 
 
 @then("the name the decision was given is made from that text")
-def _name_from_that_text(recorded, decision_file):
+def _name_from_that_text(result, decision_file):
     written = decision_file.read_text().splitlines()[0].removeprefix("title: ")
-    assert loads(recorded.stdout)["id"] == f"decision/{written}"
+    assert loads(result.stdout)["id"] == f"decision/{written}"
 
 
 @given("a decision in a file that names the same entry twice in the same place", target_fixture="decision_file")
@@ -117,17 +117,7 @@ def _decision_in_a_file_naming_an_entry_twice(tmp_path):
 
 
 @then("the decision is rejected because an entry is named once and only once, naming the place in the file")
-def _rejected_for_an_entry_named_twice(recorded, decision_file):
-    assert recorded.stderr.splitlines() == [
+def _rejected_for_an_entry_named_twice(result, decision_file):
+    assert result.stderr.splitlines() == [
         f"{decision_file} at sections/0/body: an entry is named once and only once; 'body' is named again at line 5",
     ]
-
-
-@then("the user is shown that fault in plain words, never a traceback")
-def _shown_in_plain_words(recorded):
-    refused_plainly(recorded)
-
-
-@then("the command reports failure to whatever ran it")
-def _reports_failure(recorded):
-    reported_failure(recorded)

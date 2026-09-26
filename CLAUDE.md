@@ -49,6 +49,8 @@ own it.
   what no shop-knol command yet does; the step says so where it does.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve.
+- A When that runs shop-knol gives what it ran as the fixture `result`, so the shared Thens that say how a command
+  ended, such as "the command reports failure to whatever ran it", read it under one name in every feature.
 
 ## Working here
 
