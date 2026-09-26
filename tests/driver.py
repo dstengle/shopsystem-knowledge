@@ -1,6 +1,8 @@
 """Drive shop-knol the way a user does: a subprocess per command, YAML in files and on stdout."""
+import os
 import subprocess
 import sys
+from pathlib import Path
 
 from kb.content import dumps, loads
 
@@ -24,3 +26,12 @@ def record(env, tmp_path, type_name, content, message):
     result = knol(env, "create", type_name, "--from", str(path), "-m", message)
     assert result.returncode == 0, result.stderr
     return loads(result.stdout)["id"]
+
+
+CLOCK = Path(__file__).parent / "clock"
+
+
+def at(env, moment):
+    """The environment shop-knol runs in when the history is to say it ran at `moment` (ISO, UTC)."""
+    path = os.pathsep.join(filter(None, [str(CLOCK), env.get("PYTHONPATH")]))
+    return {**env, "PYTHONPATH": path, "TEST_NOW": moment}

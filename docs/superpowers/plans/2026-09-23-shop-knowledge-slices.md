@@ -157,7 +157,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user reviews a decision recorded two days ago by the shopkeeper and revised today by an agent, and sees both changes with who, when, what, and why.
 - Unknown: How does the command line let step definitions set the day, so a change made two days ago and one made today appear as such?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 17: Publish a process as a skill
 
@@ -510,3 +510,9 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 1): a batch file of the wrong shape (`changes:` holding `- delete: tag/pricing`, or no `changes:`) gives `KeyError: 'content'` / `KeyError: 'changes'` tracebacks. What is it told?
   Next: slice 16.
+- 2026-09-26 slice 16 green. A user can now: review every change to one decision, oldest first, each with who made it and for which piece of work, when, what it did and why.
+  Assumption "step definitions can set the day kb stamps without kb taking a clock on its contract": held. Evidence: `shop-knol journal --artifact decision/price-reviews-happen-weekly` on the scenario's store gave `changes:` with `at: '2026-09-21T10:00:00+00:00'` (shopkeeper, create, "Record weekly reviews", revision 1) then `at: '2026-09-23T10:00:00+00:00'` (role agent, execution reprice-dairy, write, "Accept weekly reviews", revision 2).
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 4): `shop-knol journal` with `KB_ROOT` unset gives `KeyError: 'KB_ROOT'`; slice 22 owns finding the knowledge base.
+  Next: slice 17.

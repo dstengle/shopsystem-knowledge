@@ -54,6 +54,8 @@ own it.
   they serve.
 - A When that runs shop-knol gives what it ran as the fixture `result`, so the shared Thens that say how a command
   ended, such as "the command reports failure to whatever ran it", read it under one name in every feature.
+- `tests/clock/` is put on shop-knol's `PYTHONPATH`, with `TEST_NOW` set, only through `driver.at`, when a scenario
+  says what day it is. Nothing under `src/` knows the day is set.
 
 ## Working here
 

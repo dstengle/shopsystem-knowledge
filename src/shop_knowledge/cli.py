@@ -58,11 +58,17 @@ def _parser() -> argparse.ArgumentParser:
     apply.add_argument("--from", dest="source", required=True, metavar="FILE")
     apply.add_argument("-m", dest="message", required=True, help="why")
     apply.set_defaults(handler=_apply)
+
+    journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
+    journal.add_argument("--artifact", default="", help="only the changes to this one")
+    journal.set_defaults(handler=_journal)
     return parser
 
 
 def _actor() -> kb_pb2.Actor:
-    return kb_pb2.Actor(role=os.environ["KB_ACTOR"])
+    """KB_ACTOR is the role, or the role and the piece of work it acts for as role:execution."""
+    role, _, execution = os.environ["KB_ACTOR"].partition(":")
+    return kb_pb2.Actor(role=role, execution=execution)
 
 
 def _client():
@@ -160,3 +166,21 @@ def _apply(args) -> int:
         "results": [{"id": result.id, "revision": result.revision} for result in response.results],
     })
     return 0
+
+
+def _journal(args) -> int:
+    response = _answered(_client().Journal(kb_pb2.JournalRequest(artifact=args.artifact)))
+    _show({"changes": [_change(entry) for entry in response.entries]})
+    return 0
+
+
+def _change(entry: kb_pb2.Entry) -> dict:
+    """One entry of the history as the user is shown it: when, who and for what piece of work, what it did, and why."""
+    return {
+        "at": entry.at,
+        "actor": {"role": entry.actor.role, "execution": entry.actor.execution},
+        "op": entry.op,
+        "artifact": entry.artifact,
+        "revision": entry.revision,
+        "message": entry.message,
+    }
