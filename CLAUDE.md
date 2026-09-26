@@ -40,7 +40,7 @@ own it.
 - No module over 250 lines. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
-- A file a user gives is read in one place, and a kb answer's faults are refused in one way.
+- A file a user gives is read in one place, `cli._document`, and a kb answer's faults are refused in one way.
 
 ## Step definitions
 

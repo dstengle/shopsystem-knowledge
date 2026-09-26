@@ -121,7 +121,7 @@ slices 2 onward, never ahead of them.
 - Observable: Reading a user's file and turning a file kb cannot read into a refusal happens in one place that create and every later command that takes a file (apply, append) call, so "a file is read in one place" stays true as commands are added.
 - Unknown: none
 - Needs: the create handler split so it does one thing at one level (the check)
-- Status: planned
+- Status: green
 
 ## Slice 1.32: Turning a read answer into what is shown is one function of its own
 
@@ -484,3 +484,6 @@ slices 2 onward, never ahead of them.
 - 2026-09-26 slice 1.30 green. The shared refusal steps, "the user is shown that fault in plain words, never a traceback" and "the command reports failure to whatever ran it", are defined once in `tests/conftest.py` over the fixture `result`, which every When that runs shop-knol now gives. Check: `same 55` (the 55 failing ids identical to before), `55 failed, 7 passed, 48 warnings in 13.87s` from make test, and the grep for the two step texts outside conftest.py printed nothing.
   Surprised by: nothing.
   Next: slice 1.31.
+- 2026-09-26 slice 1.31 green. A file the user gives is read only by `cli._document`, which raises `cli.Refused` where kb cannot read it; `main` catches `Refused` and prints it through `_refuse`, the one printer, and each subparser names its handler. Check: `same 55`, `55 failed, 7 passed, 48 warnings in 14.01s` from make test, `create reads no file`, and `1` from the grep count of read_text in cli.py.
+  Surprised by: nothing.
+  Next: slice 1.32.

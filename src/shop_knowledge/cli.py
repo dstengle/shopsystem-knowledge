@@ -15,25 +15,45 @@ from kb.contract import kb_pb2
 from shop_knowledge import bootstrap
 
 
+class Refused(Exception):
+    """A refusal on its way to the one printer: the faults to print, one line each."""
+
+    def __init__(self, faults):
+        super().__init__(faults)
+        self.faults = list(faults)
+
+
 def main(argv=None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        return args.handler(args)
+    except Refused as refusal:
+        return _refuse(refusal.faults)
+
+
+def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="shop-knol")
     commands = parser.add_subparsers(dest="command", required=True)
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
     init.add_argument("root")
+    init.set_defaults(handler=_init)
 
     create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
     create.add_argument("type")
     create.add_argument("--from", dest="source", required=True, metavar="FILE")
     create.add_argument("-m", dest="message", required=True, help="why")
+    create.set_defaults(handler=_create)
 
     read = commands.add_parser("read", help="read an artifact at a glance")
     read.add_argument("locator")
+    read.set_defaults(handler=_read)
 
-    commands.add_parser("validate", help="check everything the shop knows; lists every fault, exits non-zero if any")
-
-    args = parser.parse_args(argv)
-    return {"init": _init, "create": _create, "read": _read, "validate": _validate}[args.command](args)
+    validate = commands.add_parser(
+        "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
+    )
+    validate.set_defaults(handler=_validate)
+    return parser
 
 
 def _actor() -> kb_pb2.Actor:
@@ -68,11 +88,16 @@ def _init(args) -> int:
     return 0
 
 
-def _create(args) -> int:
+def _document(source: str) -> dict:
+    """A file the user gave, read the way kb reads content, or refused with the place kb could not read it at."""
     try:
-        content = loads(Path(args.source).read_text())
+        return loads(Path(source).read_text())
     except canonical.NotCanonical as fault:
-        return _refuse([kb_pb2.Fault(artifact=args.source, path=fault.path, rule="content", message=str(fault))])
+        raise Refused([kb_pb2.Fault(artifact=source, path=fault.path, rule="content", message=str(fault))])
+
+
+def _create(args) -> int:
+    content = _document(args.source)
     title = text(content.pop("title", None))
     response = _client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
