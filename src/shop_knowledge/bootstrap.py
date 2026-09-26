@@ -4,7 +4,7 @@ from importlib import resources
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
-TYPES = ("tag", "decision", "work-item")
+TYPES = ("shop-artifact", "tag", "decision", "work-item", "feature", "role", "step", "process")
 
 
 def load(client, actor):

@@ -1,0 +1,45 @@
+title: Process
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+  required: [title]
+  parts:
+    steps:
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          does:
+            type: string
+          uses:
+            type: string
+            ref:
+              targets: [step]
+              cardinality: one
+              parts: false
+              on_delete: refuse
+          with:
+            type: array
+            items:
+              $ref: kb:schema/step#/$defs/binding
+          branches:
+            type: array
+            items:
+              type: object
+              properties:
+                when:
+                  type: string
+                go_to:
+                  type: string
+              required: [when, go_to]
+              additionalProperties: false
+        required: [title]
+        oneOf:
+          - required: [does]
+          - required: [uses]

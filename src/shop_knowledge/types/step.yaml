@@ -1,0 +1,26 @@
+title: Step
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    does:
+      type: string
+    settings:
+      type: array
+      items:
+        type: string
+  required: [title, does]
+  $defs:
+    binding:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      required: [name, value]
+      additionalProperties: false

@@ -1,0 +1,22 @@
+title: Feature
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    story:
+      type: string
+  required: [title, story]
+  parts:
+    scenarios:
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          pins:
+            type: string
+        required: [title, pins]

@@ -1,0 +1,34 @@
+title: Role
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    harness:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tools:
+          type: array
+          items:
+            type: string
+        model:
+          type: string
+      required: [name, description]
+      additionalProperties: false
+    shop:
+      type: object
+      properties:
+        responsible_for:
+          type: string
+        answers_to:
+          type: string
+      required: [responsible_for]
+      additionalProperties: false
+  required: [title, harness, shop]

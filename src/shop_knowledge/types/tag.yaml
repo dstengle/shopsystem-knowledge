@@ -1,6 +1,8 @@
 title: Tag
 version: 1
 schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
   type: object
   properties:
     title:
@@ -8,4 +10,3 @@ schema:
     description:
       type: string
   required: [title, description]
-  summary: []

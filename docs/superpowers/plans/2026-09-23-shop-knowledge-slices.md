@@ -139,7 +139,7 @@ slices 2 onward, never ahead of them.
 - Observable: One command in an empty directory leaves a knowledge base that can hold decisions, features, work items, roles, processes, steps, and tags, and the user defines nothing of their own first.
 - Unknown: Can the process type, whose steps are each either written in place or a reuse of a shared step with bindings, and which carry branches, be said in kb's schema language?
 - Needs: the seven bootstrap types, the base they all build on, and whatever shared shapes the process and feature types refer to (this scenario)
-- Status: planned
+- Status: green
 
 ## Slice 15: Make several changes at once from the command line
 
@@ -491,3 +491,16 @@ slices 2 onward, never ahead of them.
   Surprised by: nothing.
   Open questions: none. The review's rule-4 breaks that change behaviour (Init's answer and bootstrap's Create answers dropped, the `KB_ACTOR` and `KB_ROOT` tracebacks) stay with slices 22, 26 and 47.
   Next: slice 4.
+- 2026-09-26 slice 4 green. A user can now: start a knowledge base that holds decisions, features, work items, roles, processes, steps and tags on one base, defining nothing first.
+  Assumption "the process type, steps inline or reused with bindings and carrying branches, can be said in kb's schema language": held. Evidence:
+  ```text
+  process/p at steps/0: {'title': 'Neither'} is not valid under any of the given schemas
+  process/p at steps/1: {'title': 'Both', 'does': 'x', 'uses': 'step/check-the-stock'} is valid under each of {'required': ['uses']}, {'required': ['does']}
+  process/p at steps/3/with/0: 'value' is a required property
+  process/p at steps/2/uses: a link must land on a node of a kind the type allows; 'step/nothing' does not
+  exit 1
+  ```
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 5): a branch's go_to names a step of the same process as a plain string kb does not check; `go_to: nowhere` is stored. Refuse it client-side, or leave it?
+  Next: slice 15.

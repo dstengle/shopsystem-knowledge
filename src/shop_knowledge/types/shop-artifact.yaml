@@ -1,20 +1,19 @@
-title: Work item
+title: Shop artifact
 version: 1
 schema:
-  allOf:
-    - $ref: kb:schema/shop-artifact
   type: object
   properties:
-    title:
+    owner:
       type: string
-    decisions:
+    status:
+      type: string
+    tags:
       type: array
       items:
         type: string
       ref:
-        targets: [decision]
+        targets: [tag]
         cardinality: many
         parts: false
         on_delete: refuse
-  required: [title]
-  summary: [decisions]
+  summary: [tags]
