@@ -148,7 +148,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user applies a batch that records a decision and points a work item at it, and both are in the shop as one change in its history.
 - Unknown: What shape does a batch take in a file, given each change carries its own content and the set carries one actor and one message?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 16: Review the changes to one thing
 
@@ -504,3 +504,9 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 5): a branch's go_to names a step of the same process as a plain string kb does not check; `go_to: nowhere` is stored. Refuse it client-side, or leave it?
   Next: slice 15.
+- 2026-09-26 slice 15 green. A user can now: apply a batch file that records a decision and points a work item at it, as one change in the history under one role and one message.
+  Assumption "a batch is a file of changes, each with its own content, and the set's actor and message come from the command line like any other change": held. Evidence: `shop-knol apply` printed `batch: 20260926T234829614712Z-1`, `results:` decision/price-reviews-happen-weekly revision 1 and work-item/reprice-the-dairy-shelf revision 2; the Journal under that batch shows `create decision/price-reviews-happen-weekly` and `write work-item/reprice-the-dairy-shelf`, both with message "Review prices weekly, starting with dairy".
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 1): a batch file of the wrong shape (`changes:` holding `- delete: tag/pricing`, or no `changes:`) gives `KeyError: 'content'` / `KeyError: 'changes'` tracebacks. What is it told?
+  Next: slice 16.

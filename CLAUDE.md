@@ -11,6 +11,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | module | owns | never holds |
 |---|---|---|
 | `cli.py` | `shop-knol`: its arguments, one handler per command making the kb calls that command maps to, the actor and the client from the environment, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
+| `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts | the types themselves |
 | `types/*.yaml` | the shop's types, one file each, as schema artifacts in kb's schema language | code |
 | `__main__.py` | `python -m shop_knowledge` | anything else |

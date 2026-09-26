@@ -12,7 +12,7 @@ from kb import canonical, client as kb_client
 from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
-from shop_knowledge import bootstrap
+from shop_knowledge import batch, bootstrap
 
 
 class Refused(Exception):
@@ -53,6 +53,11 @@ def _parser() -> argparse.ArgumentParser:
         "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
     )
     validate.set_defaults(handler=_validate)
+
+    apply = commands.add_parser("apply", help="make every change in a batch file as one change; prints the set's name")
+    apply.add_argument("--from", dest="source", required=True, metavar="FILE")
+    apply.add_argument("-m", dest="message", required=True, help="why")
+    apply.set_defaults(handler=_apply)
     return parser
 
 
@@ -142,4 +147,16 @@ def _validate(args) -> int:
     response = _client().Validate(kb_pb2.ValidateRequest())
     if response.faults or response.violations:
         raise Refused([*response.faults, *response.violations])
+    return 0
+
+
+def _apply(args) -> int:
+    operations = batch.operations(_document(args.source))
+    response = _answered(_client().Apply(kb_pb2.ApplyRequest(
+        operations=operations, actor=_actor(), message=args.message,
+    )))
+    _show({
+        "batch": response.batch,
+        "results": [{"id": result.id, "revision": result.revision} for result in response.results],
+    })
     return 0
