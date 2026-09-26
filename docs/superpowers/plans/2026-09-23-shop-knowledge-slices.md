@@ -175,7 +175,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user publishes a process whose steps run past the harness's limits; the skill is refused for that reason and the directory stays empty.
 - Unknown: Which limits does the harness publish for a skill, and can the renderer check its output against them before writing anything?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 19: Publish a process as a diagram
 
@@ -552,3 +552,10 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 5): a branch whose go_to names no step is published as "go to nowhere."
   - The spec says a renderer reads "the resolved whole artifact, the stubs of its references, and its schema"; the skill renderer needs a whole read of each step it reuses as well. If the spec should keep that sentence, the request is for kb to fill in links inside items on a resolved read, a bump of the pin.
   Next: slice 18.
+- 2026-09-26 slice 18 green. A user can now: publish a process whose steps run past the 500 lines the harness publishes for a skill's body, and be refused for that reason with nothing written.
+  Assumption "the harness publishes limits a renderer can check before writing": held. Anthropic's Agent Skills documentation publishes name (64 characters; lowercase letters, numbers, hyphens; no XML tags; not "anthropic" or "claude"), description (non-empty, 1024 characters, no XML tags), and "Keep SKILL.md body under 500 lines". Evidence: the scenario's stderr was "process/count-every-shelf at steps: a skill's body is under 500 lines, the limit the harness publishes; this one is 801" with exit 1, and the target directory listing was [].
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC: the 500 lines is published "for optimal performance", not as a rejection; the spec's "fail rather than emit" treats it as a limit.
+  - QUESTION FOR THE SPEC (Review Focus 3): the name and description limits have no scenario, so a process titled "Ask Claude first" publishes `ask-claude-first/SKILL.md`.
+  Next: slice 19.

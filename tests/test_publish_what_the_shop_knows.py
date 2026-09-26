@@ -98,3 +98,24 @@ def _a_skill(result, target):
 @then("the shop's knowledge base is unchanged")
 def _unchanged(shop, before):
     assert _everything_under(shop / "kb") == before
+
+
+@given("a process whose steps run past the limits the harness publishes", target_fixture="process_name")
+def _a_process_past_the_limits(env, tmp_path):
+    """Two hundred steps written out at four lines each is past the five hundred lines a skill's body may run to."""
+    steps = [{"title": f"Count shelf {number}", "does": f"Count what is on shelf {number}.\n"} for number in range(1, 201)]
+    return record(env, tmp_path, "process", {"title": "Count every shelf", "steps": steps}, "Describe the stocktake")
+
+
+@then("the skill is rejected because it goes beyond the limits the harness publishes")
+def _rejected_for_the_limits(result):
+    assert result.stderr.splitlines() == [
+        "process/count-every-shelf at steps: a skill's body is under 500 lines, the limit the harness publishes; "
+        "this one is 801",
+    ]
+    assert result.returncode != 0
+
+
+@then("nothing is written to the directory")
+def _nothing_written(target):
+    assert list(target.iterdir()) == []

@@ -4,6 +4,7 @@ each branch saying which step it goes to."""
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
+from shop_knowledge.renderers import limits
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
@@ -21,7 +22,11 @@ def render(client, name: str) -> Rendered:
 
 
 def _skill(process: kb_pb2.ReadResponse, written: str) -> Rendered:
-    """SKILL.md in a directory of the skill's name, the process's name without its kind."""
+    """SKILL.md in a directory of the skill's name, the process's name without its kind, or refused if the harness would
+    reject it."""
+    faults = limits.skill(process.id, written)
+    if faults:
+        return refused(faults)
     slug = process.id.split("/", 1)[1]
     heading = dumps({"name": slug, "description": process.title})
     return Rendered({f"{slug}/SKILL.md": f"---\n{heading}---\n\n{written}"}, [])
