@@ -25,7 +25,10 @@ Then the tag. Then slices 2 to 20, which each settle one
 unknown, ordered by the size of it. Then the slices with no unknown:
 scenarios that share a feature and step definitions bundle into one slice,
 and the slices are ordered by value, kb's slice ahead of the shop-knowledge
-slice that needs it.
+slice that needs it. An architecture review is an enabling slice cut after
+every six implemented slices, counting enabling slices and the refactors a
+review cuts, with the refactors it calls for placed as dotted slices right
+after it.
 
 The order of the sections in this file is the order of the work, and the
 numbers read in that order. A slice placed after the plan was cut takes
@@ -93,6 +96,15 @@ pins it. The "After slice 1" step of the skeleton implementation plan ran at
 this point in the order. Every later finding is placed by its unknown among
 slices 2 onward, never ahead of them.
 
+## Slice 1.29: First architecture review
+
+- Kind: enabling
+- Check: this repository's `CLAUDE.md` states the module map, the rules and the size limits its code keeps; an Opus review of the code and the step definitions against it, after slices 0, 1, 1.17, 1.24, 1.27 and 1.28, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Observable: Anyone can read how shop-knowledge's code is meant to be shaped, which of those rules the code keeps and which it breaks, and which slice brings each broken one into place, before the command line grows from four commands to fourteen.
+- Unknown: none
+- Needs: a `CLAUDE.md` for this repository, which it does not have: the review has nothing to hold the code to without one (the check)
+- Status: planned
+
 ## Slice 4: The shop's seven types
 
 - Kind: capability
@@ -144,6 +156,15 @@ slices 2 onward, never ahead of them.
 - Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a process as a diagram
 - Observable: A user publishes a process into a directory and finds a diagram of its steps and their branches.
 - Unknown: Do steps and branches carry enough structure to draw the diagram without hand layout?
+- Needs: none
+- Status: planned
+
+## Slice 19.1: Second architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 1.29, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Observable: Anyone can read whether the shop's types, the batch file, the history and the first two renderers kept the code in the shape CLAUDE.md sets.
+- Unknown: none
 - Needs: none
 - Status: planned
 
@@ -201,6 +222,15 @@ slices 2 onward, never ahead of them.
 - Needs: none
 - Status: planned
 
+## Slice 30.1: Third architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 19.1, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Observable: Anyone can read whether the read, revise, record and list commands kept the code in the shape CLAUDE.md sets.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Slice 32: Follow the links from the command line
 
 - Kind: capability
@@ -251,6 +281,15 @@ slices 2 onward, never ahead of them.
 - Kind: capability
 - Scenarios: shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something nothing points at; shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something that is still pointed at
 - Observable: A user retires a tag nothing points at and the shop no longer holds it, or retires a tag a decision carries and is refused, seeing everything that points at it.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 42.1: Fourth architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 30.1, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Observable: Anyone can read whether the links, search, history, snapshot, append and retire commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -405,3 +444,9 @@ slices 2 onward, never ahead of them.
 - 2026-09-24 Split: kb 0.1 is tagged `v0.1.0` and this repository pins it (commit 90b90ee), so the kb-only slices moved to kb's own plan, `shopsystem-kb/docs/superpowers/plans/2026-09-24-kb-slices.md`, with their numbers, tags, status, and log entries: slices 1.1 to 1.16, 1.18 to 1.23, 1.25, 1.26, 2, 3, 5 to 14, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 46, and 51. Their checkpoint entries and the log entries about them alone went with them; entries about both repositories stay here and are copied there. Left here: slice 0, which checks both checkouts, and slice 1, which mixes kb and shop-knowledge scenarios; kb's plan notes it waits on them. Nothing renumbered, retagged, or re-cut.
 - 2026-09-24 From here each repository plans alone. A kb change this repository needs is a request to bump the pin, not a slice here that touches kb: the shop-knowledge slice stands on a kb slice in kb's plan (kb slice 21 for slice 22, kb slice 23 for slice 24, and so on, kb's slice ahead of the one here as before), and waits until kb has released it under a new tag and this repository pins that tag. A shop scenario kb cannot meet at all goes to kb as a question for its spec.
 - 2026-09-24 Next: slice 4. Its process and feature types stand on kb slices 2 and 3, a shape shared between types and a type built on a base, so it waits on kb releasing them and this repository bumping the pin.
+- 2026-09-26 Suite: 7 passed, 55 failed. Run in this checkout's virtualenv with kb v0.2.0 installed from its tag (`pip show shopsystem-kb` 0.2.0, commit 70d1e88). The 7 are slices 1, 1.17, 1.24, 1.27 and 1.28; every failure is tagged 4 or later.
+- 2026-09-26 Re-check against kb v0.2.0. Its contract carries every rpc (Init, Create, Read, Write, Append, Delete, Apply, List, Refs, Search, Journal, Snapshot, Validate), and every kb slice this plan's log names is green in kb's plan: kb 2, 3 and 71 (a shared shape, a base, a base carried in full) for slice 4 and slice 49; kb 5, 6, 7, 51 and 85 (a set as one named change, all or nothing, every fault) for slices 15 and 48; kb 9, 35 and 91 (the history and its filters) for slices 16 and 36; kb 21, 72 and 88 (the resolved read, a link into a part) for slices 17 to 20, 22 and 50; kb 1.3, 1.8 and 94 (finding the store) for slice 22; kb 13, 23 and 90.1 (a whole or a placed write) for slice 24; kb 25, 1.6 and 8.1 (create's refusals, a title already used) for slices 26 and 28; kb 29 for 30; kb 11, 31 and 89 (links in, out, narrowed, two steps with the route) for 32; kb 10 and 33 for 34; kb 37 and 93 for 38; kb 39, 77 and 83.2 for 40; kb 41 and 87 for 42; kb 43 and 81 for 44; kb 1.10, 45 and 94 for 47. The one kb slice not green, 89.2 (links out of one place inside an artifact), is needed by no scenario here. No slice here waits on kb, and none needs a kb change: no request to bump the pin.
+- 2026-09-26 What kb v0.2.0 leaves to shop-knol, found in the re-check and changing no slice: kb's Create takes an empty role and an empty message without refusing them, so slice 26's two refusals (nobody, no reason) are shop-knol's own, made before any call; kb stamps the history from its own clock with no clock on the contract, and shop-knol runs as a process of its own, so slice 16's unknown, how step definitions set the day, is settled on this side of the contract or comes back as a request to bump the pin. Slice 16's unknown stands as written.
+- 2026-09-26 Order kept. Slice 4 first (the schema language may not say the process type, which could only be answered by a kb release), then 15 to 20 by the size of their unknowns, then the slices with none, by value. v0.2.0 settles none of these unknowns, which are all on this side of the contract, and spends none, so nothing bundles or moves.
+- 2026-09-26 Architecture reviews cut, all enabling, none with scenarios, so no feature file changes and no tag moves. Slice 1.29, the first: six slices are implemented here (0, 1, 1.17, 1.24, 1.27, 1.28) and none has been reviewed, and this repository has no `CLAUDE.md` yet, which that slice writes; it is dotted under 1 after 1.28 so no number moves, and a refactor it calls for takes 1.30 onward, ahead of slice 4. Then after every six implemented slices, counting refactors as kb's plan does: 19.1 after 4 to 19, 30.1 after 20 to 30, 42.1 after 32 to 42. Slices 44 to 50 are five, so none follows them. If a review cuts refactors, or a slice turns out green on an earlier slice's work, the reviews after it are recounted and moved.
+- 2026-09-26 Next: writing-plans over slices 1.29, 4, 15, 16, 17 and 18, one task per slice in that order, to `2026-09-26-shop-knowledge-batch1-implementation.md`. Slice 1.29's task writes `CLAUDE.md` and runs the review; if the review calls for any refactor, the batch stops there, the refactors are cut as 1.30 onward, and the remaining tasks are re-planned over the new shape.
