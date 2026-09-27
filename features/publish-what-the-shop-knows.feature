@@ -81,7 +81,7 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a field group holding a list of mappings, one mapping's last value an empty value |
       | process | steps that each say more than one thing, the name of one of those things holding the character that separates table cells |
 
-  @slice-50.21
+  @slice-50.17
   Scenario: Publishing into a directory given an empty name is refused
     Pins that an empty target is never taken to mean "here", so publishing never scatters files into wherever the user happens to be working.
     When the user publishes the role as markdown into a directory whose name is given empty

@@ -663,13 +663,22 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the stand-in, the test isolation and the tidies left the suite knowing kb only through what kb publishes.
 - Unknown: none
 - Needs: none
+- Status: green
+
+## Slice 50.16.8: The code makes room for batch 13, and batch 12's minors are tidied
+
+- Kind: enabling
+- Check: the eighth review's R-A to R-E, each check as it states them (`.superpowers/batch13/arch-review-50.16.7.md` section 4): the shop's history by batch read through `driver.kb_answer` (`grep -rln "kb.client" tests` -> only `tests/driver.py` and `tests/stand_in/sitecustomize.py`); the shared steps batch 13 needs defined once in `tests/conftest.py`; the start and publish features' refusal steps in sibling modules (`find tests -name "*.py" -exec wc -l {} + | awk '$2 != "total" && $1 > 210'` -> nothing); `cli.py` at most 215 lines with the concern it gives up in a module of its own and a CLAUDE.md row; the batch 12 minors (a) to (f); `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`, the same 21; `git diff --stat -- features src/shop_knowledge/types` -> empty
+- Observable: A reader finds room in every module batch 13 adds to, each step shared by two features defined once, and nothing in the steps reaching kb outside the driver.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Slice 50.17: A name given empty is refused, starting a knowledge base first
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base in a directory given an empty name is refused
-- Observable: A user who gives `init` an empty directory name is refused, told it names no place, and finds nothing started where they work.
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base in a directory given an empty name is refused; shop-knowledge / record-a-decision / Recording from a file given an empty name is refused; shop-knowledge / read-back-what-the-shop-knows / Reading something given an empty name is refused; shop-knowledge / publish-what-the-shop-knows / Publishing into a directory given an empty name is refused (slices 50.19 to 50.21 merged here: one rule, implemented once)
+- Observable: A user who gives an empty name for a directory, a file or an artifact, to `init`, `create --from`, `read` or `render --to`, is refused, told it names no place, and finds nothing started, recorded or written.
 - Unknown: whether an empty name can be refused for every argument that names a place, the one way every argument refusal is (adrs/0023), with each argument's meaning still declared once (adrs/0032)
 - Needs: none
 - Status: planned
@@ -706,33 +715,6 @@ slices 2 onward, never ahead of them.
 - Kind: capability
 - Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / Checking where the shop's knowledge cannot be found is refused (all three rows)
 - Observable: A user checking where no single knowledge base can be found is refused as every command is, and shown no check's answer; the behaviour 0c7d199 restored, now held by the suite.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 50.19: Recording from a file given an empty name is refused
-
-- Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / Recording from a file given an empty name is refused
-- Observable: A user recording from a file named with nothing is refused as naming no place, and the shop is unchanged.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 50.20: Reading something given an empty name is refused
-
-- Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / Reading something given an empty name is refused
-- Observable: A user reading an artifact named with nothing is refused as naming no place.
-- Unknown: none
-- Needs: none
-- Status: planned
-
-## Slice 50.21: Publishing into a directory given an empty name is refused
-
-- Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Publishing into a directory given an empty name is refused
-- Observable: A user publishing into a directory named with nothing is refused as naming no place, and nothing is written where they work.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -1559,4 +1541,6 @@ slices 2 onward, never ahead of them.
   Next: push.
 - 2026-09-27 Whole-branch review of batch 12 (Fable 5.1, `feeef37..ce1dec0`): suite `80 passed, 21 failed`, the same 21; kb imports only `kb.client`, `kb.content`, `kb.contract` (and `kb.canonical` in `cli.py` until 50.23); `kb.journal` only in `tests/clock`; no step names kb's storage or spells its wording (51 message fragments searched); the stand-in transparent when told nothing (loaded into 486 processes, the same 21); the installed kb identical to v0.2.1. Ready with one fix, landed in 9091103 and re-reviewed clean: scenarios inherited the developer's whole shell, and a shell `GIT_DIR` made a scenario commit its knowledge base into that repository while the suite passed; the scenario environment is now an allowlist with `HOME` inside `tmp_path`. Folded in: the stand-in keeps kb's real violations and returns the real answer when it carries faults; CLAUDE.md states the 50.16.2-4 rules; 50.23's import grep catches indented imports. The same leak lives in kb itself (its git calls inherit `GIT_*`), logged there as a request and fixed as kb's slice 102.6.1. Routed: `kb_answer` cannot reproduce a removed working directory (50.18, 50.22); "naming the file" Thens now name the artifact (adrs/0047; formulation if the wording should say so). Deferred: the stand-in's `_response` keeps two unused parameters; `_asks`' exact-match docstring; protobuf used directly but undeclared in `pyproject.toml`; cosmetic step tidies.
   Next: slice 50.16.7, the eighth architecture review, before batch 13.
+- 2026-09-27 Slice 50.16.7, eighth architecture review (Opus), report at `.superpowers/batch13/arch-review-50.16.7.md` (scratch). Suite `80 passed, 21 failed`; size check clean. Rules and module map met, the known exceptions until 50.23 aside, but for: `test_make_several_changes_at_once.py` reading the history by batch in-process outside `driver.kb_answer` and the allowlisted environment (R-A); steps batch 13's scenarios share with another feature defined in one feature's module (R-B); the start and publish test modules at 237 and 230 lines, and `cli.py` at 237, which batch 13 would take past 250 (R-C, R-D); batch 12's deferred minors (R-E: `_response`'s unused parameters, `_asks`' docstring, protobuf undeclared, three cosmetic tidies). The spec's CLI section names `kb/store.yaml`, answered by adrs/0047, left as spec text.
+- 2026-09-27 Re-slice, at the user's question whether slices are too fine: R-A to R-E are one enabling slice, 50.16.8, done in one dispatch; slices 50.19 to 50.21 (the empty-name rule for record, read and publish) merge into 50.17, since they are one rule implemented once and carried no unknown of their own, their tags moving to `@slice-50.17`. Batch 13 is then six slices, 50.16.8, 50.17, 50.18, 50.18.1, 50.18.2, 50.18.3, so the ninth review falls after it, not inside it; four dispatches: 50.16.8; 50.17; 50.18 with 50.18.1; 50.18.2 with 50.18.3.
 

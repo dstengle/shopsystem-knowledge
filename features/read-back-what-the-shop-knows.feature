@@ -109,7 +109,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
 
-  @slice-50.20
+  @slice-50.17
   Scenario: Reading something given an empty name is refused
     Pins that asking for nothing by name is refused as naming no artifact, rather than answered as if some artifact were meant.
     When the user reads an artifact whose name is given empty
