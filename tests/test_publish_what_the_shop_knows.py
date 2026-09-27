@@ -47,6 +47,12 @@ def _everything_under(directory):
 
 
 @pytest.fixture
+def role_content():
+    """The Background role's content, for a step that must change it without importing ROLE (Task 1, decision 2)."""
+    return ROLE
+
+
+@pytest.fixture
 def target(tmp_path):
     """The directory the user publishes into, there and empty before they do."""
     target = tmp_path / "published"
