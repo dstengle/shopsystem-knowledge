@@ -98,7 +98,7 @@ def _answered(response, also=()):
 
 
 def _init(args) -> int:
-    client = kb_client.connect(Path(args.root))
+    client = kb_client.connect(args.root)
     _answered(client.Init(kb_requests.init_request(args)))
     for answer in bootstrap.load(client, args.by["actor"]):
         _answered(answer)
@@ -218,16 +218,16 @@ def _write(files: dict[str, str], directory: Path) -> None:
 _HANDLERS = {
     "init": _init,
     "create": _create,
-    "append": _append,
-    "delete": _delete,
     "read": _read,
     "write": _write_artifact,
+    "append": _append,
     "validate": _validate,
     "apply": _apply,
     "journal": _journal,
     "list": _list,
     "refs": _refs,
     "search": _search,
-    "snapshot": _snapshot,
     "render": _render,
+    "delete": _delete,
+    "snapshot": _snapshot,
 }

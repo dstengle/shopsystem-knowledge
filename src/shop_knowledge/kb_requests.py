@@ -1,8 +1,6 @@
 """Each command's arguments turned into the request it sends kb: one public function per command that calls kb,
-named `<command>_request`, and two helpers `cli._read` uses, `locator` and `is_whole`. The actor and message are read from `args.by`, set by the command line's `_run`; a
+named `<command>_request`, and `is_whole`, the one helper `cli._read` uses. The actor and message are read from `args.by`, set by the command line's `_run`; a
 command that sends a file's content takes the document that was read. Nothing here shows anything or makes a call."""
-from pathlib import Path
-
 from kb.content import dumps, text
 from kb.contract import kb_pb2
 
@@ -10,7 +8,7 @@ from shop_knowledge import batch
 
 
 def init_request(args) -> kb_pb2.InitRequest:
-    return kb_pb2.InitRequest(root=str(Path(args.root)), actor=args.by["actor"])
+    return kb_pb2.InitRequest(root=str(args.root), actor=args.by["actor"])
 
 
 def create_request(args, document: dict) -> kb_pb2.CreateRequest:
@@ -21,18 +19,18 @@ def create_request(args, document: dict) -> kb_pb2.CreateRequest:
 
 
 def write_request(args, document: dict) -> kb_pb2.WriteRequest:
-    return kb_pb2.WriteRequest(locator=locator(args.locator), content=dumps(document), **args.by)
+    return kb_pb2.WriteRequest(locator=_locator(args.locator), content=dumps(document), **args.by)
 
 
 def append_request(args, document: dict) -> kb_pb2.AppendRequest:
-    return kb_pb2.AppendRequest(locator=locator(args.locator), content=dumps(document), **args.by)
+    return kb_pb2.AppendRequest(locator=_locator(args.locator), content=dumps(document), **args.by)
 
 
 def delete_request(args) -> kb_pb2.DeleteRequest:
-    return kb_pb2.DeleteRequest(locator=locator(args.locator), **args.by)
+    return kb_pb2.DeleteRequest(locator=_locator(args.locator), **args.by)
 
 
-def locator(words: str) -> kb_pb2.Locator:
+def _locator(words: str) -> kb_pb2.Locator:
     """A locator as the user says it: a name, or a name and after # a place inside it."""
     name, _, place = words.partition("#")
     return kb_pb2.Locator(id=name, path=place)
@@ -76,14 +74,14 @@ def list_request(args) -> kb_pb2.ListRequest:
 def refs_request(args) -> kb_pb2.RefsRequest:
     direction = kb_pb2.RefsRequest.IN if args.inbound else kb_pb2.RefsRequest.OUT
     return kb_pb2.RefsRequest(
-        locator=locator(args.locator), depth=1 if args.depth is None else args.depth, direction=direction,
-        via=args.via or "", type=args.type or "",
+        locator=_locator(args.locator), depth=args.depth, direction=direction,
+        via=args.via, type=args.type,
     )
 
 
 def search_request(args) -> kb_pb2.SearchRequest:
     scope = getattr(kb_pb2.SearchRequest, args.scope.upper())
-    return kb_pb2.SearchRequest(text=args.text, type=args.type or "", scope=scope)
+    return kb_pb2.SearchRequest(text=args.text, type=args.type, scope=scope)
 
 
 def snapshot_request(args) -> kb_pb2.SnapshotRequest:

@@ -465,7 +465,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds each argument's type and default where the argument is declared, the handler table in the order the help lists the commands, and the request module naming only the helper the command line uses, so no default is patched in a second place.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.2: Fifth architecture review
 
@@ -983,3 +983,7 @@ slices 2 onward, never ahead of them.
   Evidence: `shop-knol render agent role/stock-keeper --to out`, exit 0, writes `.claude/agents/stock-keeper.md`: `---`, `name: stock-keeper`, `description: Keeps the shelves stocked.`, `tools:`, `  - Read`, `---`, blank, `# How it works`, blank, `Counts, then orders.`. Checks: baseline `failing-50.txt` 1 line; `-m slice-50` 1 failed on its When before, then on `invalid choice: 'agent' (choose from 'diagram', 'markdown', 'skill')`, then 1 passed; `-m "slice-17 or slice-18 or slice-19 or slice-20"` 4 passed (after the section layout moved to `renderers/sections.py`); `make test` 62 passed, make ends cleanly; GREEN plus slices 44, 47, 48, 49 and 50 62 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 233 (unchanged); arguments snapshot TAG=50 differs from help-now only by `agent` in render's usage and choices.
   Surprised by: nothing; the shared layout needed the module adrs/0033 names.
   Open questions: QUESTION FOR THE SPEC (Review Focus 3): a non-role published as an agent. Reproduction: `shop-knol render agent tag/pricing --to o` exits 0 and writes `.claude/agents/pricing.md` holding `---`, `{}`, `---`; a user would expect a refusal naming the type. QUESTION FOR THE SPEC (Review Focus 4): the agent's `tools` is written as a YAML list (`tools:` then `  - Read`); whether the harness takes a list or wants a comma-separated string is not observed by the suite, and no harness limit on an agent is checked. Reproduction: publish the Background's role and read the heading block. Next: slice 50.1.
+- 2026-09-27 slice 50.1 green. Someone can now: find each argument's type and default where it is declared, the handler table in the help's order, and in the request module only the helper the command line uses.
+  Check: baseline `failing-50.1.txt` 0 lines, greps `4` and `1`, order assertion `AssertionError`, `def locator` 1, all before; after, `make test` 62 passed; `grep -cE 'or ""|is None|Path\(' kb_requests.py` 0; `grep -c "Path(args.root)" cli.py` 0; order assertion succeeds; `grep -c "def locator"` 0 (now `_locator`); docstring and CLAUDE.md row name `is_whole` alone; arguments snapshot TAG=50.1 no diff against 50.1-before; shape check `2 7 1 0`, nothing listed, `cli.py` 233.
+  Surprised by: nothing; adrs/0032 already held the decisions.
+  Open questions: none. Next: slice 50.2, the fifth architecture review, which runs after this batch's final review and before any further plan (adrs/0011).

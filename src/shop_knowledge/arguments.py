@@ -1,6 +1,7 @@
 """The arguments of every shop-knol command, declared with argparse; it knows what a command is called and takes, not what it does.
 An argument it cannot take is refused by raising `ArgumentRefused`, never printed."""
 import argparse
+from pathlib import Path
 
 from shop_knowledge.renderers import RENDERERS
 
@@ -29,7 +30,7 @@ def command_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
-    init.add_argument("root")
+    init.add_argument("root", type=Path)
 
     create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
     create.add_argument("type")
@@ -83,13 +84,13 @@ def command_parser() -> argparse.ArgumentParser:
     direction = refs.add_mutually_exclusive_group(required=True)
     direction.add_argument("--outbound", action="store_true", help="what the artifact points at")
     direction.add_argument("--inbound", action="store_true", help="what points at the artifact")
-    refs.add_argument("--via", metavar="FIELD", help="only through this link")
-    refs.add_argument("--type", help="only the artifacts of this type")
-    refs.add_argument("--depth", type=int, help="how many steps to follow (one when not said)")
+    refs.add_argument("--via", default="", metavar="FIELD", help="only through this link")
+    refs.add_argument("--type", default="", help="only the artifacts of this type")
+    refs.add_argument("--depth", type=int, default=1, help="how many steps to follow (one when not said)")
 
     search = commands.add_parser("search", help="find what the shop knows by the words in it, the one holding them most often first")
     search.add_argument("text")
-    search.add_argument("--type", help="only the artifacts of this type")
+    search.add_argument("--type", default="", help="only the artifacts of this type")
     search.add_argument(
         "--in", dest="scope", choices=SCOPES, default="sections",
         help="where to look: the prose (sections), the fields, or all (sections when not said)",
