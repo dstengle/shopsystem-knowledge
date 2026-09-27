@@ -501,7 +501,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds the publish feature's markdown steps in a module of their own beside its test module, so the markdown and agent steps slices 50.6 and 50.7 add keep every module under 250 lines.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.6: Markdown lays out each kind of value as markdown
 
@@ -1104,3 +1104,7 @@ slices 2 onward, never ahead of them.
   Decisions: adrs/0040 (an agent is held to the name limits the harness publishes), 0041 (lists, tables and what sits inside them on a markdown page), 0042 (init starts in the absolute working directory, never reads `KB_ROOT`, and the suite starts it that way).
   Next: writing-plans over slices 50.5 to 50.9, one task per slice in that order, to `2026-09-27-shop-knowledge-batch9-implementation.md`.
 - 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch9-implementation.md`, five tasks for slices 50.5 to 50.9 in slice order. Written under adrs/0011: no code, nothing built or replayed. Each task says why it is red today from this checkout's run (56 passed, 10 failed, every one on a missing step definition) and from probes of `init`, `render markdown` and `render agent`. Expected counts from the tags: `-m slice-50.6` 2, `-m slice-50.7` 1, `-m "slice-4 or slice-47 or slice-50.8"` 7; 56/10 after 50.5, 58/8 after 50.6, 59/7 after 50.7, 66/0 after 50.8. Decisions in adrs/0040, 0041 and 0042. No request to bump the pin. Its Review Focus holds five probes: a pipe in a table cell, other types' lists and an empty list on a markdown page, a name breaking one agent limit, `init` beside a `KB_ROOT` naming elsewhere, and `init ""` (still a QUESTION FOR THE SPEC). Next: slice 50.5.
+- 2026-09-27 slice 50.5 green.
+  Check: `pytest -q -rf | grep ^FAILED | sort` diffs empty against the baseline and gives `56 passed, 10 failed`; `--collect-only -q tests/test_publish_what_the_shop_knows.py | grep -c ::` gives `8`; the size check lists nothing; `grep -l "import \*" tests/*.py` lists exactly `tests/test_publish_what_the_shop_knows.py`, `tests/test_read_back_what_the_shop_knows.py` and `tests/test_start_a_shop_knowledge_base.py`; `git diff --stat -- src features` is empty. Lines after: `test_publish_what_the_shop_knows.py` 166, `publish_as_markdown.py` 33.
+  Surprised by: nothing; the two moved steps needed only `knol` from the driver, as decision 2 expected, and the split left the test module well under the limit with room for slices 50.6 and 50.7's ~60 lines.
+  Next: slice 50.6.
