@@ -27,8 +27,10 @@ scenarios that share a feature and step definitions bundle into one slice,
 and the slices are ordered by value, kb's slice ahead of the shop-knowledge
 slice that needs it. An architecture review is an enabling slice cut after
 every six implemented slices, counting enabling slices and the refactors a
-review cuts, with the refactors it calls for placed as dotted slices right
-after it.
+review cuts. The first review's refactors were placed as dotted slices right
+after it; from the second on, each refactor a review calls for is placed by
+its risk among the slices not yet begun, like any finding, and precedes a
+slice only if that slice needs it.
 
 The order of the sections in this file is the order of the work, and the
 numbers read in that order. A slice placed after the plan was cut takes
@@ -193,6 +195,15 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the shop's types, the batch file, the history and the first two renderers kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
+- Status: green
+
+## Slice 19.2: A renderer offers only its render, and every renderer reads what it publishes one way
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same 49 failing scenarios as before the slice (49 failed, 13 passed); `grep -nE "^def [a-z]" src/shop_knowledge/renderers/skill.py src/shop_knowledge/renderers/diagram.py` -> the two `render` lines and nothing else; `grep -rl "ReadRequest.WHOLE" src/shop_knowledge/renderers` -> one module; `grep -rc 'split("/", 1)' src/shop_knowledge | grep -v ":0"` -> one line, a count of 1
+- Observable: The markdown renderer of slice 20 and the agent renderer of slice 50 read the artifact they publish, and name it without its kind, the one way the skill and diagram renderers do, and a renderer's module shows the command line only the function it calls.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Slice 20: Publish anything as markdown
@@ -201,6 +212,24 @@ slices 2 onward, never ahead of them.
 - Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes anything as markdown
 - Observable: A user publishes a role into a directory and finds a page with its identity as a heading, its fields as a list, its sections at their levels, and its parts as tables.
 - Unknown: Can the page be laid out from the type alone, so the renderer knows nothing about any one type?
+- Needs: none
+- Status: planned
+
+## Slice 20.1: No file or directory a user names ends in a traceback
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same 48 failing scenarios as before the slice (48 failed, 14 passed); and each of these, run in a started knowledge base, prints exactly one line on stderr with no `Traceback`, nothing on stdout, and exits 1: `apply` of a batch whose change names no content (`changes: [{delete: tag/pricing}]`), of one with no `changes`, of one whose `changes` is not a list, and of a file that is a list; `create` from a file that is a list, from a path that is not there, from a directory, and from a file that is not text; `render skill` and `render diagram` with `--to` naming a file; `create` of a kind naming no type, whose line begins with no colon
+- Observable: A user who names a file or a directory shop-knol cannot use, or gives a file of the wrong shape, is told so in one plain line naming it, never a traceback, for every command that takes one, so CLAUDE.md's rule 4 holds by construction rather than scenario by scenario.
+- Unknown: Can the shape of every file a user gives be checked where it is read, in the words kb uses for a violation, with the shapes held as data as the shop's types are?
+- Needs: none
+- Status: planned
+
+## Slice 20.2: What the user is shown is shaped apart from the command line
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same 48 failing scenarios as before the slice (48 failed, 14 passed); `grep -cE "def _glance|def _change" src/shop_knowledge/cli.py` -> 0; `wc -l < src/shop_knowledge/cli.py` -> under 200; the module that now shapes answers holds no `print`, no `Request` and no `connect`
+- Observable: The command line stays under the 250-line limit through slices 22 to 30, which add the whole, section and filled-in reads, JSON, revising, piping and listing, because turning each kb answer into what the user is shown sits in a module of its own.
+- Unknown: none
 - Needs: none
 - Status: planned
 
@@ -252,7 +281,7 @@ slices 2 onward, never ahead of them.
 ## Slice 30.1: Third architecture review
 
 - Kind: enabling
-- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 19.1, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the nine implemented slices since slice 19.1 (19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30), is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
 - Observable: Anyone can read whether the read, revise, record and list commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
@@ -321,6 +350,15 @@ slices 2 onward, never ahead of them.
 - Needs: none
 - Status: planned
 
+## Slice 42.2: The check's answer is refused the one way every kb answer is
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice; `.venv/bin/python -c "import inspect,shop_knowledge.cli as c; assert 'Refused' not in inspect.getsource(c._validate)"` succeeds; `CLAUDE.md` names one place a kb answer's faults are not refused through `_answered` directly, a renderer's, and not Validate's
+- Observable: The check command's faults and violations are refused through the one refusal of kb answers, so slice 44, which extends the check, adds to that path rather than to a second one.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Slice 44: Check the shop's knowledge is sound
 
 - Kind: capability
@@ -336,7 +374,7 @@ slices 2 onward, never ahead of them.
 - Scenarios: shop-knowledge / start-a-shop-knowledge-base / The shop's knowledge sits in a place of its own inside the directory it was started in; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base where the directory already holds one is refused; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base inside one the shop already has is refused; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base asks for no reason; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base without saying who is refused
 - Observable: A user starts a shop knowledge base in a directory holding other work of the shop's and finds the knowledge kept in a place of its own inside it, with that work left as it was; starting one where the directory already holds the shop's knowledge, or in a directory inside it, is refused for that reason with everything the shop already knows unchanged; starting one saying who but giving no reason succeeds with everything it was given recorded in the shop's history under a reason the command writes itself, and starting one without saying who is refused for that reason, the directory holding no knowledge base and the command reporting failure.
 - Unknown: none
-- Needs: none
+- Needs: Init's answer and bootstrap's Create answers, both dropped today, refused the one way every kb answer is (the two refusals of starting where a knowledge base already is)
 - Status: planned
 
 ## Slice 48: One bad change in a batch leaves the shop untouched
@@ -571,3 +609,15 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 4): `render diagram --to` a path that is a file gives a `FileExistsError` traceback.
   - QUESTION FOR THE SPEC (Review Focus 5): no Mermaid tool is installed here, so the bet's "needs manual arrangement to be readable" is judged by a person opening the file, not by the suite.
   Next: slice 19.1.
+- 2026-09-27 Suite: 13 passed, 49 failed. Run in this checkout's virtualenv (kb v0.2.0 from its tag) before the review; the 13 are slices 1, 1.17, 1.24, 1.27, 1.28, 4, 15, 16, 17, 18 and 19, and every failure is tagged 20 or later.
+- 2026-09-27 Second architecture review of shop-knowledge (slice 19.1), on Opus against `CLAUDE.md`, over the code under `src/` and the step definitions after slices 1.30, 1.31, 1.32, 4, 15, 16, 17, 18 and 19. It took first what the batch 2 and 3 reviews left.
+  Kept: rule 1 (`src/` imports from kb only `kb.client`, `kb.contract`, `kb.content` and `kb.canonical` for `NotCanonical`), rule 2, rule 3 (no other YAML library), rule 5 (only the two process renderers know a process's fields; `bootstrap` knows the types' names and nothing else), rule 6 (neither renderer prints, raises, opens or writes); no module over 250 lines (`cli.py` 208, the largest); a user's file read only in `cli._document`; every kb answer but two refused through `cli._answered`, and every refusal printed by `main` alone; the module map, a row for each module; every When that runs shop-knol gives `result`, the shared Thens live in `tests/conftest.py`, each step that reads a knowledge base's files or calls kb in process says why, and `tests/clock/` reaches shop-knol only through `driver.at`.
+  Broken, and the refactor each calls for:
+  - Rule 4 (one way to refuse, never a traceback), for input no scenario lists. Every one of these exits 1 with a traceback today, reproduced in a started knowledge base: a batch file whose change names no content (`KeyError: 'content'`), with no `changes` (`KeyError: 'changes'`), whose `changes` is not a list, or that is a list (`TypeError`); `create --from` a file that is a list (`TypeError: pop expected at most 1 argument`), a path not there (`FileNotFoundError`), or a directory (`IsADirectoryError`); `render skill --to` a file (`NotADirectoryError`) and `render diagram --to` a file (`FileExistsError`). Two more break "one line each": a file that is not text prints kb's message over two lines, and a fault naming no artifact (`create nosuch`) prints with a leading colon. These are one class, not nine questions: nothing checks the shape of a file a user gives before its entries are indexed, and nothing turns an operating system's refusal of a path into a fault. Slice 20.1 makes the class unreachable with the rule implemented once: each file a user gives is checked, where `_document` reads it, against a shape held as data as the types are, its violations worded as kb words a type's; `main` turns an operating system's refusal of a path into a fault naming it, as it turns `Refused`; and the one printer prints each fault as one line, the place omitted when the fault names none. It answers the QUESTION FOR THE SPEC lines logged at slices 1.29 (`--from` a missing file or a directory; a file that is YAML but not a mapping; a fault on two lines; a leading colon), 15 (a batch file of the wrong shape), 17 and 19 (`--to` a file). The spec already says "shop-knol never shows a traceback" and CLAUDE.md's rule 4 says it too, so no scenario is needed and none is added. What "behaviour does not change" means for that slice, my call as the user is away: every scenario gives the same answer, and every stdout and exit status is as it was; the only change is that a traceback both documents forbid becomes one plain line. A catch-all turning any exception into a line was weighed and not taken: its words would be Python's (`'content'`), and it would hide a defect as a refusal.
+  - The two refusals that bypass `_answered`. Validate's answer is raised as `Refused` in `_validate` over its faults and violations; slice 42.2 refuses it through `_answered`, placed by its risk, nil, right before slice 44, the next slice to touch the check. Init's answer, and each Create answer bootstrap makes, is dropped rather than refused; refusing them changes what `init` exits with where a knowledge base already is, which is slice 47's scenarios, so no refactor is cut and slice 47's Needs line now carries it.
+  - `renderers/skill.py`'s `body` and `renderers/diagram.py`'s `flowchart` are public and used only inside their modules, and the two renderers read the artifact whole and cut its kind off its name each in their own words (`skill._whole`, and `diagram.render` inline; `split("/", 1)` twice). Slices 20 and 50 would copy both a third and fourth time. Slice 19.2 gives the renderers one way to read what they publish and makes every renderer function but `render` private. Slice 20 needs it, so it alone goes ahead of slice 20.
+  - Size, ahead of a break: `cli.py` is 208 lines, and slices 22 to 30 add the whole, section and filled-in reads, JSON, finding the knowledge base, `write`, refusals, a pipe and `list`, which cross 250. "When a change would cross the limit, split first": slice 20.2 moves the shaping of each kb answer into what the user is shown (`_glance`, `_change`, the apply and create answers) into a module of its own with a row in `CLAUDE.md`, and precedes slice 22, the first slice that needs the room.
+  Not called for: the title split off a user's content, in `_create` and in `batch`, is two lines each and slice 24's write takes no title; slice 16's Given starting shop-knol inline under a set day, beside `driver.start`, is one call; `skill.render` makes its two reads and its refusal at one level.
+  Still QUESTION FOR THE SPEC, since each needs a scenario to say what is shown and no rule does: `KB_ROOT` unset (slice 22 owns it), `KB_ACTOR` unset (slices 26 and 47), `KB_ACTOR=` empty or `-m ""` ending in kb's git failure and a missing `-m` giving usage with exit 2 (slice 26); a non-process published as a skill or a diagram, a process with no steps, a branch to no step, a `"` in a title or condition in a diagram, a skill name holding a reserved word, the 500 lines published "for optimal performance", and `<name>.mmd` against the spec's `<id>.mmd`.
+  Placed, by risk among the slices not yet begun and never ahead of all of them: 19.2 before 20, which needs it; 20.1 after 20, since slice 20's unknown, a page from the type alone, is the larger; 20.2 after 20.1 and before 22, which needs the room; 42.2 before 44, which needs it. No scenario is added or moved, so no feature file and no `@slice` tag changes. Slice 30.1, the third review, stays where it is, as 19.1 stayed after 1.30 to 1.32 were cut: it now follows nine implemented slices, 19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30, and its check says nine.
+  Next: writing-plans over slices 19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30, one task per slice in that order, to `2026-09-27-shop-knowledge-batch4-implementation.md`.
