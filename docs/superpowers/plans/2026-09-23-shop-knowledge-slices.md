@@ -258,7 +258,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user records a file that does not fit the decision type and is told which artifact and place is at fault with the command exiting non-zero, or records without saying which role they are, or without a message, and is refused for that reason.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 28: Record a decision from a pipe, under a piece of work, or with a title already used
 
@@ -721,3 +721,14 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC: a part is named with kb's link notation, `<name>#<place>` (`decision/price-reviews-happen-weekly#sections/rationale`), while `read` names a section by `--section <title>`. A user who reads a section by title must write its place, lower-cased with hyphens, to replace it.
   - QUESTION FOR THE SPEC: a whole write's file carries no title, and kb refuses one in kb's words. A user who copies their create file into `write` is refused over its title. Reproduction: `shop-knol write decision/x --from <the create file> -m why`.
   Next: slice 26.
+- 2026-09-27 slice 26 green. A user who records a file that does not fit the decision type is told the artifact and place at fault, and one who records without a role or without a message is refused for that reason, with nothing written.
+  Evidence, real run (`.superpowers/batch4/s26`), stderr, exit 1 each:
+    decision/t at sections: the sections the type requires must all be present, in order; 'Rationale' is missing
+    every change must say which role made it, through KB_ACTOR as role or role:execution
+    every change must carry a message, given with -m
+  Check: `-m slice-26` 3 passed; `make test` 33 failed, 29 passed; GREEN plus slices 20, 22, 24 and 26 29 passed; shape check 2, 1, 1, no module over 250, no renderer listed; `cli.py` 250 lines.
+  Scenario 1 (does not fit the type) was met by existing behaviour once its steps existed: `create` already refuses through `_answered`. It went red with its Then asserting a wrong line ('Rationale' is absent), then green with the real one. Scenarios 2 and 3 were red as the brief predicted (a traceback; argparse usage). Decision in adrs/0020.
+  Surprised by: cli.py is now exactly at the 250-line limit, so the next slice that adds to it needs a split first.
+  Open questions:
+  - `init` without an actor is refused by the same role check in the same words. Slice 47's scenario wants its own words ("starting one must say which role did it"); slice 47 will reword the refusal for `init`.
+  Next: slice 28.

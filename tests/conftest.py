@@ -36,6 +36,12 @@ def _shop_knowledge_base(env, shop):
     start(env, shop)
 
 
+@given("the user has not said which role they are")
+def _no_role(env):
+    """Changes the scenario's env in place, so the commands the scenario runs are run with no KB_ACTOR."""
+    env.pop("KB_ACTOR")
+
+
 @then("the user is shown that fault in plain words, never a traceback")
 def _shown_in_plain_words(result):
     """Something said on stderr, no traceback anywhere, nothing on stdout."""

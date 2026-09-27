@@ -36,9 +36,15 @@ def main(argv=None) -> int:
 def _run(args) -> int:
     """The command's handler, with the operating system's refusal of a path made a fault that names it."""
     try:
+        args.by = _by(args) if args.command in _MUTATING else {}
         return args.handler(args)
     except OSError as error:
         raise Refused([kb_pb2.Fault(artifact=str(error.filename or ""), message=error.strerror or str(error))]) from error
+
+
+_MUTATING = ("init", "create", "write", "apply")
+_NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
+_NO_MESSAGE = "every change must carry a message, given with -m"
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -52,7 +58,7 @@ def _parser() -> argparse.ArgumentParser:
     create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
     create.add_argument("type")
     create.add_argument("--from", dest="source", required=True, metavar="FILE")
-    create.add_argument("-m", dest="message", required=True, help="why")
+    create.add_argument("-m", dest="message", help="why")
     create.set_defaults(handler=_create)
 
     read = commands.add_parser("read", help="read an artifact at a glance")
@@ -69,7 +75,7 @@ def _parser() -> argparse.ArgumentParser:
     write = commands.add_parser("write", help="replace an artifact, or a part of it as <name>#<place>, from a YAML file")
     write.add_argument("locator")
     write.add_argument("--from", dest="source", required=True, metavar="FILE")
-    write.add_argument("-m", dest="message", required=True, help="why")
+    write.add_argument("-m", dest="message", help="why")
     write.set_defaults(handler=_write_artifact)
 
     validate = commands.add_parser(
@@ -79,7 +85,7 @@ def _parser() -> argparse.ArgumentParser:
 
     apply = commands.add_parser("apply", help="make every change in a batch file as one change; prints the set's name")
     apply.add_argument("--from", dest="source", required=True, metavar="FILE")
-    apply.add_argument("-m", dest="message", required=True, help="why")
+    apply.add_argument("-m", dest="message", help="why")
     apply.set_defaults(handler=_apply)
 
     journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
@@ -94,10 +100,14 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _actor() -> kb_pb2.Actor:
-    """KB_ACTOR is the role, or the role and the piece of work it acts for as role:execution."""
-    role, _, execution = os.environ["KB_ACTOR"].partition(":")
-    return kb_pb2.Actor(role=role, execution=execution)
+def _by(args) -> dict:
+    """Who made a change and why, as request fields, or a refusal per lack, before any file is read; init gives no why."""
+    role, _, execution = os.environ.get("KB_ACTOR", "").partition(":")
+    message = getattr(args, "message", "-")
+    lacking = [("actor", _NO_ROLE)] * (not role) + [("message", _NO_MESSAGE)] * (not message)
+    if lacking:
+        raise Refused([kb_pb2.Fault(rule=rule, message=said) for rule, said in lacking])
+    return {"actor": kb_pb2.Actor(role=role, execution=execution), "message": message}
 
 
 def _client():
@@ -136,8 +146,8 @@ def _answered(response):
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
-    client.Init(kb_pb2.InitRequest(root=str(root), actor=_actor()))
-    bootstrap.load(client, _actor())
+    client.Init(kb_pb2.InitRequest(root=str(root), actor=args.by["actor"]))
+    bootstrap.load(client, args.by["actor"])
     return 0
 
 
@@ -159,7 +169,7 @@ def _create(args) -> int:
     content = _document(args.source, "content")
     title = text(content.pop("title", None))
     response = _answered(_client().Create(kb_pb2.CreateRequest(
-        type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
+        type=args.type, title=title, content=dumps(content), **args.by,
     )))
     _show(answers.created(response))
     return 0
@@ -174,7 +184,7 @@ def _locator(words: str) -> kb_pb2.Locator:
 def _write_artifact(args) -> int:
     locator = _locator(args.locator)
     response = _answered(_client().Write(kb_pb2.WriteRequest(
-        locator=locator, content=dumps(_document(args.source, "content")), actor=_actor(), message=args.message,
+        locator=locator, content=dumps(_document(args.source, "content")), **args.by,
     )))
     _show(answers.written_over(locator, response))
     return 0
@@ -213,7 +223,7 @@ def _validate(args) -> int:
 def _apply(args) -> int:
     operations = batch.operations(_document(args.source, "batch"))
     response = _answered(_client().Apply(kb_pb2.ApplyRequest(
-        operations=operations, actor=_actor(), message=args.message,
+        operations=operations, **args.by,
     )))
     _show(answers.applied(response))
     return 0
