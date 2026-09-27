@@ -130,3 +130,14 @@ def names(response: kb_pb2.ListResponse) -> list:
 def written(files) -> dict:
     """What a render gives back: the paths written, sorted."""
     return {"written": sorted(files)}
+
+
+def checked(response: kb_pb2.ValidateResponse) -> dict:
+    """What a check that found no fault gives back: sound, and each artifact last checked against an older version of its type."""
+    return {
+        "sound": True,
+        "behind": [
+            {"artifact": stale.artifact, "schema_version": stale.schema_version, "current": stale.current}
+            for stale in response.stale
+        ],
+    }

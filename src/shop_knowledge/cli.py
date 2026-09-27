@@ -158,7 +158,7 @@ def _read(args) -> int:
 def _validate(args) -> int:
     """kb's check answers with the store's faults and violations alike; any of either is a refusal."""
     response = _client().Validate(kb_requests.validate_request(args))
-    _answered(response, response.violations)
+    _show(answers.checked(_answered(response, response.violations)))
     return 0
 
 

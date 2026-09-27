@@ -1,4 +1,5 @@
 from kb import canonical
+from kb.content import dumps, loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
@@ -41,3 +42,68 @@ def _unreadable_listed(result):
 @then("everything else the shop knows is checked and listed alongside it")
 def _the_rest_listed(result):
     assert result.stderr.splitlines()[1:] == [f"{MONTHLY} at sections/0: 'body' is a required property"]
+
+
+@given("a shop knowledge base where everything fits its type")
+def _shop_where_everything_fits(env, shop, tmp_path):
+    start(env, shop)
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    return shop
+
+
+@then("the user is told nothing is wrong")
+def _told_nothing_is_wrong(result, shown):
+    assert shown["sound"] is True
+    assert shown["behind"] == []
+    assert result.stderr == ""
+
+
+@given(
+    "a shop knowledge base where a decision is missing something its type requires and a work item points at something the shop does not hold"
+)
+def _shop_with_two_faults(env, shop, tmp_path):
+    """kb refuses to create either fault, so no shop-knol command can leave an artifact unfit (CLAUDE.md, Step
+    definitions): both are recorded through shop-knol, then their files are edited by hand."""
+    start(env, shop)
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    record(env, tmp_path, "work-item", {"title": "Reprice the dairy shelf"}, "Open the repricing")
+    decision = shop / "kb" / f"{WEEKLY}.yaml"
+    held = canonical.load(decision.read_text())
+    del held["sections"][1]
+    decision.write_text(canonical.dump(held))
+    work_item = shop / "kb" / "work-item" / "reprice-the-dairy-shelf.yaml"
+    held = canonical.load(work_item.read_text())
+    held["decisions"] = ["decision/nothing"]
+    work_item.write_text(canonical.dump(held))
+
+
+@then("both faults are listed, each naming the artifact and the place in it at fault")
+def _both_listed(result):
+    lines = result.stderr.splitlines()
+    assert len(lines) == 2
+    assert lines[0].startswith(f"{WEEKLY} at sections: ")
+    assert lines[1].startswith("work-item/reprice-the-dairy-shelf at decisions/0: ")
+
+
+@given("a shop knowledge base where a decision was last checked against an older version of the decision type")
+def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
+    start(env, shop)
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    held = loads(knol(env, "read", "schema/decision", "--whole").stdout)
+    for identity in ("id", "type", "schema_version", "revision", "title"):
+        del held[identity]  # a write carries content alone
+    path = tmp_path / "decision-type-2.yaml"
+    path.write_text(dumps({**held, "version": 2}))
+    written = knol(env, "write", "schema/decision", "--from", str(path), "-m", "Bring the decision type to version 2")
+    assert written.returncode == 0, written.stderr
+
+
+@then("that decision is listed as behind its type")
+def _listed_as_behind(shown):
+    assert shown["behind"] == [{"artifact": WEEKLY, "schema_version": 1, "current": 2}]
+
+
+@then("it is not listed as a fault")
+def _not_a_fault(result):
+    assert result.stderr == ""
+    assert result.returncode == 0

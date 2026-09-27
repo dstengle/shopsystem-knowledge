@@ -411,7 +411,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user checks a sound knowledge base and is told nothing is wrong, checks one with two faults and sees both with the artifact and place while the command exits non-zero, or sees a decision listed as behind its type and not as a fault.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 47: The shop's knowledge base sits beside the shop's work, is started by someone for no stated reason, and is not started twice
 
@@ -959,3 +959,7 @@ slices 2 onward, never ahead of them.
   Check: failing ids identical to before (same, 12); `make test` 12 failed, 50 passed; `-m slice-1.28` 1 passed; the `inspect` assertion succeeds; `grep -n Validate CLAUDE.md` finds no line; shape check `2 7 1 0`, nothing listed, `cli.py` 232; arguments snapshot TAG=42.2 no diff.
   Surprised by: `cli.py` stays 232, not 231; the docstring of `_answered` grew as `_validate` shrank.
   Open questions: none. Next: slice 44.
+- 2026-09-27 slice 44 green. Someone can now: check the shop's knowledge and be told it is sound, see every fault with its artifact and place while the command exits non-zero, or see what is behind its type without calling the shop unsound.
+  Evidence: sound check, stdout `sound: true` / `behind: []`, stderr empty, exit 0. Behind its type (decision type written at version 2), stdout `sound: true` / `behind:` / `  - artifact: decision/old-one` / `    schema_version: 1` / `    current: 2`, stderr empty, exit 0. Two faults, stdout empty, exit 1, stderr `decision/price-reviews-happen-weekly at sections: the sections the type requires must all be present, in order; 'Rationale' is missing` and `work-item/reprice-the-dairy-shelf at decisions/0: a link must land on a node of a kind the type allows; 'decision/nothing' does not`. Checks: `-m slice-44` 3 passed; `make test` 9 failed, 53 passed; GREEN plus slice-44 53 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 232; arguments snapshot TAG=44 no diff.
+  Surprised by: scenario 2 passed once its steps existed, as the brief said; seen red first on a wrong Then (`== ["wrong"]`), then made right. Scenario 3 was green as soon as its steps existed, since `checked` written for scenario 1 already carries `behind`; seen red by emptying `behind` for one run, then restored.
+  Open questions: QUESTION FOR THE SPEC: what is behind its type is not shown when the check also finds faults, since a refusal prints nothing on stdout (adrs/0029). Reproduction: write `schema/decision` at version 2 through `shop-knol write`, hand-break another decision, run `shop-knol validate`: stdout empty, exit 1, stderr one line for the broken decision, nothing about the decision behind its type (probed here with one decision both behind and broken). A user would expect to be told both. Next: slice 47.
