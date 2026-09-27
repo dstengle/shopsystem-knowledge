@@ -83,6 +83,8 @@ def _none_in_the_shop(env):
 
 @then("the user is told every fault in the batch, not only the first")
 def _every_fault(result):
-    """kb states no order among a batch's faults, so the two lines are held to as a set, not a position."""
+    """kb states no order among a batch's faults, so the pairs are held to sorted, not by position: each still
+    counted once, not merely present."""
     lines = result.stderr.splitlines()
-    assert {tuple(line.split(" ")[1:3]) for line in lines} == {("at", "owner:"), ("at", "status:")}, result.stderr
+    pairs = sorted(tuple(line.split(" ")[1:3]) for line in lines)
+    assert pairs == sorted([("at", "owner:"), ("at", "status:")]), result.stderr

@@ -66,8 +66,9 @@ def _unreadable_listed(result):
 
 @then("everything else the shop knows is checked and listed alongside it")
 def _the_rest_listed(result):
-    """kb states no order among a check's faults, so the two lines are held to as a set, not a position."""
-    assert set(result.stderr.splitlines()) == {_line(UNREADABLE), _line(NO_BODY)}
+    """kb states no order among a check's faults, so the two lines are held to sorted, not by position: each still
+    counted once, not merely present."""
+    assert sorted(result.stderr.splitlines()) == sorted([_line(UNREADABLE), _line(NO_BODY)])
 
 
 @given("a shop knowledge base where everything fits its type")
@@ -98,8 +99,9 @@ def _shop_with_two_faults(env, shop, tmp_path):
 
 @then("both faults are listed, each naming the artifact and the place in it at fault")
 def _both_listed(result):
-    """kb states no order among a check's faults, so the two lines are held to as a set, not a position."""
-    assert set(result.stderr.splitlines()) == {_line(_without_its_rationale(WEEKLY)), _line(DANGLING)}
+    """kb states no order among a check's faults, so the two lines are held to sorted, not by position: each still
+    counted once, not merely present."""
+    assert sorted(result.stderr.splitlines()) == sorted([_line(_without_its_rationale(WEEKLY)), _line(DANGLING)])
 
 
 @given(
