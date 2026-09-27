@@ -1,9 +1,9 @@
 """The steps of publish-what-the-shop-knows.feature about publishing as markdown: the When that renders the role or
 the process as markdown; the Givens that give the process steps saying more than one thing, or that add a yes and a
-no or an empty value to one of them, and the Givens that give the role more than one tag, or a yes and a no, or an
-empty value, the yes/no/empty Givens among them giving the outline's `page` fixture that the Then `_a_page_of`
-consumes; and the Thens that say what the page holds. The feature's test module star-imports this and no other
-does."""
+no, an empty value or an empty list to one of them, and the Givens that give the role more than one tag, or a yes and
+a no, an empty value or an empty list, the yes/no/empty Givens among them giving the outline's `page` fixture that the
+Then `_a_page_of` consumes; and the Thens that say what the page holds. The feature's test module star-imports this and
+no other does; `markdown_well_formed` imports its helpers."""
 import re
 
 from kb.content import dumps
@@ -208,3 +208,21 @@ def _process_step_holds_no_value(env, tmp_path, process_name):
     steps = _step_holding(whole(env, process_name)["steps"], "stop", note=None)
     _write_over(env, tmp_path, process_name, {"steps": steps}, "A note to write later")
     return _process_page(["note"], {})
+
+
+@given("the role holds a field holding an empty list", target_fixture="page")
+def _role_holds_an_empty_list(env, tmp_path, role_content, role_name):
+    """The Background role, `ROLE` without its title, plus a list the user left empty; gives the page it publishes as,
+    the empty list shown as an empty value is (adrs/0045)."""
+    content = {key: value for key, value in role_content.items() if key != "title"}
+    _write_over(env, tmp_path, role_name, {**content, "deputies": []}, "No deputies yet")
+    return _role_page(["- **deputies**:"])
+
+
+@given("the process holds steps that each say more than one thing, one of them an empty list", target_fixture="page")
+def _process_step_holds_an_empty_list(env, tmp_path, process_name):
+    """The Background process's steps, the stop step also holding a list the user left empty; gives the page it
+    publishes as, that list an empty cell (adrs/0045)."""
+    steps = _step_holding(whole(env, process_name)["steps"], "stop", checks=[])
+    _write_over(env, tmp_path, process_name, {"steps": steps}, "Checks to list later")
+    return _process_page(["checks"], {})

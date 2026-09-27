@@ -2,12 +2,18 @@
 its prose under `sections`, so that is the one entry told apart; every other entry is a field. No schema is read and no
 type is named. The page is the title as a heading, the fields as a list in the order kb gives them (a field holding a
 list of mappings taken out as a table of its own), then the sections, each a heading one level below the one that
-holds it. No value is ever shown the way a program would print it: a yes is `yes`, a no `no` and nothing is nothing
-(adrs/0038, adrs/0043)."""
+holds it. No value is ever shown the way a program would print it: a yes is `yes`, a no `no` and nothing, an empty
+list among it, is nothing (adrs/0038, adrs/0043, adrs/0045). Whatever a value holds the page stays well-formed: a
+table row keeps one cell per column and no line ends in a space."""
+import re
+
 from kb.content import loads
 
 from shop_knowledge.renderers import sections, source
 from shop_knowledge.renderers.rendered import Rendered, refused
+
+# The character that separates table cells, with the backslashes the text holds right before it.
+_SEPARATOR = re.compile(r"(\\*)\|")
 
 
 def render(client, name: str) -> Rendered:
@@ -42,24 +48,24 @@ def _is_table(value) -> bool:
 def _items(fields: dict, depth: int) -> list[str]:
     """One list item a field: a field holding fields is its name with its own items nested two spaces in; a field
     holding a list (of anything but mappings, which are laid out as a table instead) is its name, then each item laid
-    out inline as a bullet nested one level in the same way; anything else is its name and its value laid out inline
-    (adrs/0041)."""
+    out inline as a bullet nested one level in the same way; anything else, an empty list among it, is its name and
+    its value laid out inline, so an empty list is shown as an empty value is (adrs/0041, adrs/0045)."""
     lines = []
     for key, value in fields.items():
         indent = "  " * depth
         if isinstance(value, dict):
             lines += [f"{indent}- **{key}**", *_items(value, depth + 1)]
-        elif isinstance(value, list):
+        elif isinstance(value, list) and value:
             child = "  " * (depth + 1)
-            lines += [f"{indent}- **{key}**", *(f"{child}- {_inline(each)}" for each in value)]
+            lines += [f"{indent}- **{key}**", *(f"{child}-" + _after_the_colon(_inline(each)) for each in value)]
         else:
             lines.append(f"{indent}- **{key}**:" + _after_the_colon(_inline(value)))
     return lines
 
 
 def _after_the_colon(inline: str) -> str:
-    """A field's inline value after its name's colon, a space between them; nothing when the value lays out as
-    nothing, so the line ends at the colon (adrs/0043)."""
+    """An inline value after a field's colon or a bullet's dash, a space between them; nothing when the value lays out
+    as nothing, so the line ends at the colon or the dash, never in a space (adrs/0043)."""
     return f" {inline}" if inline else ""
 
 
@@ -67,9 +73,16 @@ def _table(key: str, items: list[dict]) -> str:
     """The field's name in bold, then a table with one column per key, in the order the keys first appear across the
     items, one row an item, an empty cell where an item lacks the key (adrs/0041)."""
     columns = list(dict.fromkeys(column for item in items for column in item))
-    rows = [[_inline(item[column]) if column in item else "" for column in columns] for item in items]
+    rows = [[_cell(item[column]) if column in item else "" for column in columns] for item in items]
     lines = [_row(columns), _row(["---"] * len(columns))] + [_row(row) for row in rows]
     return f"**{key}**\n\n" + "\n".join(lines)
+
+
+def _cell(value) -> str:
+    """A value laid out inline in a table cell, the character that separates cells escaped as `\\|`, and any
+    backslash the text holds right before it doubled, so a markdown reader shows the text as written and the row keeps
+    one cell per column (the spec's markdown bullet)."""
+    return _SEPARATOR.sub(lambda found: found[1] * 2 + "\\|", _inline(value))
 
 
 def _row(cells: list[str]) -> str:
@@ -80,8 +93,9 @@ def _row(cells: list[str]) -> str:
 def _inline(value) -> str:
     """A value where a block cannot sit: a mapping's `key: value` pairs joined by `, `, a list's items joined by
     `; `, each laid out inline in turn, a yes as `yes`, a no as `no`, nothing as nothing, and any other plain value's
-    lines joined by a space, its trailing newline dropped (adrs/0038, adrs/0041, adrs/0043). A yes, a no and nothing
-    are told by what kind of value each is, so text that reads `True` stays as written."""
+    lines joined by a space, its trailing newline and any space it ends in dropped, so no line ends in a space
+    (adrs/0038, adrs/0041, adrs/0043). A yes, a no and nothing are told by what kind of value each is, so text that
+    reads `True` stays as written."""
     if isinstance(value, dict):
         return ", ".join(f"{field}: {_inline(each)}" for field, each in value.items())
     if isinstance(value, list):
@@ -90,5 +104,5 @@ def _inline(value) -> str:
         return "yes" if value else "no"
     if value is None:
         return ""
-    return " ".join(str(value).splitlines())
+    return " ".join(str(value).splitlines()).rstrip(" ")
 

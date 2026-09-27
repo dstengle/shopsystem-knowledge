@@ -5,6 +5,7 @@ from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
+from markdown_well_formed import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from publish_as_markdown import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("publish-what-the-shop-knows.feature")
