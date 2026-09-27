@@ -1388,3 +1388,14 @@ slices 2 onward, never ahead of them.
   Also routed under adrs/0044 (finding 6, not a markdown gap): a scenario holding that checking where no knowledge base can be found shows no answer (finding 1's case, fixed in code this wave; its scenario is still to be written); and that slice 50.13's scenario pins `sound: false`, a Then line change to an approved scenario, answered by adrs/0046.
   Also corrected here, in place: slice 50.14's checkpoint above overstated what its scenarios hold (finding 2), and gave the wrong reason for doubling a backslash before a separator (finding 5); `_cell_count`'s docstring (`tests/markdown_well_formed.py`) is corrected the same way. adrs/0046 is corrected to supersede the last three sentences of 0029, not two (finding 4).
   Suite (with finding 1's fix to `cli._validate` and `answers.checked` also in): `.venv/bin/python -m pytest -q` → `7 failed, 80 passed`, the seven still of slices 50.17 to 50.22. Size check lists nothing. `git diff --stat -- features` empty.
+- 2026-09-27 Final whole-branch review of batch 11 (slices 50.13-50.15), on Fable 5.1 over `3153e74..de374a2`. The reviewer ran the suite (`80 passed, 7 failed`, the seven being slices 50.17 to 50.22's) and probed every renderer against every type. Verdict: ready to merge with fixes. The fixes landed in 0c7d199 and a scoped re-review found every finding addressed:
+  - a check that never ran printed an answer, a regression from slice 50.13, now fixed;
+  - the principle-answered markdown gaps and a pre-existing traceback for prose with a line ending in a space were logged above for formulation;
+  - adrs/0046 now supersedes the last three sentences of 0029;
+  - the 50.14 checkpoint's backslash rationale was corrected.
+
+  Ruling: the regression is fixed without a scenario of its own, since it restores the pre-batch behaviour. Its scenario is routed to formulation. Until it lands, the fix is held only by probes.
+  Deferred to slice 50.16's review, as the final review triaged: `_not_a_fault`'s prefix match; `_a_failing_checks_answer`'s docstring; `_every_value_shown` repeating `_a_page_of`; `_after_the_colon`'s name; the type-refusal Then's recomputed wording; `renderers/source.py`'s module docstring.
+  Declined as out of scope: trailing spaces in the agent's body; the skill not type-checking the steps a process uses; markdown syntax inside field names; `validate` taking no `--json`. To check the escape, the reviewer rendered a synthetic table through GitHub's markdown API (`gh api markdown`); no project content was sent.
+  Next: push. Then slice 50.16, the seventh architecture review, before 50.17 to 50.21 and the routed cases are formulated and planned.
+
