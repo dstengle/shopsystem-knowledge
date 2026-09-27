@@ -132,6 +132,8 @@ contract, and writes files to the target directory.
   list of scalars is a bullet list, a mapping is a nested definition list.
   No value is ever printed as a programming language's representation of
   it.
+  A yes or a no is the word `yes` or `no`, and an empty value is shown as
+  nothing: the field's name and its colon, or an empty table cell.
 
 `skill` and `agent` validate their output against the limits the harness
 publishes and fail rather than emit something it would reject.
