@@ -632,7 +632,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.16.4: The steps never spell kb's fault wording
 
 - Kind: enabling
-- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`; each Then the 50.16 review's coupling point 17 names checks what the shop's spec owns (one line, the artifact and the place, printed as kb returned it), comparing with the fault kb's in-process client (`kb.client.connect`) returns for the same state, or with what the stand-in gave, never a message fragment written in the step; a throwaway rewording of one kb fault message in `.venv` leaves those scenarios green (logged, reverted with `make dev`)
+- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`; each Then the 50.16 review's coupling point 17 names checks what the shop's spec owns (one line, the artifact and the place, printed as kb returned it), comparing with the fault kb's in-process client (`kb.client.connect`) returns for the same state, or with what the stand-in gave, never a message fragment written in the step; a throwaway rewording of one kb fault message in `.venv` leaves those scenarios green (logged, reverted with `pip uninstall -y shopsystem-kb` then `make dev`)
 - Observable: A reader finds kb free to reword its faults without a shop scenario going red, since the shop holds kb only to its `rule` names and to printing what kb returns (kb adrs/0018).
 - Unknown: whether every Then that reads kb's words today can get the same words from kb itself for the same state
 - Needs: none
@@ -749,8 +749,8 @@ slices 2 onward, never ahead of them.
 ## Slice 50.23: shop-knowledge imports nothing of kb but what kb publishes
 
 - Kind: enabling
-- Check: `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" src tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `grep -rn "kb.journal" tests` -> nothing; `pyproject.toml` pins the kb release carrying kb's slices 100 and 102; `.venv/bin/python -m pytest -q` -> every scenario passes; CLAUDE.md's rule 1 names only what kb publishes (kb adrs/0018)
-- Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, the review-by-date scenarios' days given through the clock kb publishes on `kb.client.connect` instead of by replacing a kb function, and nothing else of kb's internals anywhere in the repository.
+- Check: `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" src tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `grep -rn "kb.journal" tests` -> nothing; `pyproject.toml` pins the kb release carrying kb's slices 100 and 102; `.venv/bin/python -m pytest -q` -> every scenario passes; CLAUDE.md's rule 1 names only what kb publishes (kb adrs/0018); `record_refused_files`' named-once Then catches `kb.content.NotCanonical` and takes the place from its `path`
+- Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, `record_refused_files`' named-once Then catching `kb.content.NotCanonical` and taking the place from its `path`, the review-by-date scenarios' days given through the clock kb publishes on `kb.client.connect` instead of by replacing a kb function, and nothing else of kb's internals anywhere in the repository.
 - Unknown: none
 - Needs: the kb release carrying kb slices 100 (`NotCanonical` re-exported from `kb.content`) and 102 (a clock given to the in-process client), pinned
 - Status: blocked: awaiting kb 0.3.0 (kb slices 100, 102 and 102.2 to 102.6); the stand-in's `connect(root=None)` must take the `clock` keyword kb publishes (kb batch 20 review)

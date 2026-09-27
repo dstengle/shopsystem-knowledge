@@ -72,7 +72,9 @@ def _rejected_for_an_entry_named_twice(result, decision_file):
 
 
 def _kb_refuses_to_read(path) -> str:
-    """kb's own refusal of the file's text, read the way kb reads content; `loads` refuses with a ValueError."""
+    """kb's own refusal of the file's text, read the way kb reads content. kb v0.2.1 publishes no exception to name
+    for it, so this catches `ValueError`, what the refusal is; slice 50.23 changes it to catch `kb.content.NotCanonical`
+    and take the place from its `path`."""
     try:
         loads(path.read_text())
     except ValueError as refusal:

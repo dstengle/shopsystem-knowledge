@@ -85,12 +85,18 @@ def actor(env) -> kb_pb2.Actor:
 
 def kb_answer(env, call, request, cwd=None):
     """kb's own answer to `request`, through its published in-process client (kb adrs/0018), made from where shop-knol
-    ran (`cwd`, or the suite's default) with `env`'s KB_ROOT or none: what a Then compares shop-knol's printed refusal
-    with, so no step spells kb's wording, which is kb's to change. Asked after shop-knol's own call was refused, so of
-    the same state; a refused call changes nothing. The suite's own directory and environment are restored after."""
+    ran (`cwd`, or the suite's default) with `env`'s KB_ROOT or none, so it goes to the scenario's own store and no
+    other: what a Then compares shop-knol's printed refusal with, so no step spells kb's wording, which is kb's to
+    change. Always the real kb, never the stand-in (which loads only in shop-knol's own process): a Then over an answer
+    the stand-in gave compares with what the stand-in gave, never with this (Review Focus 4). Asked after shop-knol's
+    own call was refused, so of the same state; a refused call changes nothing. Refused, as `knol` is, with no `cwd`
+    and no default set. The suite's own directory and environment are restored after."""
+    directory = cwd if cwd is not None else _default_cwd
+    if directory is None:
+        raise RuntimeError("kb was asked with no working directory, and the suite set no default")
     here, kept = Path.cwd(), os.environ.pop("KB_ROOT", None)
     try:
-        os.chdir(cwd if cwd is not None else _default_cwd)
+        os.chdir(directory)
         if "KB_ROOT" in env:
             os.environ["KB_ROOT"] = env["KB_ROOT"]
         return getattr(connect(), call)(request)
