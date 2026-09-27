@@ -18,6 +18,11 @@ def created(response: kb_pb2.CreateResponse) -> dict:
     return {"id": response.id, "revision": response.revision}
 
 
+def written_over(locator: kb_pb2.Locator, response: kb_pb2.WriteResponse) -> dict:
+    """What a write gives back: the artifact's id, which kb's answer leaves out, and the revision it made, as a create does."""
+    return {"id": locator.id, "revision": response.revision}
+
+
 def glance(response: kb_pb2.ReadResponse) -> dict:
     """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
     return {

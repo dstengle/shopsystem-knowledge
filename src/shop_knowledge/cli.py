@@ -66,6 +66,12 @@ def _parser() -> argparse.ArgumentParser:
     )
     read.set_defaults(handler=_read)
 
+    write = commands.add_parser("write", help="replace an artifact, or a part of it as <name>#<place>, from a YAML file")
+    write.add_argument("locator")
+    write.add_argument("--from", dest="source", required=True, metavar="FILE")
+    write.add_argument("-m", dest="message", required=True, help="why")
+    write.set_defaults(handler=_write_artifact)
+
     validate = commands.add_parser(
         "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
     )
@@ -156,6 +162,21 @@ def _create(args) -> int:
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
     )))
     _show(answers.created(response))
+    return 0
+
+
+def _locator(words: str) -> kb_pb2.Locator:
+    """A locator as the user says it: a name, or a name and after # a place inside it."""
+    name, _, place = words.partition("#")
+    return kb_pb2.Locator(id=name, path=place)
+
+
+def _write_artifact(args) -> int:
+    locator = _locator(args.locator)
+    response = _answered(_client().Write(kb_pb2.WriteRequest(
+        locator=locator, content=dumps(_document(args.source, "content")), actor=_actor(), message=args.message,
+    )))
+    _show(answers.written_over(locator, response))
     return 0
 
 

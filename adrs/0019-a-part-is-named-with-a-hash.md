@@ -1,0 +1,3 @@
+# 0019 A part is named <name>#<place>, and a write's file carries no title
+
+2026-09-27. `shop-knol write <locator> --from FILE -m WHY` takes a locator as a name, or a name and after `#` a place inside it (kb's link notation), read in `cli._locator`; later commands taking a locator reuse it. shop-knol does not compute a place from a section's title. A whole write's file is passed as given, so a title in it is refused by kb; a part's file holds the part as kb holds it (a section: `title` and `body`). The answer is `id` and `revision`, the id being the locator's name since kb's answer has none. Actor and message are as `create` has them until slice 26.

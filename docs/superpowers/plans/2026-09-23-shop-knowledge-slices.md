@@ -249,7 +249,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user replaces a decision from a file and the shop holds the new wording at a later version, or replaces only its rationale and the rest reads as before.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 26: A decision the shop cannot accept is refused
 
@@ -711,3 +711,13 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC: the scenarios say "no knowledge base"; kb says "no store", and shop-knol passes kb's words through ("errors are printed as returned by kb"). Whether that meets the bet passed-through-errors-are-actionable, or the user's word should be used, is the spec's.
   - QUESTION FOR THE SPEC: scenario 3's "what that older decision points at is shown by name only" is vacuous over the Background, whose older decision points at nothing. The step asserts every link inside the filled-in decision is a string, and the Background cannot tell depth 1 from depth 2 there.
   Next: slice 24.
+- 2026-09-27 slice 24 green. A user can now replace a decision from a file and read it back with the new wording at a later version, or replace only one part, named `<name>#<place>`, and have the rest read as before.
+  Evidence, `read --whole` before and after the rationale is replaced (real run, `.superpowers/batch4/s24`; `write ... -m y` printed `id: decision/price-reviews-happen-weekly`, `revision: 2`):
+    revision: 1 ... Purpose: Keep prices in step with costs. / Rationale, body: Costs move weekly.
+    revision: 2 ... Purpose: Keep prices in step with costs. / Rationale, body: Costs now move every day.
+  Check: `-m slice-24` 2 passed; `make test` 36 failed, 26 passed; GREEN plus slices 20, 22 and 24 26 passed; shape check 2, 1, 1, no module over 250, no renderer listed; `cli.py` 240 lines.
+  Surprised by: kb's WriteResponse carries a revision and faults but no id, so the answer's id is the locator's name. Scenario 2 was red on its undefined When alone, since scenario 1's code already served it. Decision in adrs/0019.
+  Open questions:
+  - QUESTION FOR THE SPEC: a part is named with kb's link notation, `<name>#<place>` (`decision/price-reviews-happen-weekly#sections/rationale`), while `read` names a section by `--section <title>`. A user who reads a section by title must write its place, lower-cased with hyphens, to replace it.
+  - QUESTION FOR THE SPEC: a whole write's file carries no title, and kb refuses one in kb's words. A user who copies their create file into `write` is refused over its title. Reproduction: `shop-knol write decision/x --from <the create file> -m why`.
+  Next: slice 26.
