@@ -2,6 +2,8 @@ from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from driver import knol, record, whole
+from record_refused_files import *  # noqa: F403  pytest-bdd registers steps only through a star import
+from record_refused_files import SAYING_WHY
 
 scenarios("record-a-decision.feature")
 
@@ -35,7 +37,7 @@ def _decision_in_a_file(env, tmp_path):
 
 @when("the user records that file as a decision, saying who they are and why", target_fixture="result")
 def _record_it(env, decision_file):
-    return knol(env, "create", "decision", "--from", str(decision_file), "-m", "Move price reviews to weekly")
+    return knol(env, "create", "decision", "--from", str(decision_file), "-m", SAYING_WHY)
 
 
 @given("a decision in a file", target_fixture="decision_file")
@@ -63,31 +65,6 @@ def _rejected_for_no_role(result):
 @then("the decision is rejected because every change must carry a message")
 def _rejected_for_no_message(result):
     assert result.stderr.splitlines() == ["every change must carry a message, given with -m"]
-
-
-@given("a file missing something the shop's decision type requires", target_fixture="decision_file")
-def _file_missing_a_section(tmp_path):
-    """A title and a Purpose but no Rationale, so kb's answer is one fault naming the artifact and the place."""
-    path = tmp_path / "unfinished.yaml"
-    path.write_text(dumps({
-        "title": "Prices are reviewed monthly",
-        "sections": [{"title": "Purpose", "body": "Keep prices current.\n"}],
-    }))
-    return path
-
-
-@then("the decision is rejected because it does not fit the shop's decision type")
-def _rejected_for_not_fitting(result):
-    assert result.stderr.splitlines()[0].startswith("decision/"), result.stderr
-    assert "the sections the type requires must all be present" in result.stderr
-
-
-@then("the user is told which artifact and which place in it is at fault")
-def _told_artifact_and_place(result):
-    assert result.stderr.splitlines() == [
-        "decision/prices-are-reviewed-monthly at sections: the sections the type requires must all be present, "
-        "in order; 'Rationale' is missing",
-    ]
 
 
 @then("the user is shown the name the decision was given, which the user did not choose")
@@ -151,28 +128,6 @@ def _title_is_text_not_a_bool(env, result, decision_file):
 def _name_from_that_text(result, decision_file):
     written = decision_file.read_text().splitlines()[0].removeprefix("title: ")
     assert loads(result.stdout)["id"] == f"decision/{written}"
-
-
-@given("a decision in a file that names the same entry twice in the same place", target_fixture="decision_file")
-def _decision_in_a_file_naming_an_entry_twice(tmp_path):
-    path = tmp_path / "twice.yaml"
-    path.write_text(
-        "title: Price reviews happen weekly\n"
-        "sections:\n"
-        "  - title: Purpose\n"
-        "    body: Keep prices in step with costs.\n"
-        "    body: Keep prices low.\n"
-        "  - title: Rationale\n"
-        "    body: Costs move weekly.\n"
-    )
-    return path
-
-
-@then("the decision is rejected because an entry is named once and only once, naming the place in the file")
-def _rejected_for_an_entry_named_twice(result, decision_file):
-    assert result.stderr.splitlines() == [
-        f"{decision_file} at sections/0/body: an entry is named once and only once; 'body' is named again at line 5",
-    ]
 
 
 PIECE_OF_WORK = "restock-the-shelves"

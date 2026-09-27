@@ -5,17 +5,12 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from kb.client import connect
 from kb.content import loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
 import driver
-from driver import start
-
-
-NO_STORE = "store"
-"""The `rule` kb's contract publishes (kb adrs/0018) for the fault `store.locate` gives when it finds no store."""
+from driver import NO_STORE, start
 
 
 def _reachable_from(directory: Path) -> bool:
@@ -24,17 +19,10 @@ def _reachable_from(directory: Path) -> bool:
     no-store refusal (`rule == "store"`, kb adrs/0018) counts as a store found - an empty answer, a fault of
     another rule, or more than one fault - so a cause kb adds later is never mistaken for "no store here"; an
     exception from the call counts the same way, refused rather than let escape as a traceback."""
-    kept = os.environ.pop("KB_ROOT", None)
-    here = Path.cwd()
-    os.chdir(directory)
     try:
-        faults = connect().Journal(kb_pb2.JournalRequest()).faults
+        faults = driver.kb_answer({}, "Journal", kb_pb2.JournalRequest(), cwd=directory).faults
     except Exception:
         return True
-    finally:
-        os.chdir(here)
-        if kept is not None:
-            os.environ["KB_ROOT"] = kept
     return not (len(faults) == 1 and faults[0].rule == NO_STORE)
 
 

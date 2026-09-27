@@ -1,8 +1,9 @@
 """The steps of read-back-what-the-shop-knows.feature about where the knowledge base is found: the six scenarios
 that give `workdir` and the Thens that say what came of it. The feature's test module star-imports this and no other does."""
+from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
-from driver import removed, start
+from driver import NO_STORE, kb_answer, printed, removed, start
 
 
 @given(
@@ -51,9 +52,8 @@ def _working_in_a_removed_directory(env, tmp_path, decision_id):
 
 
 @then("the command is rejected because no knowledge base was found, neither above where they are working nor named outright")
-def _rejected_no_store(result, workdir):
-    assert result.stderr == f"no store was found, neither above {workdir.resolve()} nor named outright\n"
-    assert result.stdout == ""
+def _rejected_no_store(env, result, workdir, decision_id):
+    _refused_as_kb_refuses(env, result, workdir, decision_id)
 
 
 @given(
@@ -68,9 +68,8 @@ def _kb_root_names_an_empty_directory(env, tmp_path, decision_id):
 
 
 @then("the command is rejected because KB_ROOT names a directory that holds no knowledge base")
-def _rejected_kb_root_holds_none(env, result):
-    assert result.stderr == f"KB_ROOT names a directory that holds no store: {env['KB_ROOT']}\n"
-    assert result.stdout == ""
+def _rejected_kb_root_holds_none(env, result, workdir, decision_id):
+    _refused_as_kb_refuses(env, result, workdir, decision_id)
 
 
 @given(
@@ -89,9 +88,16 @@ def _kb_root_names_another_store(env, shop, tmp_path, decision_id):
     "the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, "
     "and neither of the two is guessed at"
 )
-def _rejected_two_stores(env, result, workdir):
-    assert result.stderr == (
-        f"KB_ROOT names a store other than the one {workdir.resolve()} is working in: KB_ROOT is {env['KB_ROOT']}, "
-        f"the working directory is inside {workdir.resolve()}; neither is guessed at\n"
-    )
+def _rejected_two_stores(env, result, workdir, decision_id):
+    _refused_as_kb_refuses(env, result, workdir, decision_id)
+
+
+def _refused_as_kb_refuses(env, result, workdir, decision_id):
+    """One line, printed as kb returned it: kb's own answer to the same read, from the same directory with the same
+    KB_ROOT, is a refusal of the rule kb publishes for a store it cannot find or will not guess (kb adrs/0018), and
+    the user is shown that fault, in kb's words, and nothing else. Which of the three it is, the Given decides."""
+    read = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=decision_id))
+    faults = kb_answer(env, "Read", read, cwd=workdir).faults
+    assert [fault.rule for fault in faults] == [NO_STORE], faults
+    assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
     assert result.stdout == ""

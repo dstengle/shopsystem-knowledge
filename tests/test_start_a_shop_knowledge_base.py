@@ -1,8 +1,9 @@
 import pytest
 from kb.content import loads
+from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, removed, start, store_in
+from driver import actor, kb_answer, knol, printed, record, removed, start, store_in
 from start_roles_and_tags import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("start-a-shop-knowledge-base.feature")
@@ -178,17 +179,29 @@ def _a_directory_inside_a_started_one(env, shop, known_before):
 
 
 @then("starting the knowledge base is rejected because that directory already holds a knowledge base")
-def _rejected_already_started(result):
-    assert result.returncode == 1
-    assert result.stdout == ""
-    assert "already has a store" in result.stderr
+def _rejected_already_started(env, result, start_in):
+    _refused_as_kb_refuses(env, result, start_in)
 
 
 @then("starting the knowledge base is rejected because that directory is inside a knowledge base")
-def _rejected_inside_one(result):
+def _rejected_inside_one(env, result, start_in):
+    _refused_as_kb_refuses(env, result, start_in)
+
+
+ROOT = "root"
+"""The `rule` kb's contract publishes (kb adrs/0018) for a store refused where it was to be started."""
+
+
+def _refused_as_kb_refuses(env, result, start_in):
+    """One line, printed as kb returned it: kb's own answer to the same Init, starting a store in the same directory,
+    is a refusal of the directory given, and the user is shown that fault in kb's words. Which refusal, the Given
+    decides; a refused Init changes nothing."""
+    request = kb_pb2.InitRequest(root=str(start_in.resolve()), actor=actor(env))
+    faults = kb_answer(env, "Init", request, cwd=start_in).faults
+    assert [fault.rule for fault in faults] == [ROOT], faults
     assert result.returncode == 1
     assert result.stdout == ""
-    assert "stores do not nest" in result.stderr
+    assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
 
 
 @then("everything the shop already knows is still there, unchanged")

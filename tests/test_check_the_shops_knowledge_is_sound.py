@@ -1,7 +1,8 @@
 from kb.content import dumps, loads
+from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import answering, knol, record, start, whole
+from driver import answering, knol, printed, record, start, whole
 
 scenarios("check-the-shops-knowledge-is-sound.feature")
 
@@ -24,9 +25,8 @@ def _checked_as(env, tmp_path, *violations):
 
 
 def _line(fault: dict) -> str:
-    """A fault the stand-in gave, as the line the user is shown."""
-    where = f"{fault['artifact']} at {fault['path']}" if fault.get("path") else fault["artifact"]
-    return f"{where}: {fault['message']}"
+    """A fault the stand-in gave, as the line the user is shown: its words are this module's, never kb's."""
+    return printed(kb_pb2.Fault(**fault))
 
 
 def _without_its_rationale(decision: str) -> dict:

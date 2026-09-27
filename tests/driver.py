@@ -4,7 +4,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from kb.client import connect
 from kb.content import dumps, loads
+from kb.contract import kb_pb2
 
 
 class Removed:
@@ -69,6 +71,42 @@ def whole(env, name):
     result = knol(env, "read", name, "--whole")
     assert result.returncode == 0, result.stderr
     return loads(result.stdout)
+
+
+NO_STORE = "store"
+"""The `rule` kb's contract publishes (kb adrs/0018) for the fault it gives when a call finds no store."""
+
+
+def actor(env) -> kb_pb2.Actor:
+    """The actor a command run with `env` makes its change as: KB_ACTOR's role, and the piece of work after a colon."""
+    role, _, execution = env.get("KB_ACTOR", "").partition(":")
+    return kb_pb2.Actor(role=role, execution=execution)
+
+
+def kb_answer(env, call, request, cwd=None):
+    """kb's own answer to `request`, through its published in-process client (kb adrs/0018), made from where shop-knol
+    ran (`cwd`, or the suite's default) with `env`'s KB_ROOT or none: what a Then compares shop-knol's printed refusal
+    with, so no step spells kb's wording, which is kb's to change. Asked after shop-knol's own call was refused, so of
+    the same state; a refused call changes nothing. The suite's own directory and environment are restored after."""
+    here, kept = Path.cwd(), os.environ.pop("KB_ROOT", None)
+    try:
+        os.chdir(cwd if cwd is not None else _default_cwd)
+        if "KB_ROOT" in env:
+            os.environ["KB_ROOT"] = env["KB_ROOT"]
+        return getattr(connect(), call)(request)
+    finally:
+        os.chdir(here)
+        os.environ.pop("KB_ROOT", None)
+        if kept is not None:
+            os.environ["KB_ROOT"] = kept
+
+
+def printed(fault) -> str:
+    """A fault as the one line the shop's spec says the user is shown: the artifact and the place in it, then kb's
+    message as kb returned it, its lines joined."""
+    message = " ".join(line.strip() for line in fault.message.splitlines())
+    where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
+    return f"{where}: {message}" if where else message
 
 
 def store_in(root: Path) -> Path:
