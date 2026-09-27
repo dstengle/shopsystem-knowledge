@@ -30,6 +30,13 @@ def record(env, tmp_path, type_name, content, message):
     return loads(result.stdout)["id"]
 
 
+def whole(env, name):
+    """Read an artifact whole, as the user does, and return the document shown; the read must succeed."""
+    result = knol(env, "read", name, "--whole")
+    assert result.returncode == 0, result.stderr
+    return loads(result.stdout)
+
+
 CLOCK = Path(__file__).parent / "clock"
 
 

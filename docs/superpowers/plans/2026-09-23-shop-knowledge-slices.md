@@ -438,7 +438,7 @@ slices 2 onward, never ahead of them.
 - Observable: The steps that read an artifact whole through shop-knol find that read in the driver beside `record`, instead of the two word-for-word copies in the revise and add-a-step modules and a third that slice 49's reads of a role, a decision and a tag would add.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 49: The shop's roles and tags hold their shape
 
@@ -971,3 +971,7 @@ slices 2 onward, never ahead of them.
   Evidence: stderr `work-item/reprice-the-dairy-shelf at owner: 3 is not of type 'string'` and `work-item/reprice-the-dairy-shelf at status: 3 is not of type 'string'`, stdout empty, exit 1. After it `shop-knol read decision/price-reviews-happen-weekly`: `decision/price-reviews-happen-weekly: the store holds nothing by the name 'decision/price-reviews-happen-weekly'`, exit 1; `read work-item/reprice-the-dairy-shelf`: `revision: 1`, `title: Reprice the dairy shelf`, `references: []`, no `owner`, no `status`. Checks: `-m slice-48` 1 passed; `make test` 3 failed, 59 passed; GREEN plus slices 44, 47 and 48 59 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 233; arguments snapshot TAG=48 no diff.
   Surprised by: the scenario passed once its steps existed, as the brief said; seen red first on a wrong Then (`returncode == 0`), then made right. Nothing under `src/` changed.
   Open questions: QUESTION FOR THE SPEC: a fault in a batch names a change by an artifact that does not exist. Reproduction: apply a batch whose one change creates a decision titled "Bad one" with `owner: 3`; stderr says `decision/bad-one at owner: 3 is not of type 'string'` (and two lines for the missing sections), exit 1, and `read decision/bad-one` finds nothing. A user fixing the batch in one pass would expect the fault to say which change it is. Next: slice 48.1.
+- 2026-09-27 slice 48.1 green. Someone can now: read an artifact whole in a step through one `whole` in `tests/driver.py`, beside `record`.
+  Check: baseline `failing-48.1.txt` 3 lines, `grep -c "def _whole" tests/*.py | grep -v ":0"` two lines and `grep -c "^def whole" tests/driver.py` `0` before. After: failing ids diff `same`; `make test` 3 failed, 59 passed; `-m "slice-24 or slice-40"` 4 passed; first grep no line, second `1`; shape check `2 7 1 0`, nothing listed, `cli.py` 233 (unchanged); nothing under `src/` or `features/` changed.
+  Surprised by: nothing; `loads` became unused in both modules and its import went.
+  Next: slice 49.

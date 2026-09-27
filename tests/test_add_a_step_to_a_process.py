@@ -1,8 +1,8 @@
 import pytest
-from kb.content import dumps, loads
+from kb.content import dumps
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start
+from driver import knol, record, start, whole
 
 scenarios("add-a-step-to-a-process.feature")
 
@@ -31,12 +31,6 @@ def _shared_step_in_use(env, tmp_path):
     }, "Describe opening up")
 
 
-def _whole(env, name):
-    result = knol(env, "read", name, "--whole")
-    assert result.returncode == 0, result.stderr
-    return loads(result.stdout)
-
-
 @when("the user adds a step describing what to do, saying who they are and why", target_fixture="result")
 def _add_a_step_in_place(env, process_name, tmp_path):
     path = tmp_path / "tidy.yaml"
@@ -46,7 +40,7 @@ def _add_a_step_in_place(env, process_name, tmp_path):
 
 @then("the new step is the last step of the process")
 def _last_step(env, process_name, shown):
-    steps = _whole(env, process_name)["steps"]
+    steps = whole(env, process_name)["steps"]
     assert len(steps) == 3
     assert steps[-1]["title"] == TIDY["title"] and steps[-1]["does"] == TIDY["does"]
 
@@ -55,7 +49,7 @@ def _last_step(env, process_name, shown):
 def _told_the_name(env, process_name, shown):
     name = shown["id"]
     assert name.startswith(f"{process_name}#steps/")
-    assert name.endswith(_whole(env, process_name)["steps"][-1]["id"])
+    assert name.endswith(whole(env, process_name)["steps"][-1]["id"])
 
 
 USE = {"title": "Check the dairy", "uses": "step/check-the-stock", "with": [{"name": "shelf", "value": "dairy"}]}
@@ -64,7 +58,7 @@ USE = {"title": "Check the dairy", "uses": "step/check-the-stock", "with": [{"na
 @pytest.fixture
 def before(env, other_process_name):
     """The shared step and the other process using it, read whole before the change, taken when the When asks for it."""
-    return {name: _whole(env, name) for name in ("step/check-the-stock", other_process_name)}
+    return {name: whole(env, name) for name in ("step/check-the-stock", other_process_name)}
 
 
 @when('the user adds a step that uses "check the stock" with its own settings, saying who they are and why', target_fixture="result")
@@ -76,15 +70,15 @@ def _add_a_step_that_uses_a_shared_step(env, process_name, tmp_path, before):
 
 @then('the process runs "check the stock" at that point with those settings')
 def _runs_the_shared_step(env, process_name, shown):
-    last = _whole(env, process_name)["steps"][-1]
+    last = whole(env, process_name)["steps"][-1]
     assert last["uses"] == USE["uses"] and last["with"] == USE["with"]
 
 
 @then('"check the stock" itself is unchanged')
 def _shared_step_unchanged(env, shown, before):
-    assert _whole(env, "step/check-the-stock") == before["step/check-the-stock"]
+    assert whole(env, "step/check-the-stock") == before["step/check-the-stock"]
 
 
 @then("another process using it is unaffected")
 def _other_process_unaffected(env, other_process_name, shown, before):
-    assert _whole(env, other_process_name) == before[other_process_name]
+    assert whole(env, other_process_name) == before[other_process_name]
