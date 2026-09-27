@@ -339,7 +339,7 @@ slices 2 onward, never ahead of them.
 - Observable: The command line keeps room under the 250-line limit through slices 38 to 50, which add snapshot, append and retire and extend the check and the start, because a handler only makes its call, refuses or shows, and turning a command's arguments into kb's request sits in a module of its own, as turning kb's answer into what is shown already does.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 36.2: An argument shop-knol cannot take is refused the one way every refusal is
 
@@ -863,3 +863,7 @@ slices 2 onward, never ahead of them.
   Evidence (`shop-knol journal ...` in the Background's shop): `--actor shopkeeper`: one change, `create` of `decision/price-reviews-happen-weekly` by `{role: shopkeeper, execution: ""}`, message "Record weekly reviews". `--execution reprice-dairy`: one change, `write` of the decision by `{role: agent, execution: reprice-dairy}`, dated today, "Accept weekly reviews". `--since 2026-09-22`: the same one change.
   Open questions: Review Focus 1, who started the store. The Background does not say; the step starts it as `founder` (adrs/0025). Reproduction: `mkdir shop; KB_ACTOR=shopkeeper shop-knol init shop; KB_ROOT=shop KB_ACTOR=shopkeeper shop-knol journal --actor shopkeeper | grep -c "op:"` gives `9`, nine `create` entries for the start and the types, so scenario 1's "only the recording of the decision" cannot hold if the shopkeeper started the store; the scenario's first run with `--actor` showed the same nine before the Background's change.
   Next: slice 36.1.
+- 2026-09-27 slice 36.1 green. Every command's request to kb is built in `src/shop_knowledge/kb_requests.py` (76 lines; `init_request`, `create_request`, `write_request`, `read_request`, `validate_request`, `apply_request`, `journal_request`, `list_request`, `refs_request`, `search_request`, with `locator` and `is_whole` public); `cli.py` is 203 lines, down from 238, each handler calling its request function, making its call, refusing through `_answered` and showing. CLAUDE.md's module map has the row; adrs/0022 held as written. The over-long `_journal` line went with the move. adrs/0027 records the decision adrs/0025 lacked, that slice 36's Background starts the store as `founder`.
+  Check: diff of the FAILED lines against `failing-36.1.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; request grep on `cli.py`: `0`; `cli.py`: 203 lines; `grep -cE "print\(|connect|client" kb_requests.py`: `0`; `grep -c "kb_requests.py" CLAUDE.md`: `1`; shape check `2 1 1 0`, no module over 250, no renderer listed; help snapshot `36.1` against `36.1-before`: no diff.
+  Surprised by: the module's first docstring said "connects", which the check's grep for `connect` counted; reworded.
+  Next: slice 36.2.

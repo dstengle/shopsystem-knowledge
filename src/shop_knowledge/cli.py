@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 from kb import canonical, client as kb_client
-from kb.content import dumps, loads, text
+from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, batch, bootstrap, shape
+from shop_knowledge import answers, arguments, bootstrap, kb_requests, shape
 from shop_knowledge.renderers import RENDERERS
 
 
@@ -92,7 +92,7 @@ def _answered(response):
 def _init(args) -> int:
     root = Path(args.root)
     client = kb_client.connect(root)
-    client.Init(kb_pb2.InitRequest(root=str(root), actor=args.by["actor"]))
+    client.Init(kb_requests.init_request(args))
     bootstrap.load(client, args.by["actor"])
     return 0
 
@@ -114,96 +114,61 @@ def _document(source: str, shape_name: str) -> dict:
 
 
 def _create(args) -> int:
-    content = _document(args.source, "content")
-    title = text(content.pop("title", None))
-    response = _answered(_client().Create(kb_pb2.CreateRequest(
-        type=args.type, title=title, content=dumps(content), **args.by,
-    )))
+    request = kb_requests.create_request(args, _document(args.source, "content"))
+    response = _answered(_client().Create(request))
     _show(answers.created(response))
     return 0
 
 
-def _locator(words: str) -> kb_pb2.Locator:
-    """A locator as the user says it: a name, or a name and after # a place inside it."""
-    name, _, place = words.partition("#")
-    return kb_pb2.Locator(id=name, path=place)
-
-
 def _write_artifact(args) -> int:
-    locator = _locator(args.locator)
-    response = _answered(_client().Write(kb_pb2.WriteRequest(
-        locator=locator, content=dumps(_document(args.source, "content")), **args.by,
-    )))
-    _show(answers.written_over(locator, response))
+    request = kb_requests.write_request(args, _document(args.source, "content"))
+    response = _answered(_client().Write(request))
+    _show(answers.written_over(request.locator, response))
     return 0
 
 
-def _is_whole(args) -> bool:
-    """--resolve implies a whole read, since kb fills links in only on a whole read."""
-    return args.whole or args.resolve is not None
-
-
-def _read_request(args) -> kb_pb2.ReadRequest:
-    """The level and depth a read asks for: a section, or a whole (filled in when --resolve), or the summary."""
-    locator = kb_pb2.Locator(id=args.locator)
-    if args.section:
-        return kb_pb2.ReadRequest(locator=locator, level=kb_pb2.ReadRequest.SECTION, section=args.section)
-    if _is_whole(args):
-        return kb_pb2.ReadRequest(locator=locator, level=kb_pb2.ReadRequest.WHOLE, depth=args.resolve or 0)
-    return kb_pb2.ReadRequest(locator=locator)
-
-
 def _read(args) -> int:
-    response = _answered(_client().Read(_read_request(args)))
-    shape = answers.section if args.section else answers.whole if _is_whole(args) else answers.glance
+    response = _answered(_client().Read(kb_requests.read_request(args)))
+    shape = answers.section if args.section else answers.whole if kb_requests.is_whole(args) else answers.glance
     _show(shape(response), args.json)
     return 0
 
 
 def _validate(args) -> int:
     """kb's check answers with the store's faults and violations alike; any of either is a refusal."""
-    response = _client().Validate(kb_pb2.ValidateRequest())
+    response = _client().Validate(kb_requests.validate_request(args))
     if response.faults or response.violations:
         raise Refused([*response.faults, *response.violations])
     return 0
 
 
 def _apply(args) -> int:
-    operations = batch.operations(_document(args.source, "batch"))
-    response = _answered(_client().Apply(kb_pb2.ApplyRequest(
-        operations=operations, **args.by,
-    )))
+    request = kb_requests.apply_request(args, _document(args.source, "batch"))
+    response = _answered(_client().Apply(request))
     _show(answers.applied(response))
     return 0
 
 
 def _journal(args) -> int:
-    response = _answered(_client().Journal(kb_pb2.JournalRequest(artifact=args.artifact, role=args.actor, execution=args.execution, since=args.since)))
+    response = _answered(_client().Journal(kb_requests.journal_request(args)))
     _show(answers.history(response))
     return 0
 
 
 def _list(args) -> int:
-    fields = dict(where.partition("=")[::2] for where in args.where)
-    form = kb_pb2.ListRequest.IDS if args.ids else kb_pb2.ListRequest.STUBS
-    response = _answered(_client().List(kb_pb2.ListRequest(type=args.type, fields=fields, form=form)))
+    response = _answered(_client().List(kb_requests.list_request(args)))
     _show((answers.names if args.ids else answers.listed)(response))
     return 0
 
 
 def _refs(args) -> int:
-    direction = kb_pb2.RefsRequest.IN if args.inbound else kb_pb2.RefsRequest.OUT
-    response = _answered(_client().Refs(kb_pb2.RefsRequest(
-        locator=_locator(args.locator), depth=1 if args.depth is None else args.depth, direction=direction,
-        via=args.via or "", type=args.type or "",
-    )))
+    response = _answered(_client().Refs(kb_requests.refs_request(args)))
     _show(answers.reached(response))
     return 0
 
 
 def _search(args) -> int:
-    scope = getattr(kb_pb2.SearchRequest, args.scope.upper())
-    response = _answered(_client().Search(kb_pb2.SearchRequest(text=args.text, type=args.type or "", scope=scope)))
+    response = _answered(_client().Search(kb_requests.search_request(args)))
     _show(answers.matched(response))
     return 0
 
