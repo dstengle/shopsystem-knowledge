@@ -173,3 +173,55 @@ def _rejected_for_an_entry_named_twice(result, decision_file):
     assert result.stderr.splitlines() == [
         f"{decision_file} at sections/0/body: an entry is named once and only once; 'body' is named again at line 5",
     ]
+
+
+PIECE_OF_WORK = "restock-the-shelves"
+
+
+@given("the user works as the shopkeeper on a named piece of work")
+def _shopkeeper_on_a_piece_of_work(env):
+    """Changes the scenario's env in place, so the commands the scenario runs are run as that role on that work."""
+    env["KB_ACTOR"] = f"shopkeeper:{PIECE_OF_WORK}"
+
+
+@then("the change is attributed to the shopkeeper and to that piece of work")
+def _attributed_to_role_and_work(env, result):
+    assert result.returncode == 0, result.stderr
+    journal = knol(env, "journal", "--artifact", loads(result.stdout)["id"])
+    assert journal.returncode == 0, journal.stderr
+    creates = [change for change in loads(journal.stdout)["changes"] if change["op"] == "create"]
+    assert [change["actor"] for change in creates] == [{"role": "shopkeeper", "execution": PIECE_OF_WORK}]
+
+
+TAKEN = "decision/prices-are-reviewed-monthly"
+
+
+@given(
+    "a decision in a file whose title is already used by a decision the shop holds",
+    target_fixture="decision_file",
+)
+def _decision_in_a_file_with_a_taken_title(env, tmp_path):
+    record(env, tmp_path, "decision", OLDER, "Record the monthly review")
+    again = {**OLDER, "sections": [
+        {"title": "Purpose", "body": "Keep prices current.\n"},
+        {"title": "Rationale", "body": "A second reason for the same title.\n"},
+    ]}
+    path = tmp_path / "again.yaml"
+    path.write_text(dumps(again))
+    return path
+
+
+@then("the user is shown a name of its own for the new decision, the name already taken with a number added")
+def _shown_a_name_of_its_own(result):
+    assert result.returncode == 0, result.stderr
+    assert loads(result.stdout)["id"] == TAKEN + "-2"
+
+
+@then("the decision recorded earlier still reads back by the name it had")
+def _earlier_still_reads_back(env):
+    read = knol(env, "read", TAKEN, "--whole")
+    assert read.returncode == 0, read.stderr
+    shown = loads(read.stdout)
+    assert shown["title"] == OLDER["title"]
+    assert shown["revision"] == 1
+    assert "Monthly was enough once." in read.stdout
