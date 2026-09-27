@@ -48,7 +48,8 @@ def _everything_under(directory):
 
 @pytest.fixture
 def role_content():
-    """The Background role's content, for a step that must change it without importing ROLE (Task 1, decision 2)."""
+    """The Background role's content, so a sibling module can change it without importing ROLE: adrs/0035's rule
+    that a sibling module reaches the test module's content only through a fixture, never by importing it."""
     return ROLE
 
 
@@ -64,6 +65,12 @@ def target(tmp_path):
 def before(shop):
     """Every file of the shop's knowledge base, byte for byte, as it was when first asked for."""
     return _everything_under(shop / "kb")
+
+
+@pytest.fixture
+def role_name():
+    """The role the user publishes as an agent, or as markdown: the Background's, unless a Given names another."""
+    return "role/stock-keeper"
 
 
 @when("the user publishes the process as a skill into a directory", target_fixture="result")
@@ -150,12 +157,6 @@ def _a_diagram(result, target):
         '    step2 -->|"it is not"| step4',
         "    step3 --> step4",
     ]
-
-
-@pytest.fixture
-def role_name():
-    """The role the user publishes as an agent: the Background's, unless a Given names another."""
-    return "role/stock-keeper"
 
 
 @when("the user publishes the role as an agent into a directory", target_fixture="result")

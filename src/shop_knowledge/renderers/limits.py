@@ -9,14 +9,20 @@ from kb.contract import kb_pb2
 BODY_LINES = 500
 
 
+def _fault(artifact: str, path: str, message: str) -> kb_pb2.Fault:
+    """One harness-limit fault, on the artifact and the path a limit was broken at, worded with what the harness
+    publishes and what this one is."""
+    return kb_pb2.Fault(artifact=artifact, path=path, rule="harness-limit", message=message)
+
+
 def skill(artifact: str, body: str) -> list[kb_pb2.Fault]:
     """Every way a skill goes beyond what the harness accepts, each a fault on the artifact it was published from."""
     lines = len(body.splitlines())
     if lines < BODY_LINES:
         return []
-    return [kb_pb2.Fault(
-        artifact=artifact, path="steps", rule="harness-limit",
-        message=f"a skill's body is under {BODY_LINES} lines, the limit the harness publishes; this one is {lines}",
+    return [_fault(
+        artifact, "steps",
+        f"a skill's body is under {BODY_LINES} lines, the limit the harness publishes; this one is {lines}",
     )]
 
 
@@ -25,13 +31,13 @@ def agent(artifact: str, name: str) -> list[kb_pb2.Fault]:
     published from, in the order the harness's documentation gives them."""
     faults = []
     if ":" in name:
-        faults.append(kb_pb2.Fault(
-            artifact=artifact, path="harness.name", rule="harness-limit",
-            message=f'an agent\'s name holds no ":", the limit the harness publishes; this one is {name}',
+        faults.append(_fault(
+            artifact, "harness.name",
+            f'an agent\'s name holds no ":", the limit the harness publishes; this one is {name}',
         ))
     if name.startswith("-"):
-        faults.append(kb_pb2.Fault(
-            artifact=artifact, path="harness.name", rule="harness-limit",
-            message=f'an agent\'s name does not start with "-", the limit the harness publishes; this one is {name}',
+        faults.append(_fault(
+            artifact, "harness.name",
+            f'an agent\'s name does not start with "-", the limit the harness publishes; this one is {name}',
         ))
     return faults

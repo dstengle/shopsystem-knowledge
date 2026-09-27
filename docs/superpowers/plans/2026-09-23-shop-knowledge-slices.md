@@ -564,7 +564,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds the markdown steps publishing whichever role a Given names, every fixture of the publish feature in one place, the harness limits' faults built one way, no docstring pointing at a task of a batch plan, and the docstrings the review found short or awkward saying what their code does.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -1224,3 +1224,25 @@ slices 2 onward, never ahead of them.
   Surprised by: kb's own refusal of a null binding spells it `None`, a program's spelling in a refusal kb words (kb is pinned; not this slice's page).
   Open questions: QUESTION FOR THE SPEC, a null in a list of plain values leaves a bullet line ending in a space (`  - `); reproduction: publish as markdown a role holding `answers: [true, null, false]`. QUESTION FOR THE SPEC, a null inside an inline mapping is `owner: ` then the next separator; whether `owner:` drops its space there is not said. Carried: whether a field holding nothing is left off the page (adrs/0043 keeps it); how an empty list is shown (from 50.6).
   Suite: `72 passed`; size check lists nothing; `git diff --stat -- features src/shop_knowledge/types` empty; `grep -n "sections"` in the markdown renderer names `sections` alone. Next: slice 50.12.
+- 2026-09-27 slice 50.12 green. No behaviour changed; every check's before and after:
+  - `.venv/bin/python -m pytest -q`: before `72 passed`; after `72 passed`.
+  - `grep -rn "Task [0-9]" src tests --include="*.py"`: before one line, `role_content`'s docstring ending "(Task 1, decision 2)"; after nothing (reworded to point at adrs/0035).
+  - `grep -c "role/stock-keeper" tests/publish_as_markdown.py`: before 5 (Task 2's role Givens had grown the count past the brief's own recorded 2); after 0. The When and every Given that writes over the Background role now take `role_name` instead.
+  - `grep -c "Fault(" src/shop_knowledge/renderers/limits.py`: before 3; after 1, in a new `_fault` helper `skill` and `agent` both call.
+  - size check: before nothing listed; after nothing listed.
+  - `git diff --stat -- features src/shop_knowledge/types`: before empty; after empty.
+  - the publish feature's test module, every fixture before the first step: before, `role_name` sat at line 155 among the agent steps while `role_content`, `target` and `before` sat together at 49-66; after, all four sit together at 49-73, before this module's first `@when`/`@then`.
+  - the docstrings the review found short or awkward: `markdown._is_table` and `markdown._items` reworded to say plainly what each decides; `publish_as_markdown`'s module docstring now names its Givens too, added by Task 2, not only its When and Thens.
+
+  Items 1-7 (the brief): 1) the module docstring now names the Givens (process steps saying more than one thing, or gaining a yes/no or an empty value; role gaining a tag, a yes/no or an empty value) alongside the When and Thens. 2) `role_name` moved to sit with `role_content`, `target` and `before`. 3) `_publish_as_markdown` and every Given that writes over the Background role (`_role_holds_more_than_one_tag`, `_role_holds_a_yes_and_a_no`, `_role_holds_no_value`) take `role_name` instead of naming `"role/stock-keeper"` themselves. 4) `role_content`'s docstring now points at adrs/0035 (a sibling module reaches the test module's content only through a fixture) instead of "Task 1, decision 2". 5) `renderers/limits.py` gained one private `_fault(artifact, path, message)` that `skill` and `agent` both call; each limit's source stays in its own docstring. 6) `markdown._is_table`'s docstring reworded, dropping the awkward "and not, say, a part collection's own kind of emptiness" aside. 7) `markdown._items`'s docstring no longer calls a list's items "plain values"; it says the list branch lays any item out inline, mappings alone going to a table instead.
+
+  Items 8-13 (added by the controller's ruling from the batch 10 task reviews):
+  8) The role page's 13 base lines, before written out in `_a_page` and in both `_role_holds_a_yes_and_a_no` and `_role_holds_no_value`, now come from one `_role_page(extra=())` that splices a row's own lines in before the section; the process table's first rows, before written out in both `_process_step_holds_a_yes_and_a_no` and `_process_step_holds_no_value`, now come from one `_process_page(columns, cells)` over a shared `_STEP_ROWS` table. Every expected page is unchanged, byte for byte (confirmed by the unchanged `-m "slice-20 or slice-50 or slice-50.6 or slice-50.7 or slice-50.11"` -> `9 passed`).
+  9) `_process_step_holds_a_yes_and_a_no` and `_process_step_holds_no_value`, before indexing `steps[2]` and `steps[3]`, now use a new `_step_holding(steps, step_id, **fields)` that finds the step by its `id` ("order-more", "stop"), matching what each docstring already named.
+  10) `_a_page_of` moved from between the two role Givens (`_role_holds_a_yes_and_a_no` and `_role_holds_no_value`) to sit with the module's other Thens, right after `_a_page`.
+  11) `_no_repr_on_the_page` now binds `_PROGRAM_SPELLING.search(text)` to `match` once, asserting on that instead of calling `.search` a second time inside the assertion message.
+  12) `driver.py` gained `removed(tmp_path) -> Removed`, the one place that builds `tmp_path / "gone"`, makes it, and wraps it in `Removed`; both `tests/test_start_a_shop_knowledge_base.py`'s `_a_removed_directory` and `tests/read_back_from_elsewhere.py`'s `_working_in_a_removed_directory` call it instead of repeating the three lines.
+  13) `conftest.py`'s "the user is shown the refusal in plain words, never a traceback" docstring reworded: it says plainly that this Then, unlike the shared body it calls, is never used where a command reports more than one fault, which is why it alone also asserts the one line count.
+
+  Seen red: none: this slice changes no feature file and no scenario's steps, only how the existing ones are written; every check ran green on the first attempt after each item.
+  Suite: `72 passed`; size check lists nothing; `git diff --stat -- features src/shop_knowledge/types` empty. Next: the batch's final whole-branch review, then push.

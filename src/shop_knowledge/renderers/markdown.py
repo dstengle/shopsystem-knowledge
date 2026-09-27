@@ -34,15 +34,16 @@ def _page(title: str, content: dict) -> str:
 
 
 def _is_table(value) -> bool:
-    """A field is laid out as a table when it holds a list of mappings and not, say, a part collection's own kind of
-    emptiness: an empty list stays in the field list (adrs/0041)."""
+    """A field is laid out as a table when it holds a list of mappings; a field holding an empty list is not, and
+    stays in the field list instead (adrs/0041)."""
     return isinstance(value, list) and bool(value) and all(isinstance(each, dict) for each in value)
 
 
 def _items(fields: dict, depth: int) -> list[str]:
     """One list item a field: a field holding fields is its name with its own items nested two spaces in; a field
-    holding a list of plain values is its name, then each value as a bullet nested one level in the same way; anything
-    else is its name and its value laid out inline (adrs/0041)."""
+    holding a list (of anything but mappings, which are laid out as a table instead) is its name, then each item laid
+    out inline as a bullet nested one level in the same way; anything else is its name and its value laid out inline
+    (adrs/0041)."""
     lines = []
     for key, value in fields.items():
         indent = "  " * depth

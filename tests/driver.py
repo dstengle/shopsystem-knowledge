@@ -22,6 +22,13 @@ class Removed:
         os.rmdir(self.path)
 
 
+def removed(tmp_path: Path) -> Removed:
+    """A directory under `tmp_path`, there and then gone: the one way a step gives a removed working directory."""
+    gone = tmp_path / "gone"
+    gone.mkdir()
+    return Removed(gone)
+
+
 def knol(env, *args, cwd=None, piped=None):
     """Run one shop-knol command, from `cwd` when the user works somewhere other than where the suite runs,
     with `piped` on its standard input when another command's output is piped in; a `Removed` cwd is gone by the

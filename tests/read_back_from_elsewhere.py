@@ -2,7 +2,7 @@
 that give `workdir` and the Thens that say what came of it. The feature's test module star-imports this and no other does."""
 from pytest_bdd import given, then
 
-from driver import Removed, start
+from driver import removed, start
 
 
 @given(
@@ -47,9 +47,7 @@ def _working_elsewhere_naming_nothing(env, tmp_path, decision_id):
 )
 def _working_in_a_removed_directory(env, tmp_path, decision_id):
     del env["KB_ROOT"]
-    gone = tmp_path / "gone"
-    gone.mkdir()
-    return Removed(gone)
+    return removed(tmp_path)
 
 
 @then("the command is rejected because no knowledge base was found, neither above where they are working nor named outright")

@@ -60,7 +60,9 @@ def _shown_in_plain_words(result):
 
 @then("the user is shown the refusal in plain words, never a traceback")
 def _refusal_in_plain_words(result):
-    """The fault said in plain words, as one line: a refusal of one fault (a check lists one line per fault)."""
+    """Everything the shared body checks, plus the one-line count: this Then, unlike the shared one, is never used
+    where a command reports more than one fault (a check lists one line per fault), so the scenarios that use it can
+    also ask for exactly one line."""
     _shown_in_plain_words(result)
     assert result.stderr.count("\n") == 1, result.stderr
 
