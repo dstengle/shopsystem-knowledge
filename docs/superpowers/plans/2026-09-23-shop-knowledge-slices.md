@@ -402,7 +402,7 @@ slices 2 onward, never ahead of them.
 - Observable: The check command's faults and violations are refused through the one refusal of kb answers, so slice 44, which extends the check, adds to that path rather than to a second one.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 44: Check the shop's knowledge is sound
 
@@ -955,3 +955,7 @@ slices 2 onward, never ahead of them.
   Placed, by risk among the slices not yet begun and never ahead of all of them: 48.1 after 48 and before 49, which needs it; 50.1 last, since no slice needs it and it touches `arguments.py`, `kb_requests.py` and `cli._init` after slice 47 has changed `_init` for the last time. No scenario is added or moved, so no feature file and no `@slice` tag changes. Eight slices follow this review (42.2, 44, 47, 48, 48.1, 49, 50 and 50.1), past the six adrs/0010 counts. So slice 50.2, the fifth review, is cut at the plan's end. Under adrs/0011 a review runs before planning and never as a task inside a plan, so it is not a task of batch 7. It runs after batch 7's final review. Batch 7 is the last batch of capability slices; a refactor the fifth review calls for is cut then as an enabling slice of its own.
   Next: writing-plans over slices 42.2, 44, 47, 48, 48.1, 49, 50 and 50.1, one task per slice in that order, to `2026-09-27-shop-knowledge-batch7-implementation.md`, the last batch in the plan.
 - 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch7-implementation.md`, eight tasks for slices 42.2, 44, 47, 48, 48.1, 49, 50 and 50.1 in slice order, the last batch of the plan. Written under adrs/0011: no code, nothing built or replayed. Each task says why its scenarios or check are red today, found by running them in this checkout (every red scenario stops at an undefined step) and by probing kb v0.2.0 and shop-knol in `.superpowers/batch7/`. The probes found that 48 and 49, and scenarios 1 to 3 of 47 and 2 of 44, already hold in code once their steps exist. Expected counts are taken from the tags (failed/passed): 12/50 before, then 12/50, 9/53, 4/58, 3/59, 3/59, 1/61, 0/62 and 0/62. Decisions in adrs/0029 to 0032. No request to bump the pin beyond kb slice 97's. No feature file touched. Its Review Focus holds five questions for the spec: a batch's fault naming a change by an artifact that does not exist, stale artifacts unseen beside faults, a non-role published as an agent, the agent's `tools` as a list, and a reason given to `init`. Next: slice 42.2.
+- 2026-09-27 slice 42.2 green. Someone can now: extend the check's answer through the one refusal of kb answers, `cli._answered`, which takes Validate's violations as further faults.
+  Check: failing ids identical to before (same, 12); `make test` 12 failed, 50 passed; `-m slice-1.28` 1 passed; the `inspect` assertion succeeds; `grep -n Validate CLAUDE.md` finds no line; shape check `2 7 1 0`, nothing listed, `cli.py` 232; arguments snapshot TAG=42.2 no diff.
+  Surprised by: `cli.py` stays 232, not 231; the docstring of `_answered` grew as `_validate` shrank.
+  Open questions: none. Next: slice 44.

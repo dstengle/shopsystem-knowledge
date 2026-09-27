@@ -89,10 +89,11 @@ def _refuse(faults) -> int:
     return 1
 
 
-def _answered(response):
-    """kb's answer, or the refusal it carries: every kb answer's faults are refused this one way."""
-    if response.faults:
-        raise Refused(response.faults)
+def _answered(response, also=()):
+    """kb's answer, or the refusal it carries: every kb answer's faults, and any `also` it counts as faults, are refused this one way."""
+    faults = [*response.faults, *also]
+    if faults:
+        raise Refused(faults)
     return response
 
 
@@ -157,8 +158,7 @@ def _read(args) -> int:
 def _validate(args) -> int:
     """kb's check answers with the store's faults and violations alike; any of either is a refusal."""
     response = _client().Validate(kb_requests.validate_request(args))
-    if response.faults or response.violations:
-        raise Refused([*response.faults, *response.violations])
+    _answered(response, response.violations)
     return 0
 
 

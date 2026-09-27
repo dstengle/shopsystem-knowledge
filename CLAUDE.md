@@ -52,9 +52,8 @@ own it.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
 - A file a user gives is read, and checked against its shape, in one place, `cli._document`, and a kb answer's faults are refused in one way,
-  `cli._answered`. Two places differ: Validate's answer is raised as `Refused` over its faults and violations together,
-  and a renderer turns a kb answer's faults into the `Rendered` faults it gives back, which `_render` refuses through
-  `_answered`.
+  `cli._answered`. One place differs: a renderer turns a kb answer's faults into the `Rendered` faults it gives back,
+  which `_render` refuses through `_answered`.
 
 ## Step definitions
 
