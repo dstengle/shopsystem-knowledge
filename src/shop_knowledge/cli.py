@@ -157,7 +157,7 @@ def _read(args) -> int:
 
 
 def _validate(args) -> int:
-    """kb's check answers with the store's faults and violations alike; any of either is a refusal."""
+    """kb's check answers with the store's faults and violations alike; any of either is a refusal, and a check with none is shown through `answers.checked`."""
     response = _client().Validate(kb_requests.validate_request(args))
     _show(answers.checked(_answered(response, response.violations)))
     return 0
@@ -202,7 +202,7 @@ def _snapshot(args) -> int:
 
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
-    _write(rendered.files, Path(args.to))
+    _write(rendered.files, args.to)
     _show(answers.written(rendered.files))
     return 0
 

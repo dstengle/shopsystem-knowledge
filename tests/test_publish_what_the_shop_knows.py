@@ -189,4 +189,5 @@ def _an_agent(result, target):
     assert heading == ROLE["harness"]
     for section in ROLE["sections"]:
         assert f"# {section['title']}\n\n{section['body'].rstrip()}" in body
+        assert f"# {section['title']}" in body.splitlines()
     assert ROLE["shop"]["responsible_for"] not in body

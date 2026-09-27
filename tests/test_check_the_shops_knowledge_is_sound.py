@@ -2,7 +2,7 @@ from kb import canonical
 from kb.content import dumps, loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start
+from driver import knol, record, start, whole
 
 scenarios("check-the-shops-knowledge-is-sound.feature")
 
@@ -89,7 +89,7 @@ def _both_listed(result):
 def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
     start(env, shop)
     record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
-    held = loads(knol(env, "read", "schema/decision", "--whole").stdout)
+    held = whole(env, "schema/decision")
     for identity in ("id", "type", "schema_version", "revision", "title"):
         del held[identity]  # a write carries content alone
     path = tmp_path / "decision-type-2.yaml"

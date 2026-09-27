@@ -23,7 +23,11 @@ def start_in(shop):
 
 @when("the user starts a shop knowledge base in that directory, saying who they are", target_fixture="result")
 def _start_saying_who(env, start_in):
-    return knol(env, "init", str(start_in))
+    return _init(env, start_in)
+
+
+def _init(env, directory):
+    return knol(env, "init", str(directory))
 
 
 @then("the shop can hold decisions, features, work items, roles, processes, steps and tags")
@@ -79,7 +83,7 @@ def _defines_nothing(shop):
 
 @when("the user starts a shop knowledge base in that directory, saying who they are and giving no reason", target_fixture="result")
 def _start_giving_no_reason(env, shop):
-    return _start_saying_who(env, shop)
+    return _init(env, shop)
 
 
 @then("the shop's knowledge base is started")
@@ -100,7 +104,7 @@ def _recorded_with_its_own_reason(env, result):
 
 @when("the user starts a shop knowledge base in that directory", target_fixture="result")
 def _start(env, shop):
-    return knol(env, "init", str(shop))
+    return _init(env, shop)
 
 
 @then("starting the knowledge base is rejected because starting one must say which role did it")

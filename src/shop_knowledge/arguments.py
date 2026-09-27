@@ -99,7 +99,7 @@ def command_parser() -> argparse.ArgumentParser:
     render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
     render.add_argument("renderer", choices=sorted(RENDERERS))
     render.add_argument("locator")
-    render.add_argument("--to", required=True, metavar="DIR")
+    render.add_argument("--to", type=Path, required=True, metavar="DIR")
 
     delete = commands.add_parser("delete", help="retire an artifact nothing points at")
     delete.add_argument("locator")

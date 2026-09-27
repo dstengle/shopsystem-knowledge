@@ -58,11 +58,11 @@ def _replace_the_rationale(env, decision_id, tmp_path, before):
     return knol(env, "write", f"{decision_id}#sections/rationale", "--from", str(path), "-m", "Costs now move daily")
 
 
-def _without_the_rationale(whole):
+def _without_the_rationale(document):
     """A whole read with what a revision of the rationale is allowed to change taken out."""
     return {
-        **{key: value for key, value in whole.items() if key != "revision"},
-        "sections": [section for section in whole["sections"] if section["title"] != "Rationale"],
+        **{key: value for key, value in document.items() if key != "revision"},
+        "sections": [section for section in document["sections"] if section["title"] != "Rationale"],
     }
 
 
