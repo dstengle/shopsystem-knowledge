@@ -492,7 +492,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds no module under `src/` or `tests/` over the limit, and CLAUDE.md saying the limit covers both and how a feature's steps are split when they outgrow one module.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -1042,3 +1042,10 @@ slices 2 onward, never ahead of them.
   Check: `pytest -q` gives `62 passed`; `-m slice-49` gives `2 passed, 60 deselected`; `test_record_a_decision.py` gives `10 passed`; `test_read_back_what_the_shop_knows.py` gives `12 passed`; the Whens grep gives `42 target_fixture="result"`; `"--whole"` gives `tests/driver.py:35` and `tests/test_read_back_what_the_shop_knows.py:90`; "does not exist yet" gives no line; `git diff --stat -- src features` is empty. Lines after: `test_record_a_decision.py` 246, `test_start_a_shop_knowledge_base.py` 255, `test_read_back_what_the_shop_knows.py` 276 (the last two are slice 50.4's).
   Surprised by: nothing, except that the start module grew from 251 to 255 lines, since the two Whens now write and run `create` themselves.
   Next: slice 50.4.
+- 2026-09-27 slice 50.4 green.
+  Check: `pytest -q` gives `62 passed`; `--collect-only -q | grep -c ::` gives `62`; the size check lists nothing; `grep -l "import \*" tests/*.py` lists `tests/test_read_back_what_the_shop_knows.py` and `tests/test_start_a_shop_knowledge_base.py`; the two siblings are `tests/read_back_from_elsewhere.py` and `tests/start_roles_and_tags.py`, neither named `test_*`, and their constants (`THE_HARNESS_FIELDS`, `THE_SHOP_IDENTITY`, `TAG_DESCRIPTION`) are assigned in no test module; `grep -n "250" CLAUDE.md` shows the rule naming `src/` and `tests/`, and Step definitions says where a feature's steps go; `git diff --stat -- src features` is empty; `make test` ends with `62 passed`. Before: read-back 276 and start 255. Lines after: `test_read_back_what_the_shop_knows.py` 194, `read_back_from_elsewhere.py` 88, `test_start_a_shop_knowledge_base.py` 182, `start_roles_and_tags.py` 80. With the two star imports commented out, read-back gave 5 failed and start 2 failed, 7 `StepDefinitionNotFound` in all.
+  Surprised by: the sibling of the tag scenario needs `record` from the driver as well as `knol`, `start` and `whole`, and the start test module no longer uses `dumps` or `whole`, so those two imports went.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 4): the agent renderer checks no harness limit. Reproduced after this task: a role with `harness.name: Stock Keeper!`, a 1500-character `description` and a 700-line section, then `shop-knol render agent role/stock-keeper --to out` exits 0 and writes `.claude/agents/stock-keeper.md`, 709 lines here, headed `name: Stock Keeper!`. The spec says `agent` fails rather than emit something the harness would reject.
+  - QUESTION FOR THE SPEC (Review Focus 5): `init ""` starts a store in the working directory. Reproduced after this task: from an empty directory, `KB_ACTOR=a shop-knol init ""` exits 0 and the directory then holds `kb/`. A user might expect a refusal naming the empty root.
+  Next: none. Every slice in the plan is green. What remains is the QUESTION FOR THE SPEC lines in the log, for formulating-features and the human, and the kb pin bump for the empty batch's traceback.

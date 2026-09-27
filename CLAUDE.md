@@ -49,7 +49,7 @@ own it.
 
 ## Size and shape
 
-- No module over 250 lines. When a change would cross the limit, split first.
+- No module over 250 lines, under `src/` or `tests/`. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
 - A file a user gives is read, and checked against its shape, in one place, `cli._document`, and a kb answer's faults are refused in one way,
@@ -62,7 +62,8 @@ own it.
 - They may use kb's in-process client, or read and hand-edit a knowledge base's files, only to set up or observe
   what no shop-knol command yet does; the step says so where it does.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
-  they serve.
+  they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
+  not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).
 - A When that runs shop-knol gives what it ran as the fixture `result`, so the shared Thens that say how a command
   ended, such as "the command reports failure to whatever ran it", read it under one name in every feature.
 - `tests/clock/` is put on shop-knol's `PYTHONPATH`, with `TEST_NOW` set, only through `driver.at`, when a scenario
