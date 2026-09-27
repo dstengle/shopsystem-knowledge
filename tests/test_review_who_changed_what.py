@@ -24,7 +24,7 @@ def _today(day):
 )
 def _recorded_then_revised(env, shop, tmp_path, today):
     # The Background does not say who started the store; a role of its own keeps the start out of the shopkeeper's
-    # history (adrs/0025).
+    # history (adrs/0027).
     started = knol({**at(env, "2026-09-21T09:00:00"), "KB_ACTOR": "founder"}, "init", str(shop))
     assert started.returncode == 0, started.stderr
     record(at(env, "2026-09-21T10:00:00"), tmp_path, "decision",

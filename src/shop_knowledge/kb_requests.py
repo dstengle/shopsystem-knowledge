@@ -1,5 +1,5 @@
 """Each command's arguments turned into the request it sends kb: one public function per command that calls kb,
-named `<command>_request`. The actor and message are read from `args.by`, set by the command line's `_run`; a
+named `<command>_request`, and two helpers `cli._read` uses, `locator` and `is_whole`. The actor and message are read from `args.by`, set by the command line's `_run`; a
 command that sends a file's content takes the document that was read. Nothing here shows anything or makes a call."""
 from pathlib import Path
 
