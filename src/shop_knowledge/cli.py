@@ -157,9 +157,11 @@ def _read(args) -> int:
 
 
 def _validate(args) -> int:
-    """kb's check answers with the store's faults and violations alike. Its answer is shown whatever it found, then any
-    of either is refused through `_answered`, so what is behind its type is shown beside the faults."""
-    response = _client().Validate(kb_requests.validate_request(args))
+    """kb's check answers with the call's own faults (a check that never ran, no store found) apart from what it found
+    once it ran (violations, damaged files included). A call that never ran shows no answer: its faults are refused
+    through `_answered` before anything is shown. A call that ran shows what it found, then refuses any violation as
+    the exit, so what is behind its type is shown beside the faults."""
+    response = _answered(_client().Validate(kb_requests.validate_request(args)))
     _show(answers.checked(response))
     _answered(response, response.violations)
     return 0

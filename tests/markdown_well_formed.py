@@ -64,8 +64,10 @@ def _the_page(target) -> list[str]:
 
 
 def _cell_count(line: str) -> int:
-    """The cells of a table row as a markdown reader counts them: its pipes, less the outer two, where a pipe after a
-    backslash is text, not a boundary."""
+    """The cells of a table row by a rule stricter than a markdown reader's own: its pipes, less the outer two, where
+    a pipe after a backslash is text, not a boundary, and backslashes are paired off left to right, so only an odd
+    run right before a pipe escapes it. GFM instead escapes a pipe behind any backslash at all, so this never counts
+    fewer boundaries than GFM does (final review, finding 5)."""
     return _ESCAPED.sub("", line.strip()).count("|") - 1
 
 
