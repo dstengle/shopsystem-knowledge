@@ -1,0 +1,3 @@
+# 0029 The check's answer: sound, and what is behind its type
+
+2026-09-27. Slice 42.2 routes Validate's violations through `cli._answered` with its faults, so the check is refused the way every kb answer is. Slice 44 then shows a check that finds no fault as a YAML document on stdout, `sound: true` with `behind:`, a list of each artifact kb reports as stale under kb's own field names (`artifact`, `schema_version`, `current`), empty when none is. It exits 0. An artifact behind its type is never a fault and never on stderr. A check that finds faults is refused as today: one line per fault on stderr, nothing on stdout, exit 1. What is behind its type is not shown beside faults, since a refusal prints nothing on stdout. That is logged as a question for the spec.

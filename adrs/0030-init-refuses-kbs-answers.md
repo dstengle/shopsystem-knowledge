@@ -1,0 +1,3 @@
+# 0030 Starting a knowledge base refuses kb's answers like every command
+
+2026-09-27. Slice 47 passes Init's answer through `cli._answered`, so kb's refusal of a directory that already holds a store, or that sits inside one, reaches the user in kb's words with exit 1, and the types are loaded only after Init answers without a fault. `bootstrap.py` gives back each Create's answer as it is made and never imports `cli`. `cli._init` passes each answer through `_answered`, stopping at the first refusal. The same path refuses `init` of a directory that does not exist, which today exits 0 having started nothing, in kb's words. No scenario is added for it.

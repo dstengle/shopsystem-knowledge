@@ -393,7 +393,7 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the links, search, history, snapshot, append and retire commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 42.2: The check's answer is refused the one way every kb answer is
 
@@ -431,6 +431,15 @@ slices 2 onward, never ahead of them.
 - Needs: none
 - Status: planned
 
+## Slice 48.1: A whole read the steps make is driven one way
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice; `grep -c "def _whole" tests/*.py | grep -v ":0"` -> no line; `grep -c "^def whole" tests/driver.py` -> 1
+- Observable: The steps that read an artifact whole through shop-knol find that read in the driver beside `record`, instead of the two word-for-word copies in the revise and add-a-step modules and a third that slice 49's reads of a role, a decision and a tag would add.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Slice 49: The shop's roles and tags hold their shape
 
 - Kind: capability
@@ -445,6 +454,24 @@ slices 2 onward, never ahead of them.
 - Kind: capability
 - Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a role as an agent
 - Observable: A user publishes a role into a directory and finds an agent whose heading block is the role's harness fields and whose body is its prose.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.1: What an argument means is said once, and nothing is named for a use it does not have
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice; `grep -cE 'or ""|is None|Path\(' src/shop_knowledge/kb_requests.py` -> 0; `grep -c "Path(args.root)" src/shop_knowledge/cli.py` -> 0; `.venv/bin/python -c "import shop_knowledge.cli as c, shop_knowledge.arguments as a; p=a.command_parser(); assert list(c._HANDLERS) == list(p._subparsers._group_actions[0].choices)"` succeeds; `grep -c "def locator" src/shop_knowledge/kb_requests.py` -> 0, and neither the module's docstring nor its CLAUDE.md row names a helper `cli` does not call; `shop-knol -h` and `shop-knol <command> -h` for every command give byte for byte what they gave before the slice
+- Observable: A reader finds each argument's type and default where the argument is declared, the handler table in the order the help lists the commands, and the request module naming only the helper the command line uses, so no default is patched in a second place.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.2: Fifth architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the eight implemented slices since slice 42.1 (42.2, 44, 47, 48, 48.1, 49, 50 and 50.1), is in this plan's log, and every refactor it calls for is a slice of its own with a check -> the log entry and those slices
+- Observable: Anyone can read whether the check, the start, the batch, the role and tag types and the agent renderer kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -906,3 +933,24 @@ slices 2 onward, never ahead of them.
   - `answers.written_over` and `answers.deleted` have identical bodies.
   - `init` normalises the root with `Path` twice, in `cli._init` and `kb_requests.init_request`.
   - `refs --depth -1` silently answers `[]`.
+- 2026-09-27 Suite: 50 passed, 12 failed (`.venv/bin/python -m pytest -q`; the 12 are exactly the scenarios tagged 44, 47, 48, 49 and 50, each stopping at an undefined step).
+- 2026-09-27 Fourth architecture review of shop-knowledge (slice 42.1), on Opus 5.5 against `CLAUDE.md`, over the code under `src/` and the step definitions after slices 32, 32.1, 34, 36, 36.1, 36.2, 36.3, 38, 40 and 42. It took first what batch 6's final review left for it, and `cli.py`'s room.
+  Kept: rule 1 (`src/` imports from kb only `kb.client`, `kb.contract`, `kb.content`, and `kb.canonical` in `cli._document`; `jsonschema` only in `shape.py`); rule 2; rule 3 (no other YAML library; JSON only through `json` in `cli._show`); rule 4 for everything shop-knol does itself. A hunt over every command with odd input (a missing name, an empty name, a place in a name, `--depth -1`, `--since garbage`, an empty or `/dev/null` file, a kind the store lacks, `--where` with no `=`, no store, `KB_ROOT` naming nothing) found one traceback, the empty batch, which is kb's. Rule 5 (only the skill and diagram renderers know a process's fields; `bootstrap` knows the types' names alone). Rule 6 (no renderer prints, opens or writes; `cli._write` alone writes). No module is over 250 lines. A user's file or the pipe is read only in `cli._document`. Every kb answer but Validate's and Init's, and bootstrap's Creates, is refused through `cli._answered`. Every refusal is printed by `main` alone. Every module has a row in the module map, and every public function of `answers.py` is named in its row. Every When that runs shop-knol gives `result`. No step text or shared fixture is defined twice. The one in-process kb call in the steps and every hand edit say why.
+  Room in `cli.py`: 232 lines. Estimated by reading the handlers each slice left touches: 42.2 turns `_validate`'s own refusal into `_answered`, about -1; 44 adds the check's answer to `_validate`, about +1; 47 refuses Init's and bootstrap's answers in `_init`, about +2 to +3; 48 and 49 touch no code; 50 adds a renderer under `renderers/` and nothing to `cli.py`. So `cli.py` ends near 235, under the limit with room. No split is called for. Slices 44 and 47 each stop and hand back if the estimate is wrong for them, as slice 28 did.
+  Batch 6's inputs, each settled:
+  - Flag defaults handled two ways (`""` declared for `journal`, `None` patched with `or ""` in the requests for `refs` and `search`, `refs --depth` patched from `None` to 1). With `init`'s root normalised with `Path` in both `cli._init` and `init_request`, this is one fault: what an argument means is said in two places, against the map's row giving `arguments.py` every command's arguments and the requests module only their turning into requests. Refactor: slice 50.1 (adrs/0032).
+  - Command order differs between the help and `_HANDLERS`. No rule breaks, but a reader matching a handler to its command reads two orders. The help is what users see and keeps its order. `_HANDLERS` takes it, in slice 50.1.
+  - Snapshot entries in `journal` show `artifact: ''` and `revision: 0`. That is what the user is shown, a scenario's to say and no rule's: QUESTION FOR THE SPEC. Reproduction: `KB_ACTOR=agent shop-knol snapshot --execution w decision/x -m read; shop-knol journal --execution w`. The one entry shows `artifact: ''`, `revision: 0` and `read: [...]`. A user would expect the empty fields left out.
+  - `answers.written_over` and `answers.deleted` have identical bodies. Not called for: the map gives each answer a public function of its own, and the two answer different commands whose answers may part.
+  - `refs --depth -1` silently answers `[]`. Behaviour no scenario pins and no rule settles: QUESTION FOR THE SPEC. Reproduction: `shop-knol refs <a decision with links> --outbound --depth -1` gives `[]`, exit 0. A user would expect a refusal naming the depth.
+  Found here:
+  - `kb_requests.py`'s docstring and its CLAUDE.md row say `locator` and `is_whole` are there for `cli._read`. `cli` calls `is_whole` alone (`grep -n "kb_requests\.\(locator\|is_whole\)" src -r`: one line, `is_whole`). `locator` is used only inside the module. A name says other than the code does, the standard slice 36.3 held. Refactor: slice 50.1 makes it the module's own and the row names `is_whole` alone.
+  - Reading an artifact whole through shop-knol is written word for word as `_whole` in `test_revise_what_the_shop_knows.py` and `test_add_a_step_to_a_process.py`. Slice 49 would add a third, for a role, a decision and a tag. The driver already holds the shared ways of driving shop-knol (`knol`, `start`, `record`). Refactor: slice 48.1 puts the whole read there. Placed before 49, which needs it, and after 48, since placing it first would put it ahead of slices that do not.
+  - Validate's answer refused outside `_answered` stays with slice 42.2, and Init's and bootstrap's dropped answers with slice 47, as the second and third reviews placed them.
+  Not called for: `source.whole`'s `depth`, which no renderer passes yet. The spec says a renderer reads "the resolved whole artifact", so it is the door to that and says no more than it does. Nor the `"-"` `_by` takes as init's message. It is how "init gives no why" is said, and slice 47's "asks for no reason" is its scenario.
+  Questions the batches logged that a rule settles, not a scenario:
+  - `init` of a directory that does not exist exits 0 having started nothing (slice 1.29's review, owned by 47). Settled by "a kb answer's faults are refused in one way": kb answers Init with `a store is started in a directory that exists; 'nope' does not`, which shop-knol drops today. Slice 47's refusal of Init's answer shows it, with exit 1, and no scenario is added (adrs/0030).
+  - The empty batch's traceback (slice 28's Review Focus 1), rule 4. Waiting on kb, not a slice here: kb fixed it in kb's main as kb slice 97. This is a request to bump the pin to the kb tag that releases it. Until then rule 4 is broken there by kb v0.2.0, and nothing is coded here. Still reproduced today: `printf 'changes: []\n' > b.yaml; shop-knol apply --from b.yaml -m x` ends in `subprocess.CalledProcessError` from kb's git commit, exit 1.
+  Every other open question needs a scenario to say what is shown, and no rule does. Each stays a QUESTION FOR THE SPEC where it was logged: `--json` on `read` alone; `list --ids` as YAML; "superseded" as a status and not the link; `--section` with `--whole`; "no store" against "no knowledge base"; a non-process as a skill or a diagram; a branch to no step, `go_to` unchecked; a `"` in a diagram's label; the 500 lines "for optimal performance"; `<name>.mmd` against `<id>.mmd`; the skill's name and description limits; the markdown page's parts as tables; search inside parts and one artifact shown twice; `snapshot`'s two sources for the piece of work; a step added with a title already used; several things pointing at a retired artifact, retiring a place, retiring a name the store lacks.
+  Placed, by risk among the slices not yet begun and never ahead of all of them: 48.1 after 48 and before 49, which needs it; 50.1 last, since no slice needs it and it touches `arguments.py`, `kb_requests.py` and `cli._init` after slice 47 has changed `_init` for the last time. No scenario is added or moved, so no feature file and no `@slice` tag changes. Eight slices follow this review (42.2, 44, 47, 48, 48.1, 49, 50 and 50.1), past the six adrs/0010 counts. So slice 50.2, the fifth review, is cut at the plan's end. Under adrs/0011 a review runs before planning and never as a task inside a plan, so it is not a task of batch 7. It runs after batch 7's final review. Batch 7 is the last batch of capability slices; a refactor the fifth review calls for is cut then as an enabling slice of its own.
+  Next: writing-plans over slices 42.2, 44, 47, 48, 48.1, 49, 50 and 50.1, one task per slice in that order, to `2026-09-27-shop-knowledge-batch7-implementation.md`, the last batch in the plan.
