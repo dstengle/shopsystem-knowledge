@@ -537,6 +537,15 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the markdown layout, the agent's limits and the init default kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
+- Status: green
+
+## Slice 50.10: shop-knol refuses, never tracebacks, when the working directory no longer exists
+
+- Kind: enabling
+- Check: from a working directory that has been removed, `shop-knol init`, `shop-knol init <dir>` and `shop-knol read decision/x` each write exactly one line to stderr, no `Traceback`, exit 1; `.venv/bin/python -m pytest -q` -> `66 passed`; `.venv/bin/python -m shop_knowledge init -h` still shows `root` as optional, the working directory its default; the size check lists nothing; `git diff --stat -- features` -> empty
+- Observable: A user whose shell sits in a directory that has since been removed is refused shop-knol's own way, not shown a Python traceback, for any command, `init` included.
+- Unknown: none
+- Needs: `arguments.py` still declares `root`'s meaning once (adrs/0032); the fix does not move that declaration, it only stops `command_parser()` from evaluating `Path.cwd()` where a removed directory raises unguarded
 - Status: planned
 
 ## Satisfied by existing behaviour
@@ -1133,3 +1142,35 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 5, unchanged from the task's framing, not fixed here): `KB_ACTOR=a shop-knol init ""` from an empty directory still exits 0 and makes `kb/` there. Reproduced under `.superpowers/batch9/probe5`. Because `""` is given outright, `nargs="?"`'s default is bypassed and `""` goes through `type=Path` as `Path("")`, which resolves (through kb's own connect) to the working directory anyway — the same outcome as naming nothing, by accident of how empty strings and `Path` interact, not by anything `arguments.py` declares on purpose.
   Next: slice 50.9.
+- 2026-09-27 Sixth architecture review of shop-knowledge (slice 50.9), on Opus 5.5 against `CLAUDE.md`, over the code under `src/` and the step definitions after slices 50.3, 50.4, 50.5, 50.6, 50.7 and 50.8 (diff `0d770fb..9121be7`). Every finding was verified against the code in this checkout before being logged here, independently of the review's own transcript: the traceback below was reproduced directly, the size check and the step-definition greps (`import \*`, the `target_fixture="result"` count, the size check) were re-run and matched, and `markdown.py` was read in full to confirm the boolean/null finding.
+
+  Met in full:
+  - Rule 1 (kb only through its contract): `src/` imports only `kb.client`, `kb.contract.kb_pb2`, `kb.content`, and `kb.canonical` (for `NotCanonical` alone, in `cli.py:117`); `jsonschema` only in `shape.py`; nothing under `src/` opens a store's files or runs git. The batch's new modules (`limits.py`, `agent.py`) add no new kb import.
+  - Rule 2: kb pinned at v0.2.1, installed from that tag, not edited.
+  - Rule 3: no other YAML library; `agent._agent` writes through `kb.content.dumps` as `skill._skill` does.
+  - Rule 4, for the agent's new faults: `limits.agent` builds `Fault`s and prints nothing (`limits.py:23-37`); `agent._agent` returns them as `refused(faults)` (`agent.py:22-24`); `cli._render` refuses them through `_answered`/`Refused`, the same path the skill's fault takes; `main` alone prints, one line each, exit 1. Verified: the scenario's Then and the Review Focus 3 probes logged at 50.7 both show exactly this.
+  - Rule 5, for the markdown layout: `markdown.py` branches only on a value's shape (`_is_table`, `_items`, `_inline`), never a field name; the only name it knows is `sections` (adrs/0015's one exception). Verified by grepping `markdown.py`/`sections.py` for every field name the batch's scenarios touch (`steps`, `tags`, `tools`, `harness`, `with`, `branches`, `uses`, `does`, `id`, `title`, `scenarios`, `name`) — none found.
+  - Rule 6, for the agent's limit check: `_agent` checks and returns faults before the file map is built; nothing is written when refused; `cli._write` runs only after `_answered` lets the `Rendered` through.
+  - The module map: every module has an accurate row; `renderers/limits.py`'s docstring names both limits' sources and when each was read (2026-09-27 for the agent's).
+  - Reading and refusing in one place: unchanged, `cli._document` and `cli._answered` still the only places.
+  - Size limit: `find src tests -name "*.py" -exec wc -l {} + | awk '$2 != "total" && $1 > 250'` -> nothing. Largest: `test_record_a_decision.py` 246, `cli.py` 233, `test_start_a_shop_knowledge_base.py` 210, `test_publish_what_the_shop_knows.py` 198.
+  - One thing at one level: every new function in `markdown.py`, `agent.py` and `limits.py` is a single-purpose function with no phase-separating comment.
+  - The step definitions' rules: `tests/publish_as_markdown.py` matches the two existing siblings' pattern (never imports its test module, reached only by star import, `ROLE` reached through the `role_content` fixture, not a direct import); the start feature's rewritten steps still drive shop-knol only through `tests/driver.py`; `grep -h -A3 "^@when" tests/*.py | grep -o 'target_fixture="[a-z_]*"' | sort | uniq -c` -> `43 target_fixture="result"`, matching `grep -c "^@when" tests/*.py`'s total of 43; `"--whole"` appears only at `tests/driver.py` and the read-back feature's own whole-read When; no step text defined twice; `tests/clock/` reached only through `driver.at`.
+
+  Not met in full:
+  - **Rule 4 regression: shop-knol tracebacks, does not refuse, when the working directory no longer exists.** Cause: `arguments.py`'s `root` argument is declared `default=Path.cwd()` (`arguments.py:34`), evaluated when `command_parser()` builds the parser — for every command, not only `init` — and `cli._parsed` catches only `ArgumentRefused`, not the `FileNotFoundError` `os.getcwd()` raises. Reproduced independently in this session, both for `init` and for `read` (a command that takes no `root` argument at all, since the parser is still built): a `mktemp -d` directory removed out from under the shell, then `KB_ACTOR=a shop-knol init` and `KB_ACTOR=a shop-knol read decision/x` each end in `FileNotFoundError` raised from `pathlib.py`'s `Path.cwd()`, a full Python traceback on stderr, not shop-knol's own one-line refusal. Before slice 50.8 (commit 049bb00), the same `read` from a removed directory gave one line, `No such file or directory`, exit 1 — so this is a regression slice 50.8 introduced, not new behaviour that was never held. Cut as slice 50.10 below.
+
+  Not called for:
+  - `limits.py` takes a field's dotted path (`"harness.name"`, `"steps"`) as a string from its callers, which is arguably a renderer's own field knowledge leaking into a shared module; but it sits under `renderers/`, only `skill` and `agent` call it, and four prior reviews (through 50.2) have passed the same shape for the skill's `steps`. Not a new violation, and fixing it would move no knowledge out of `renderers/` since only renderers call `limits.py`.
+  - `markdown.py`'s docstrings undersell what their code does in a couple of places (`_items`'s docstring calls out "plain values" but its list branch is more general; `_is_table`'s docstring reads awkwardly) — no rule sets docstring completeness or style.
+  - `publish_as_markdown.py`'s `_publish_as_markdown` still names `"role/stock-keeper"` itself rather than taking `role_name` the way the agent's When now does; no scenario overrides the markdown role, so nothing is broken by this asymmetry.
+  - Lines over 120 columns in a few places (`cli.py`, a step text in `publish_as_markdown.py`); no rule sets a line-length limit.
+  - The repr-detection Then (`publish_as_markdown.py`) checks only bracket/quote markers, not `True`/`False`/`None` — it covers exactly what this task's two scenarios can hold; widening it is for whichever scenario the open question below leads to, not a defect today.
+
+  Open questions:
+  - QUESTION FOR THE SPEC: `render markdown` shows a boolean or a null the way Python spells it (`True`, `False`, `None`), not a YAML/markdown-appropriate spelling. Cause: `_inline`'s plain-value fallback is `" ".join(str(value).splitlines())` (`markdown.py:80`), and `str()` of a Python `bool`/`NoneType` is its Python name. Reproduced: a decision recorded with `urgent: true` and `waived: null` (its schema leaves extra fields open) renders as `- **urgent**: True` and `- **waived**: None`; a table cell holding `false` renders `False`. No shop type declares a boolean or null field today and no scenario holds one, so this is left a question rather than a slice, per CLAUDE.md's "never adds behaviour no scenario asks for" — but adrs/0038's "no repr is ever shown" arguably already answers it. Logged for formulating-features and the human.
+  - Carried unchanged from earlier entries: `init ""` (50.2, 50.8); an unescaped `|` in a table cell (50.6); an empty list shown as its field's name with nothing under it (50.6); stale artifacts unseen beside faults; a batch's fault naming a change by an artifact that does not exist; a reason given to `init`; tagging with a tag that does not exist; a non-role published as an agent; the agent's `tools` as a list.
+  - Closed since 50.2: the agent renderer checking no harness limit (adrs/0040, slice 50.7); the empty batch's traceback (kb v0.2.1).
+
+  Cut: slice 50.10, enabling, right after 50.9 — shop-knol refuses, never tracebacks, when the working directory no longer exists. It adds or moves no scenario, so no feature file or `@slice` tag changes. Not implemented in this batch (adrs/0011: this plan carries no code, and this finding surfaced after the plan was written); it waits for its own plan, the way slice 50.2 cut 50.3 and 50.4 into batch 8 rather than fixing them inline.
+  Next: writing-plans over slice 50.10, when it is next taken up.
