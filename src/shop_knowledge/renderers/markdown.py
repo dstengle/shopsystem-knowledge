@@ -57,13 +57,13 @@ def _items(fields: dict, depth: int) -> list[str]:
             lines += [f"{indent}- **{key}**", *_items(value, depth + 1)]
         elif isinstance(value, list) and value:
             child = "  " * (depth + 1)
-            lines += [f"{indent}- **{key}**", *(f"{child}-" + _after_the_colon(_inline(each)) for each in value)]
+            lines += [f"{indent}- **{key}**", *(f"{child}-" + _after_the_mark(_inline(each)) for each in value)]
         else:
-            lines.append(f"{indent}- **{key}**:" + _after_the_colon(_inline(value)))
+            lines.append(f"{indent}- **{key}**:" + _after_the_mark(_inline(value)))
     return lines
 
 
-def _after_the_colon(inline: str) -> str:
+def _after_the_mark(inline: str) -> str:
     """An inline value after a field's colon or a bullet's dash, a space between them; nothing when the value lays out
     as nothing, so the line ends at the colon or the dash, never in a space (adrs/0043)."""
     return f" {inline}" if inline else ""

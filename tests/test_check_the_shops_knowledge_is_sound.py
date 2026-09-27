@@ -152,9 +152,19 @@ def _listed_as_behind(shown):
     assert shown["behind"] == [{"artifact": WEEKLY, "schema_version": 1, "current": 2}]
 
 
+def _artifact_named(line: str) -> str:
+    """The artifact a printed fault line names: everything before its place (` at `) or, with none, before its
+    message (`: `), whichever comes first (`driver.printed`'s own shape)."""
+    at, colon = line.find(" at "), line.find(": ")
+    cut = at if at != -1 and (colon == -1 or at < colon) else colon
+    return line if cut == -1 else line[:cut]
+
+
 @then("it is not listed as a fault")
 def _not_a_fault(result, decisions):
-    """No fault line names what is behind its type; a check that listed no fault at all succeeded."""
-    assert not [line for line in result.stderr.splitlines() if line.startswith(decisions["behind"])], result.stderr
+    """No fault line names what is behind its type, matched exactly rather than as a prefix (one decision's id
+    prefixes another's, `-2`); a check that listed no fault at all succeeded."""
+    named = {_artifact_named(line) for line in result.stderr.splitlines()}
+    assert decisions["behind"] not in named, result.stderr
     if not result.stderr:
         assert result.returncode == 0

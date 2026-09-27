@@ -203,13 +203,6 @@ def _rejected_agent_for_the_limits(result):
     assert result.returncode != 0
 
 
-_MADE_FROM = {"agent": "role", "skill": "process", "diagram": "process"}
-
-
-def _a(word):
-    return f"an {word}" if word[0] in "aeiou" else f"a {word}"
-
-
 @when(
     parsers.re(r"the user publishes the (?P<thing>process|role) as (?P<kind>agent|skill|diagram) into a directory"),
     target_fixture="result",
@@ -220,8 +213,18 @@ def _publish_as_a_kind_it_cannot_become(env, thing, kind, process_name, role_nam
     return knol(env, "render", kind, name, "--to", str(target))
 
 
+# The refusal each of the outline's three rows gets, spelled out in `renderers.source.refusal`'s own words, not
+# recomputed here with a copy of its article rule (a wrong article in both would otherwise pass).
+_REFUSAL = {
+    "agent": "an agent is made from a role; this one is a process",
+    "skill": "a skill is made from a process; this one is a role",
+    "diagram": "a diagram is made from a process; this one is a role",
+}
+
+
 @then(parsers.parse("the {kind} is rejected because it is not made from a {thing}, naming the type {named}"))
-def _rejected_for_its_type(result, kind, thing, named, process_name, role_name):
-    """One line on the artifact published from: the type the kind is made from, then the type this one is."""
-    name = process_name if thing == "process" else role_name
-    assert result.stderr.splitlines() == [f"{name}: {_a(kind)} is made from {_a(_MADE_FROM[kind])}; this one is {_a(named)}"]
+def _rejected_for_its_type(result, kind, process_name, role_name):
+    """One line on the artifact published from: the process by name for the agent row, the role by name for skill
+    and diagram, then `_REFUSAL`'s line for that kind."""
+    name = process_name if kind == "agent" else role_name
+    assert result.stderr.splitlines() == [f"{name}: {_REFUSAL[kind]}"]

@@ -125,6 +125,8 @@ def _shown_in_plain_words(result):
 
 
 def _a_failing_checks_answer(document) -> bool:
+    """Whether `document` is what `validate` still prints on stdout when the check itself fails: `sound: false` and
+    the `behind` list, and nothing else."""
     return isinstance(document, dict) and document.keys() == {"sound", "behind"} and document["sound"] is False
 
 

@@ -20,8 +20,9 @@ def _write_over(env, tmp_path, name, content, message):
 
 
 def _role_page(extra=()):
-    """The role's base page (its harness and shop fields, then its section as `## How it works`), a field's
-    difference spliced in before the section, so each row's own lines stay the only thing said once for it."""
+    """The role's base page (its harness and shop fields, then its section as `## How it works`). `extra` is the
+    lines a Given's own field adds or changes, spliced in before the section, so each row's own lines stay the only
+    thing said once for it."""
     return {"stock-keeper.md": [
         "# Stock keeper",
         "",

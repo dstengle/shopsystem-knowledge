@@ -654,7 +654,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds the batch 11 minors gone.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.16.7: Eighth architecture review
 
@@ -1543,3 +1543,8 @@ slices 2 onward, never ahead of them.
   Checks: `grep -n "from publish_as_markdown" tests/*.py` -> one line, `test_publish_what_the_shop_knows.py`'s own `from publish_as_markdown import *`, the feature's test module star-importing its sibling step module as adrs/0035 requires; no sibling step module imports another. `grep -c "@given\|@when\|@then" tests/markdown_pages.py` -> `0`. `grep -c '"| check-it' tests/publish_as_markdown.py` -> `0`. Size check lists nothing (`markdown_pages.py` 74, `publish_as_markdown.py` 157, `markdown_well_formed.py` 104). `git diff --stat -- features src` empty. `-m "slice-20 or slice-50.6 or slice-50.11 or slice-50.14 or slice-50.18.2"` -> `6 failed, 13 passed`, the six being 50.18.2's own, unchanged from before the move.
   Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`; `failing-after-t5.txt` identical to `failing-before-t5.txt`.
   Surprised by: nothing. Next: slice 50.16.6.
+- 2026-09-27 Slice 50.16.6 green (enabling). A reader finds the batch 11 minors gone.
+  All six were still present, none already met by Tasks 1-4's reshapes: `_not_a_fault` (`test_check_the_shops_knowledge_is_sound.py`) now matches the artifact a fault line names exactly, through a new `_artifact_named` (before ` at ` or `:`, whichever comes first), so `decision/…-weekly-2` no longer passes a Then checking `…-weekly` is absent. `_a_failing_checks_answer` (`conftest.py`) gained a docstring. `markdown._after_the_colon` renamed `_after_the_mark`, both call sites and its own def, docstring unchanged (already said "a colon or a bullet's dash"). The type-refusal Then (`test_publish_what_the_shop_knows.py`) now compares with a module-level `_REFUSAL` dict, one literal line per outline row (agent/role/process, skill/process/role, diagram/process/role), spelled in `renderers.source.refusal`'s own words; `_MADE_FROM` and `_a` (a copy of `source._a`) are gone from the file. `renderers/source.py`'s module docstring now says `refusal` decides what stops a render (the read's own faults, then the type), replacing "whether its faults refuse the render is the renderer's to say". `_role_page`'s docstring (`tests/markdown_pages.py`) now says plainly what `extra` is: the lines a Given's own field adds or changes.
+  Checks: all six R2 greps give nothing (logged individually); `-m "slice-50.13 or slice-50.14 or slice-50.15 or slice-50.18.2"` -> `6 failed, 14 passed`, the six being 50.18.2's own, unchanged. Size check lists nothing. `git diff --stat -- src` touches only `renderers/markdown.py` (6 lines) and `renderers/source.py` (4 lines), as the brief requires.
+  Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`; `failing-after-t6.txt` identical to `failing-after-t5.txt`.
+  Surprised by: nothing. Next: push, then slice 50.16.7, the eighth architecture review.

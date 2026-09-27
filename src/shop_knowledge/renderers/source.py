@@ -1,6 +1,6 @@
 """What a renderer publishes from: an artifact read whole through the contract, whether it is of the type the renderer
-is made from, and its name without its kind. kb's answer comes back as it is; whether its faults refuse the render is
-the renderer's to say."""
+is made from, and its name without its kind. kb's answer comes back as it is; `refusal` decides what stops a render:
+the read's own faults first, then, only once it was read, whether its type is the one the render is made from."""
 from kb.contract import kb_pb2
 
 
