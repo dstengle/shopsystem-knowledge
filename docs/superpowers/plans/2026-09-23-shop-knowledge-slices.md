@@ -474,6 +474,24 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the check, the start, the batch, the role and tag types and the agent renderer kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
+- Status: green
+
+## Slice 50.3: Every When that runs shop-knol gives what it ran, and every whole read a step makes goes through the driver
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `62 passed`, the same as before the slice; `grep -h -A3 "^@when" tests/*.py | grep -o 'target_fixture="[a-z_]*"' | sort | uniq -c` -> one line, `42 target_fixture="result"`; `grep -n '"--whole"' tests/*.py` -> two lines, `tests/driver.py` and the When of `test_read_back_what_the_shop_knows.py` that is the user's whole read; `grep -c "does not exist yet" tests/*.py | grep -v ":0"` -> no line; `git diff --stat -- src features` -> empty
+- Observable: A reader finds every When that runs shop-knol handing on what it ran as `result`, every whole read a Then makes going through the driver's one way, and no comment saying a command is missing that the shop now has.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.4: No step definition module is over 250 lines
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `62 passed`; `.venv/bin/python -m pytest --collect-only -q | grep -c ::` -> 62; `find src tests -name "*.py" -exec wc -l {} + | awk '$2 != "total" && $1 > 250'` -> nothing; `grep -l "import \*" tests/*.py` -> exactly `tests/test_read_back_what_the_shop_knows.py` and `tests/test_start_a_shop_knowledge_base.py`; no new module under `tests/` is named `test_*`; `grep -n "250" CLAUDE.md` shows the size rule naming `src/` and `tests/`, and CLAUDE.md's Step definitions section says where a feature's steps go when one module cannot hold them; `git diff --stat -- src features` -> empty
+- Observable: A reader finds no module under `src/` or `tests/` over the limit, and CLAUDE.md saying the limit covers both and how a feature's steps are split when they outgrow one module.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Satisfied by existing behaviour
@@ -987,3 +1005,36 @@ slices 2 onward, never ahead of them.
   Check: baseline `failing-50.1.txt` 0 lines, greps `4` and `1`, order assertion `AssertionError`, `def locator` 1, all before; after, `make test` 62 passed; `grep -cE 'or ""|is None|Path\(' kb_requests.py` 0; `grep -c "Path(args.root)" cli.py` 0; order assertion succeeds; `grep -c "def locator"` 0 (now `_locator`); docstring and CLAUDE.md row name `is_whole` alone; arguments snapshot TAG=50.1 no diff against 50.1-before; shape check `2 7 1 0`, nothing listed, `cli.py` 233.
   Surprised by: nothing; adrs/0032 already held the decisions.
   Open questions: none. Next: slice 50.2, the fifth architecture review, which runs after this batch's final review and before any further plan (adrs/0011).
+- 2026-09-27 slice 50.2 inputs, for the fifth architecture review, from batch 7's final review (its fixes are commit fb9e5cb):
+  - Three test modules are at or over 250 lines (`test_read_back_what_the_shop_knows.py` 276, `test_record_a_decision.py` 251, `test_start_a_shop_knowledge_base.py` 251), and CLAUDE.md is silent on whether its size limit covers `tests/`.
+  - The agent renderer checks no harness limit, where the spec says `skill` and `agent` both validate their output against the limits the harness publishes. That needs a scenario, so it is a question for the spec unless a rule settles it.
+  - Six minors, fixed in fb9e5cb: render's `--to` typed as a path where it is declared, not wrapped in `cli._render`; `_validate`'s docstring naming `answers.checked`; the check's step reading `schema/decision` whole through `driver.whole`; the agent's Then asserting each section heading stands on a line of its own; a parameter in `test_revise_what_the_shop_knows.py` named `whole`, shadowing the driver's, renamed; the start feature's Whens sharing one `_init` in place of one When calling another.
+- 2026-09-27 Suite: 62 passed, 0 failed (`make test`, 62 passed, make ends cleanly).
+- 2026-09-27 Fifth architecture review of shop-knowledge (slice 50.2), on Opus 5.5 against `CLAUDE.md`, over the code under `src/` and the step definitions after slices 42.2, 44, 47, 48, 48.1, 49, 50 and 50.1 and the final review's fixes. It took first what batch 7 left for it.
+  CLAUDE.md's rules the code meets in full:
+  - Rule 1. `src/` imports from kb only `kb.client`, `kb.contract`, `kb.content`, and `kb.canonical` in `cli._document` for `NotCanonical`. `jsonschema` is imported only in `shape.py`. Nothing under `src/` opens a file inside a store or runs git.
+  - Rule 2. kb is installed from v0.2.0 and nothing of it is edited here.
+  - Rule 3. No other YAML library is imported. JSON is written only through `json`, in `cli._show`.
+  - Rule 5. Only the renderers for a type know its fields: skill and diagram a process's, agent a role's `harness` and `sections`. `bootstrap` knows the types' names alone. The markdown renderer tells only `sections` apart (adrs/0015).
+  - Rule 6. No renderer prints, opens or writes. `cli._write` alone writes, after `_answered` has passed the `Rendered`.
+  - The module map. Every module has a row. `agent.py` and `sections.py` came in with slice 50 (adrs/0031, 0033). `answers.py`'s row names every public function it holds. `kb_requests.py`'s row names `is_whole` alone, the one helper `cli` calls.
+  - Reading and refusing in one place. A user's file, or the pipe, is read only in `cli._document`. Every kb answer is refused through `cli._answered`, including Validate's with its violations (42.2), Init's and each bootstrap Create's (47), and a renderer's `Rendered`. `main` alone prints a refusal.
+  - Under `src/`, no module is over 250 lines. `cli.py` is the largest at 233.
+  - Most of the step rules. Every step drives shop-knol through `tests/driver.py`. The one in-process kb call (`test_make_several_changes_at_once.py`, the batch's history) and every hand edit or direct read of a store says why, or is what its Given says. No step text is defined twice. `tests/clock/` reaches shop-knol only through `driver.at`.
+  Not met in full:
+  - Rule 4. The empty batch's traceback is kb's (below). Everything shop-knol does itself meets it. A hunt over the commands the batch added or changed with odd input found no other traceback: `validate` with KB_ROOT naming nothing, `render agent` of a missing role, `--to` naming a file, `init ""`. The last is a question below.
+  - Size and shape, read with adrs/0034. Three test modules are over 250 lines.
+  - "A When that runs shop-knol gives what it ran as the fixture `result`". Two Whens slice 49 added in `test_start_a_shop_knowledge_base.py`, "the user records a role, saying who they are and why" and "the user tags a decision with "pricing", saying who they are and why", run shop-knol through `record` and give the id as `role` and `decision`. That is 40 of 42 Whens giving `result` (`grep -h -A3 "^@when" tests/*.py | grep -o 'target_fixture="[a-z_]*"' | sort | uniq -c`). Refactor: slice 50.3.
+  Batch 7's inputs, each settled:
+  - The test modules over 250 lines. CLAUDE.md's rules govern "anything under `src/` or `tests/`", so its limit holds for step definitions too (adrs/0034). Squeezing lines to fit is not a split (slice 28's hand-back). `test_record_a_decision.py` comes under the limit through slice 50.3's own work, and the other two need a split. A spike here (a throwaway feature under `.superpowers/`, since deleted) found that under pytest-bdd 8.1 steps defined in a sibling module reach a feature's test module by a star import, and are not found through a plain import. So one concern of each feature's steps moves to a module beside it (adrs/0035): where the knowledge base is found, for reading back, and roles and tags, for the start. Refactor: slice 50.4, after 50.3, which changes the lines it measures.
+  - The agent renderer checks no harness limit. No rule settles it. `renderers/limits.py`'s row says what that module holds, not which renderers must check. Adding a check adds behaviour no scenario asks for, and which limits the harness publishes for an agent's file is for the spec to name. QUESTION FOR THE SPEC. Reproduction: record a role with `harness.name: Stock Keeper!`, a 1500-character `description` and a 700-line section, then `shop-knol render agent role/stock-keeper --to out`. It exits 0 and writes `.claude/agents/stock-keeper.md`, 707 lines, headed `name: Stock Keeper!`. The spec says `agent` fails rather than emit something the harness would reject.
+  - The six minors fixed in fb9e5cb. Each holds today. Two of them are the standards slice 50.1 (a type declared where the argument is) and slice 48.1 (a whole read through the driver) set, and reviewing the second found two whole reads it left. `test_record_a_decision.py`'s "the decision recorded earlier still reads back by the name it had" and "the shop holds the decision just as if it had come from a file" each read whole by hand (`grep -n '"--whole"' tests/*.py`). Slice 48.1's check counted only functions named `_whole`, so these slipped by. Refactor: slice 50.3.
+  Found here:
+  - `test_read_back_what_the_shop_knows.py`'s Given "the older decision is tagged "seasonal"" says it uses `apply` "since `write` does not exist yet". `write` exists (slice 36), so the comment says other than the code does, the standard slice 36.3 held. The step still drives shop-knol as a user does, and a batch is a fair way to create a tag and write the decision as one change. Only the stale clause goes. Refactor: slice 50.3.
+  - QUESTION FOR THE SPEC: `init` given an empty root starts a store in the working directory. Reproduction: from an empty directory, `KB_ACTOR=a shop-knol init ""` exits 0, and the working directory now holds `kb/`. argparse types `""` as the path `.`, as it did before slice 50.1 through `Path` in the handler. A user who gives an empty root might expect a refusal naming it.
+  Not called for: the example artifacts the steps record (the weekly decision, the stock keeper) repeated across modules, with small differences in wording. No rule is broken, and the scenarios that assert on the wording differ. `_validate`'s and `kb_requests.py`'s docstrings run past 120 columns, which no rule sets. `source.whole`'s unused `depth` stays as the fourth review left it.
+  Still waiting on kb: the empty batch's traceback (slice 28's Review Focus 1), rule 4. This is a request to bump the pin to the kb tag that releases kb slice 97. Nothing is coded here. Reproduced today: `printf 'changes: []\n' > b.yaml; shop-knol apply --from b.yaml -m x` ends in `subprocess.CalledProcessError` from kb's git commit, exit 1.
+  Every other open question stays a QUESTION FOR THE SPEC where it was logged, batch 7's included: stale artifacts unseen beside faults; a batch's fault naming a change by an artifact that does not exist; a reason given to `init`; tagging with a tag that does not exist; a non-role published as an agent; the agent's `tools` as a list.
+  Placed after 50.2, in the order they run: 50.3, then 50.4. Neither adds or moves a scenario, so no feature file and no `@slice` tag changes, and nothing under `src/` changes. Decisions in adrs/0034 and 0035.
+  Next: writing-plans over slices 50.3 and 50.4, one task per slice in that order, to `2026-09-27-shop-knowledge-batch8-implementation.md`.
+- 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch8-implementation.md`, two tasks for slices 50.3 and 50.4 in slice order. Written under adrs/0011: no code, nothing built or replayed. Each task says why its check fails today, from this checkout (the greps and the size check run 2026-09-27). The one unknown, how a feature's steps reach its test module from a sibling module, was settled by a throwaway spike: by star import, not by a plain import. Expected counts: 0 failed, 62 passed before and after each task; the touched modules collect 12, 8 and 10, and `-m slice-49` selects 2. Decisions in adrs/0034 and 0035. No request to bump the pin beyond kb slice 97's. No feature file touched. Its Review Focus holds three failure modes of the split, and two questions for the spec from this review: the agent renderer checking no harness limit, and `init ""`. Next: slice 50.3.

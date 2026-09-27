@@ -1,0 +1,3 @@
+# 0035 A feature's steps split into a sibling module
+
+2026-09-27. When one feature's step definitions pass 250 lines, the steps of one concern of that feature move to a module beside it, not named `test_*`, whose docstring names the feature it serves. The feature's test module takes them with a star import (under pytest-bdd 8.1 a plain import does not register them). No other module imports it. Steps shared by more than one feature still go to `tests/conftest.py`. Slice 50.4 splits two modules this way: the read-back steps about where the knowledge base is found, and the start steps about roles and tags.
