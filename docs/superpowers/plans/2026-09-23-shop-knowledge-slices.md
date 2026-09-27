@@ -447,7 +447,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user records a role and its harness fields sit in one named group and its shop identity in another, and tags a decision with a tag so the decision names it while the tag's description is held once, on the tag.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50: Publish a role as an agent
 
@@ -975,3 +975,7 @@ slices 2 onward, never ahead of them.
   Check: baseline `failing-48.1.txt` 3 lines, `grep -c "def _whole" tests/*.py | grep -v ":0"` two lines and `grep -c "^def whole" tests/driver.py` `0` before. After: failing ids diff `same`; `make test` 3 failed, 59 passed; `-m "slice-24 or slice-40"` 4 passed; first grep no line, second `1`; shape check `2 7 1 0`, nothing listed, `cli.py` 233 (unchanged); nothing under `src/` or `features/` changed.
   Surprised by: nothing; `loads` became unused in both modules and its import went.
   Next: slice 49.
+- 2026-09-27 slice 49 green. Someone can now: record a role and see its harness fields as one named group and its shop identity as another, and tag a decision with a tag so the decision names it while the tag's description is held once, on the tag.
+  Evidence: `read role/stock-keeper --whole`: `harness:` holds `name: stock-keeper`, `description: Keeps the shelves stocked.`, `tools: [Read]`, and `shop:` holds `responsible_for: What is on the shelves`, `answers_to: role/shopkeeper`, none of those keys at the top level. `read decision/price-reviews-happen-weekly --whole`: `tags: [tag/pricing]`, no description. `read tag/pricing --whole`: `title: Pricing`, `description: How the shop sets its prices.` Checks: baseline `failing-49.txt` 3 lines; `-m slice-49` 2 failed on their Givens before, 2 passed after; `make test` 1 failed, 61 passed (slice 50's); GREEN plus slices 44, 47, 48 and 49 61 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 233; arguments snapshot TAG=49 no diff. Nothing under `src/` or `features/` changed.
+  Surprised by: both scenarios passed once their steps existed, as the brief said; each seen red first on a wrong Then (`shown[group] == {}`, `tags == []`), then made right.
+  Open questions: QUESTION FOR THE SPEC: the scenarios are silent on tagging with a tag that does not exist. Reproduction: create a decision with `tags: [tag/nothing]`; stderr says `decision/price-reviews-happen-daily at tags/0: a link must land on a node of a kind the type allows; 'tag/nothing' does not`, exit 1. Nothing is coded for it. Next: slice 50.
