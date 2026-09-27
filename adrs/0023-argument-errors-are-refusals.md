@@ -1,0 +1,3 @@
+# 0023 An argument shop-knol cannot take is refused like any other refusal
+
+2026-09-27. Slice 36.2 makes argparse's refusals follow CLAUDE.md's rule 4: the parser `arguments.py` builds raises where argparse would print its usage and exit 2, and `main` turns what it raised into one `Fault` printed by the one printer, with exit 1. The line is argparse's own message, after the command it is about as argparse names it (`shop-knol list: the following arguments are required: --type`); no usage block is printed. `-h` is not a refusal and is unchanged: help on stdout, exit 0. For this slice "behaviour does not change" means every scenario's answer, every stdout and every help text are as before.

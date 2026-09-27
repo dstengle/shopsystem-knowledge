@@ -1,0 +1,3 @@
+# 0022 Each command's request to kb is built apart from its handler
+
+2026-09-27. Slice 36.1 moves the turning of a command's arguments into kb's request out of `cli.py` into a module of its own, with a row in CLAUDE.md's module map: every `kb_pb2` request and locator a command sends is built there, from the parsed arguments and the actor and message `cli._by` gives. It never prints, connects or calls kb. `batch.py` keeps turning a batch file into Apply's operations. Each handler in `cli.py` builds its request there, makes its one call, refuses through `_answered` and shows through `answers` and `_show`. A new command adds its arguments to `arguments.py`, its request there, its answer to `answers.py`, and a handler and one table entry to `cli.py`.

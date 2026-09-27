@@ -294,13 +294,22 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the read, revise, record and list commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 32: Follow the links from the command line
 
 - Kind: capability
 - Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what a decision points at; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what points at a decision; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user narrows the links to one kind of link and one kind of thing; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user follows the links two steps out
 - Observable: A user follows the links out of a decision and sees the older decision, in and sees both work items, narrowed to one link and one kind and sees both work items and nothing else, or two steps out and sees the older decision and the tag each with the route taken.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 32.1: What a command showed is read by one fixture every feature shares
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice (23 failed, 39 passed); `grep -c "def shown" tests/*.py | grep -v ":0"` -> one line, `tests/conftest.py:1`
+- Observable: The search, history, snapshot, append and retire steps that read what shop-knol showed find one fixture for it in the shared conftest, as CLAUDE.md says of a fixture more than one feature uses, instead of copying a fourth, fifth and sixth one.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -319,6 +328,33 @@ slices 2 onward, never ahead of them.
 - Kind: capability
 - Scenarios: shop-knowledge / review-who-changed-what / The user reviews what one role did; shop-knowledge / review-who-changed-what / The user reviews what one piece of work did; shop-knowledge / review-who-changed-what / The user reviews the changes since a date
 - Observable: A user reviews the shopkeeper's changes and sees only the recording of the decision, a piece of work's changes and sees only the agent's revision, or the changes since yesterday and sees only today's revision.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 36.1: Each command's request to kb is built apart from its handler
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice (17 failed, 45 passed); `grep -cE "kb_pb2\.[A-Za-z]*Request\b|kb_pb2\.Locator\(" src/shop_knowledge/cli.py` -> 0; `wc -l < src/shop_knowledge/cli.py` -> under 205; the module that now builds the requests holds no `print(`, no `connect` and no call on a client, and CLAUDE.md's module map has a row for it
+- Observable: The command line keeps room under the 250-line limit through slices 38 to 50, which add snapshot, append and retire and extend the check and the start, because a handler only makes its call, refuses or shows, and turning a command's arguments into kb's request sits in a module of its own, as turning kb's answer into what is shown already does.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 36.2: An argument shop-knol cannot take is refused the one way every refusal is
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice (17 failed, 45 passed); each of `shop-knol`, `shop-knol nosuch`, `shop-knol list`, `shop-knol list --type decision --json`, `shop-knol read decision/x --resolve two` and `shop-knol create decision` prints exactly one line on stderr, with no `usage:`, nothing on stdout, and exits 1; `shop-knol -h` and `shop-knol <command> -h` for every command give byte for byte what they gave before the slice, with exit 0
+- Observable: A user who mistypes a command or a flag is told what is wrong in one plain line with exit 1, as CLAUDE.md's rule 4 says of every refusal shop-knol makes, so every command added after it keeps the rule without a scenario of its own.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 36.3: No name in the code says less or other than it does
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same failing scenarios as before the slice (17 failed, 45 passed); `grep -cE "^\s+validate = " src/shop_knowledge/arguments.py` -> 0; `grep -c "def _show(document: dict," src/shop_knowledge/cli.py` -> 0; `grep -cE "def knol\(.*\binput\b" tests/driver.py` -> 0; `.venv/bin/python -c "import inspect,shop_knowledge.cli as c; assert 'shape =' not in inspect.getsource(c._read)"` succeeds; every public function of the module shaping answers is named in its CLAUDE.md row, and its docstring and that row say it gives lists as well as dicts
+- Observable: A reader of the code finds no assignment nothing reads, no hint naming a type an argument is not given, no parameter hiding a built-in or a local hiding a module, and a module map that names every public function the answers module has.
 - Unknown: none
 - Needs: none
 - Status: planned
@@ -353,7 +389,7 @@ slices 2 onward, never ahead of them.
 ## Slice 42.1: Fourth architecture review
 
 - Kind: enabling
-- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 30.1, is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the ten implemented slices since slice 30.1 (32, 32.1, 34, 36, 36.1, 36.2, 36.3, 38, 40 and 42), is in this plan's log, and every refactor it calls for is a slice of its own placed by its risk among the slices not yet begun, with a check -> the log entry and those slices
 - Observable: Anyone can read whether the links, search, history, snapshot, append and retire commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
@@ -790,3 +826,17 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 4): argparse still refuses in its own way. Run after this task: `shop-knol list` printed usage and `shop-knol list: error: the following arguments are required: --type` on stderr, exit 2; `shop-knol list --type decision --json` printed usage and `unrecognized arguments: --json`, exit 2. Rule 4 says one plain line and exit 1.
   - `--where status` (no `=`) is split as field `status` with the empty value; no scenario pins it and it is not refused. Run after this task: `shop-knol list --type decision --where status` printed `[]` and exited 0.
   Next: slice 30.1, the third architecture review, which runs before the next plan (adrs/0011).
+- 2026-09-27 Suite: 35 passed, 27 failed. Run in this checkout's virtualenv (kb v0.2.0 from its tag) before the review; the 35 are slices 1, 1.17, 1.24, 1.27, 1.28, 4, 15 to 20, 22, 24, 26, 28 and 30, and every failure is tagged 32 or later.
+- 2026-09-27 Third architecture review of shop-knowledge (slice 30.1), on Opus 5.5 against `CLAUDE.md`, over the code under `src/` and the step definitions after slices 19.2, 20, 20.1, 20.2, 22, 24, 26, 28, 28.1 and 30. It took first what batches 4 and 5 left for it.
+  Kept: rule 1 (`src/` imports from kb only `kb.client`, `kb.contract`, `kb.content`, and `kb.canonical` for `NotCanonical` in `cli._document`; `jsonschema` only in `shape.py`), rule 2, rule 3 (no other YAML library; JSON only through `json` in `_show`), rule 5 (only the skill and diagram renderers know a process's fields; `bootstrap` knows the types' names alone; the markdown renderer tells only `sections` apart), rule 6 (no renderer prints, opens or writes; `cli._write` alone writes); no module over 250 lines (`cli.py` 219, the largest); a user's file, or the pipe, read only in `cli._document`; every kb answer but Validate's refused through `cli._answered`, every refusal printed by `main` alone; a row in the module map for each module; every When that runs shop-knol gives `result`, the shared Thens in `tests/conftest.py`, the one step calling kb in process (`test_make_several_changes_at_once.py`, the batch's history) saying why, and `tests/clock/` reaching shop-knol only through `driver.at`.
+  Broken, and the refactor each calls for:
+  - Size, ahead of a break. `cli.py` is 219 lines. Slices 32 to 42 add `refs`, `search`, the history's three filters, `snapshot`, `append` and `delete`. Measured by reading their requests in kb's contract and the handlers of today, each new handler is about seven lines with its blank lines and its entry in the handler table, and `refs`, whose request takes a direction, a link, a kind and a depth, about ten: 32 brings `cli.py` to about 229, 34 to about 238, 36 (three request fields) to about 241, and 38 to about 251, past the limit. Most of what grows is a command's arguments turned into kb's request: `_locator`, `_is_whole`, `_read_request`, the list's `--where` split and form, the create's title split off the content, and each new command's request. Answers are already shaped apart (`answers.py`); requests are not. Slice 36.1 builds every command's request in a module of its own, beside `batch.py`, which already turns a batch file into Apply's operations, leaving each handler to call, refuse and show (adrs/0022). It frees about 40 lines, so slices 38 to 50 fit with room. Placed before 38, the first slice the estimate says crosses; 32, 34 and 36 each stop and hand back if the estimate is wrong for them, as slice 28 did.
+  - Rule 4 (one way to refuse, never a traceback) for arguments. Rule 4 says every refusal shop-knol makes is a `Fault` printed by the one printer, one line each, with exit 1. argparse refuses on its own: usage and a message on stderr, exit 2. Reproduced 2026-09-27: `shop-knol nosuch`, `shop-knol list`, `shop-knol list --type decision --json`, `shop-knol read x --resolve two`, `shop-knol create decision`. A rule settles it, not a scenario, so it is a refactor and not a question, as slice 20.1 was for files and paths: slice 36.2 makes argparse's refusal a refusal like any other, argparse's own message on one line through the printer with exit 1, help untouched (adrs/0023). Spike, run in `.superpowers/batch6/` and thrown away: an `ArgumentParser` subclass whose error raises in place of exiting is used by its subparsers too, and raises for an unknown command, a missing required argument, a value of the wrong type, an unrecognized argument and no command at all. What "behaviour does not change" means for it, my call as the user is away: every scenario gives the same answer, every stdout and every help text is as it was, and the one change is that the usage block and exit 2 become the one line and exit 1 rule 4 already states.
+  - A fixture defined in two test modules. `shown` is defined word for word in `test_read_back_what_the_shop_knows.py` and `test_list_what_the_shop_has_recorded.py`; CLAUDE.md puts a fixture more than one feature uses in `tests/conftest.py`. Slice 32 will want a third, and 34, 36, 38, 40 and 42 more. Slice 32.1 defines it once in the conftest. Placed after 32, since placing it first would put it ahead of the whole plan; slice 32 defines its own beside its scenarios as the other two did, and 32.1 takes all three.
+  - Names that say less or other than the code does, the minors deferred from batches 4 and 5, and one more found here: `validate = commands.add_parser(...)` in `arguments.py` assigns a name nothing reads; `cli._show` is hinted `document: dict` though `answers.listed` and `answers.names` give it lists; `driver.knol`'s parameter `input` hides the built-in; `cli._read`'s local `shape` hides the module `shape` it imports; and `CLAUDE.md`'s `answers.py` row names nine public functions where the module has eleven (`whole` and `section` are missing), while it and the module's docstring say "plain dicts" of a module that gives lists too. Slice 36.3 puts each right. Placed after 36.2, which touches `arguments.py` first; no slice needs it sooner.
+  - Validate's answer refused outside `_answered` stays with slice 42.2, and Init's and bootstrap's dropped answers with slice 47, as the second review placed them.
+  Not called for: the markdown renderer's list of mappings. Reproduced after slice 20 (Review Focus 5 of batch 4): publishing a process as markdown writes its steps as one Python `repr` line (`- **steps**: {'id': 'check-it', 'title': 'Check it', ...}, {...}`). The spec says what a page shows, "parts as tables" (The CLI section's renderer list), and no CLAUDE.md rule does, so a refactor cannot change it: it is behaviour a scenario must pin. QUESTION FOR THE SPEC: the markdown page's parts, and any field that holds a list of mappings, are shown as tables; which columns, in what order, and what a nested list inside an item becomes. It needs a scenario from formulating-features over publish-what-the-shop-knows before any slice builds it; the role in slice 20's scenario holds no part, so nothing green pins it either way. Nor a pipe read to its end with no bound: neither the spec nor CLAUDE.md bounds what a user gives, and a named file is read whole the same way, so no rule is broken; a bound would be the spec's, and it stays the note slice 28 logged.
+  Waiting on kb, not a slice here: an empty batch still ends in kb's git traceback (`printf 'changes: []\n' | shop-knol apply --from - -m why`, slice 28's Review Focus 1). kb is fixing it in kb slice 97. Request to bump the pin once kb releases it under a new tag; until then rule 4 is broken there by kb v0.2.0, and nothing is coded here.
+  Found while probing kb v0.2.0 for the next plan, changing no slice: `Refs` at depth 0 reaches nothing, so a command that says no depth asks for one step; `Snapshot` and `Delete` with an empty message end in kb's git traceback, which shop-knol never reaches as long as both are mutating commands that ask for `-m` before any call (adrs/0020); a step appended to a process is named by kb from its title, and its place is `steps/<that name>`.
+  Placed, by risk among the slices not yet begun and never ahead of all of them: 32.1 after 32; 36.1 before 38, which needs the room; 36.2 after 36.1, since it adds lines to `main`; 36.3 after 36.2. No scenario is added or moved, so no feature file and no `@slice` tag changes. Slice 42.1, the fourth review, stays where it is and now follows ten implemented slices; its check says which.
+  Next: writing-plans over slices 32, 32.1, 34, 36, 36.1, 36.2, 36.3, 38, 40 and 42, one task per slice in that order, to `2026-09-27-shop-knowledge-batch6-implementation.md`.

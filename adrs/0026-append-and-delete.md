@@ -1,0 +1,3 @@
+# 0026 Adding an item and retiring an artifact
+
+2026-09-27. `shop-knol append <name>#<collection> --from FILE -m WHY` adds one item to a collection, the locator read as `write`'s is (adrs/0019), the file read by `cli._document` against the content shape; its answer is `id`, the new item named `<name>#<collection>/<item>` from the item name kb gives back, and `revision`. `shop-knol delete <name> -m WHY` retires an artifact; its answer is `id`, the locator's name, and `revision`. A delete kb refuses because something still points at the artifact is refused through `_answered`, one line for each thing that points at it, as kb names them.

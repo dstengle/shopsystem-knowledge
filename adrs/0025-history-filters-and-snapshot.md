@@ -1,0 +1,3 @@
+# 0025 The history's filters, and recording what a piece of work read
+
+2026-09-27. `shop-knol journal` takes `--actor ROLE`, `--execution ID` and `--since WHEN` beside `--artifact`, each passed to kb's Journal as given (`--actor` is its `role`); a time kb cannot read is kb's refusal. `shop-knol snapshot --execution ID NAME... -m WHY` is a mutating command, asking for an actor and a message before any call (adrs/0020); its actor is `KB_ACTOR`'s role with `--execution` as the piece of work, which replaces any execution `KB_ACTOR` names. Its answer is `entry`, the name of the history entry kb made. A history entry that records what was read is shown with `read`, each artifact with the revision read; an entry that read nothing is shown as before.
