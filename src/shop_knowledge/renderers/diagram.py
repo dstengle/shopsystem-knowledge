@@ -2,22 +2,22 @@
 Each step is a node numbered in the process's order, a reused step drawn as a subroutine. A step without branches goes
 on to the next; a step with branches goes where each says, the edge labelled with its condition."""
 from kb.content import loads
-from kb.contract import kb_pb2
 
+from shop_knowledge.renderers import source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
 def render(client, name: str) -> Rendered:
     """The diagram's file by path, the process's name without its kind, or the faults of the read that could not be
     made."""
-    process = client.Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=name), level=kb_pb2.ReadRequest.WHOLE))
+    process = source.whole(client, name)
     if process.faults:
         return refused(process.faults)
-    slug = process.id.split("/", 1)[1]
-    return Rendered({f"{slug}.mmd": flowchart(loads(process.content).get("steps", []))}, [])
+    slug = source.slug(process.id)
+    return Rendered({f"{slug}.mmd": _flowchart(loads(process.content).get("steps", []))}, [])
 
 
-def flowchart(steps: list[dict]) -> str:
+def _flowchart(steps: list[dict]) -> str:
     """Every step's node, then every edge between them, top to bottom."""
     nodes = {step["id"]: f"step{number}" for number, step in enumerate(steps, 1)}
     lines = ["flowchart TD"]

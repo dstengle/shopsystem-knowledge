@@ -13,6 +13,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `cli.py` | `shop-knol`: its arguments, one handler per command making the kb calls that command maps to, the actor and the client from the environment, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `renderers/` | one module per renderer, each reading an artifact through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
+| `renderers/source.py` | reading the artifact a renderer publishes, and its name without its kind | rendering, writing |
 | `renderers/limits.py` | the limits the harness publishes, each checked against a renderer's output before anything is written, with where it was published | rendering, files |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts | the types themselves |
 | `types/*.yaml` | the shop's types, one file each, as schema artifacts in kb's schema language | code |

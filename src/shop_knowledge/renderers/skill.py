@@ -4,21 +4,21 @@ each branch saying which step it goes to."""
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import limits
+from shop_knowledge.renderers import limits, source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
 def render(client, name: str) -> Rendered:
     """The skill's files by path, or the faults of the reads that could not be made."""
-    process = _whole(client, name)
+    process = source.whole(client, name)
     if process.faults:
         return refused(process.faults)
     steps = loads(process.content).get("steps", [])
-    shared = {used: _whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
+    shared = {used: source.whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
     faults = [fault for response in shared.values() for fault in response.faults]
     if faults:
         return refused(faults)
-    return _skill(process, body(process.title, steps, shared))
+    return _skill(process, _body(process.title, steps, shared))
 
 
 def _skill(process: kb_pb2.ReadResponse, written: str) -> Rendered:
@@ -27,12 +27,12 @@ def _skill(process: kb_pb2.ReadResponse, written: str) -> Rendered:
     faults = limits.skill(process.id, written)
     if faults:
         return refused(faults)
-    slug = process.id.split("/", 1)[1]
+    slug = source.slug(process.id)
     heading = dumps({"name": slug, "description": process.title})
     return Rendered({f"{slug}/SKILL.md": f"---\n{heading}---\n\n{written}"}, [])
 
 
-def body(title: str, steps: list[dict], shared: dict) -> str:
+def _body(title: str, steps: list[dict], shared: dict) -> str:
     """The process as instructions: a heading, then each step under a numbered heading of its own."""
     numbers = {step["id"]: number for number, step in enumerate(steps, 1)}
     titles = {step["id"]: step["title"] for step in steps}
@@ -60,6 +60,3 @@ def _reused(step: dict, used: kb_pb2.ReadResponse) -> list[str]:
     said = f"This is the shared step {used.title}" + (f", where {settings}." if settings else ".")
     return [said, "", loads(used.content)["does"].rstrip(), ""]
 
-
-def _whole(client, name: str) -> kb_pb2.ReadResponse:
-    return client.Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=name), level=kb_pb2.ReadRequest.WHOLE))

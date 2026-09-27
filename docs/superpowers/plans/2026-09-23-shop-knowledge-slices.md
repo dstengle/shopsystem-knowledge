@@ -204,7 +204,7 @@ slices 2 onward, never ahead of them.
 - Observable: The markdown renderer of slice 20 and the agent renderer of slice 50 read the artifact they publish, and name it without its kind, the one way the skill and diagram renderers do, and a renderer's module shows the command line only the function it calls.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 20: Publish anything as markdown
 
@@ -641,3 +641,6 @@ slices 2 onward, never ahead of them.
   - slice 22's one-step resolve Then is vacuous over the Background.
 
   No request to bump the pin. No feature file touched. Nothing implemented. Its Review Focus holds five questions for the spec: argparse's usage errors bypass rule 4; `--json` is on `read` alone; `list --ids` is YAML, not bare lines; "superseded" is a status the user writes, not the link; parts as tables are unpinned. Next: slice 19.2.
+- 2026-09-27 slice 19.2 green. New `renderers/source.py` holds `whole` (read whole, depth 0 by default) and `slug` (name without kind); skill and diagram call it, `body` and `flowchart` are private, CLAUDE.md has the row. Check: `same 49`, `49 failed, 13 passed`, defs grep gives only the two `render` lines, WHOLE grep gives `renderers/source.py`, split grep gives `src/shop_knowledge/renderers/source.py:1`; GREEN expression `13 passed`; shape check 2, 1, 1, no long module, no renderer listed.
+  Surprised by: nothing. Decision recorded in adrs/0014 (module name `source`).
+  Next: slice 20.
