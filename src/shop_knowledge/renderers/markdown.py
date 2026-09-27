@@ -2,7 +2,8 @@
 its prose under `sections`, so that is the one entry told apart; every other entry is a field. No schema is read and no
 type is named. The page is the title as a heading, the fields as a list in the order kb gives them (a field holding a
 list of mappings taken out as a table of its own), then the sections, each a heading one level below the one that
-holds it. No value is ever shown the way a program would print it (adrs/0038)."""
+holds it. No value is ever shown the way a program would print it: a yes is `yes`, a no `no` and nothing is nothing
+(adrs/0038, adrs/0043)."""
 from kb.content import loads
 
 from shop_knowledge.renderers import sections, source
@@ -51,8 +52,14 @@ def _items(fields: dict, depth: int) -> list[str]:
             child = "  " * (depth + 1)
             lines += [f"{indent}- **{key}**", *(f"{child}- {_inline(each)}" for each in value)]
         else:
-            lines.append(f"{indent}- **{key}**: {_inline(value)}")
+            lines.append(f"{indent}- **{key}**:" + _after_the_colon(_inline(value)))
     return lines
+
+
+def _after_the_colon(inline: str) -> str:
+    """A field's inline value after its name's colon, a space between them; nothing when the value lays out as
+    nothing, so the line ends at the colon (adrs/0043)."""
+    return f" {inline}" if inline else ""
 
 
 def _table(key: str, items: list[dict]) -> str:
@@ -71,11 +78,16 @@ def _row(cells: list[str]) -> str:
 
 def _inline(value) -> str:
     """A value where a block cannot sit: a mapping's `key: value` pairs joined by `, `, a list's items joined by
-    `; `, each laid out inline in turn, and a plain value's lines joined by a space, its trailing newline dropped
-    (adrs/0038, adrs/0041)."""
+    `; `, each laid out inline in turn, a yes as `yes`, a no as `no`, nothing as nothing, and any other plain value's
+    lines joined by a space, its trailing newline dropped (adrs/0038, adrs/0041, adrs/0043). A yes, a no and nothing
+    are told by what kind of value each is, so text that reads `True` stays as written."""
     if isinstance(value, dict):
         return ", ".join(f"{field}: {_inline(each)}" for field, each in value.items())
     if isinstance(value, list):
         return "; ".join(_inline(each) for each in value)
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    if value is None:
+        return ""
     return " ".join(str(value).splitlines())
 
