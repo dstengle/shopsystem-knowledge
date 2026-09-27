@@ -726,7 +726,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user reading from a directory that has since been removed is served through `KB_ROOT` when it names a knowledge base, and otherwise told the directory they are working in is gone.
 - Unknown: none here; kb finds the store
 - Needs: kb's store finding treats a working directory that no longer exists as inside no store (the kb pin-bump request logged 2026-09-27)
-- Status: blocked: awaiting a kb release carrying the pin-bump request
+- Status: planned
 
 ## Slice 50.23: shop-knowledge imports nothing of kb but what kb publishes
 
@@ -735,7 +735,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, `record_refused_files`' named-once Then catching `kb.content.NotCanonical` and taking the place from its `path`, the review-by-date scenarios' days given through the clock kb publishes on `kb.client.connect` instead of by replacing a kb function, and nothing else of kb's internals anywhere in the repository.
 - Unknown: none
 - Needs: the kb release carrying kb slices 100 (`NotCanonical` re-exported from `kb.content`) and 102 (a clock given to the in-process client), pinned
-- Status: blocked: awaiting kb 0.3.0 (kb slices 100, 102 and 102.2 to 102.6); the stand-in's `connect(root=None)` must take the `clock` keyword kb publishes (kb batch 20 review)
+- Status: planned
 
 ## Satisfied by existing behaviour
 
@@ -1543,4 +1543,4 @@ slices 2 onward, never ahead of them.
   Next: slice 50.16.7, the eighth architecture review, before batch 13.
 - 2026-09-27 Slice 50.16.7, eighth architecture review (Opus), report at `.superpowers/batch13/arch-review-50.16.7.md` (scratch). Suite `80 passed, 21 failed`; size check clean. Rules and module map met, the known exceptions until 50.23 aside, but for: `test_make_several_changes_at_once.py` reading the history by batch in-process outside `driver.kb_answer` and the allowlisted environment (R-A); steps batch 13's scenarios share with another feature defined in one feature's module (R-B); the start and publish test modules at 237 and 230 lines, and `cli.py` at 237, which batch 13 would take past 250 (R-C, R-D); batch 12's deferred minors (R-E: `_response`'s unused parameters, `_asks`' docstring, protobuf undeclared, three cosmetic tidies). The spec's CLI section names `kb/store.yaml`, answered by adrs/0047, left as spec text.
 - 2026-09-27 Re-slice, at the user's question whether slices are too fine: R-A to R-E are one enabling slice, 50.16.8, done in one dispatch; slices 50.19 to 50.21 (the empty-name rule for record, read and publish) merge into 50.17, since they are one rule implemented once and carried no unknown of their own, their tags moving to `@slice-50.17`. Batch 13 is then six slices, 50.16.8, 50.17, 50.18, 50.18.1, 50.18.2, 50.18.3, so the ninth review falls after it, not inside it; four dispatches: 50.16.8; 50.17; 50.18 with 50.18.1; 50.18.2 with 50.18.3.
-
+- 2026-09-27 kb v0.3.0 released (tag `v0.3.0`, kb's adrs/0010, adrs/0018, adrs/0019). Slices 50.22 and 50.23 unblocked and added to batch 13 as its Tasks 5 and 6, 50.22 bumping the pin first. Ruling: batch 13 is then eight slices, and the ninth review runs after it rather than after its sixth — cost if wrong: the review lands two slices later.
