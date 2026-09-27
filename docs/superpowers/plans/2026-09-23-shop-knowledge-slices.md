@@ -348,7 +348,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user who mistypes a command or a flag is told what is wrong in one plain line with exit 1, as CLAUDE.md's rule 4 says of every refusal shop-knol makes, so every command added after it keeps the rule without a scenario of its own.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 36.3: No name in the code says less or other than it does
 
@@ -734,7 +734,7 @@ slices 2 onward, never ahead of them.
   Check: same 48, 48 failed, 14 passed.
   Surprised by: nothing in the shapes; the render cases name the file the write reached (`afile/say-hello`), not the directory given. Decision in adrs/0016.
   Open questions:
-  - QUESTION FOR THE SPEC (Review Focus 1): argparse still refuses in its own way, so rule 4 holds for files and paths but not for arguments. Reproduction, `shop-knol nosuch`: argparse's usage on stderr, exit 2. A user would expect one plain line and exit 1. No scenario pins any argument error.
+  - QUESTION FOR THE SPEC, answered by rule 4 through slice 36.2 (argument errors are refused as any refusal, adrs/0023) (Review Focus 1): argparse still refuses in its own way, so rule 4 holds for files and paths but not for arguments. Reproduction, `shop-knol nosuch`: argparse's usage on stderr, exit 2. A user would expect one plain line and exit 1. No scenario pins any argument error.
   Next: slice 20.2.
 - 2026-09-27 slice 20.2 green. What the user is shown is shaped in `answers.py` (`created`, `glance`, `applied`, `history`, `change`, `written`), and `cli.py` calls it and prints through `_show`. Someone can now add a shape for an answer without touching the command line.
   Moved: `_glance`, `_change`, the history's wrapper, the create, apply and render answers; `CLAUDE.md` has the `answers.py` row. Decision in adrs/0017.
@@ -751,7 +751,7 @@ slices 2 onward, never ahead of them.
   Surprised by: nothing in kb; scenarios 5 and 7 to 10 needed no code beyond what the scenarios before them wrote (`--resolve N`, and `_client` connecting with no root), so each was red only on its undefined steps. Decision in adrs/0018.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 2): `--json` is on `read` alone, though the spec says output is "YAML by default and `--json` for the same structure". Reproduction, `shop-knol journal --json`: argparse's usage, `unrecognized arguments: --json`. A user would expect JSON from every command that answers.
-  - QUESTION FOR THE SPEC (Review Focus 1): argparse still refuses in its own way. Reproduction, `shop-knol read decision/weekly --resolve two`: usage on stderr, `argument --resolve: invalid int value: 'two'`, exit 2. A user would expect one plain line and exit 1.
+  - QUESTION FOR THE SPEC, answered by rule 4 through slice 36.2 (argument errors are refused as any refusal, adrs/0023) (Review Focus 1): argparse still refuses in its own way. Reproduction, `shop-knol read decision/weekly --resolve two`: usage on stderr, `argument --resolve: invalid int value: 'two'`, exit 2. A user would expect one plain line and exit 1.
   - QUESTION FOR THE SPEC: `--section` given with `--whole` or `--resolve` is not refused; the section read is made and the other flag is ignored. Reproduction, `shop-knol read decision/weekly --section Rationale --whole` shows only `title: Rationale` and `body`, exit 0.
   - QUESTION FOR THE SPEC: the scenarios say "no knowledge base"; kb says "no store", and shop-knol passes kb's words through ("errors are printed as returned by kb"). Whether that meets the bet passed-through-errors-are-actionable, or the user's word should be used, is the spec's.
   - QUESTION FOR THE SPEC: scenario 3's "what that older decision points at is shown by name only" is vacuous over the Background, whose older decision points at nothing. The step asserts every link inside the filled-in decision is a string, and the Background cannot tell depth 1 from depth 2 there.
@@ -823,7 +823,7 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 2): `list --ids` is YAML, not bare lines. Run after this task: `shop-knol list --type decision --ids | xargs -n1 shop-knol read` first ran `read -` and printed `-: a name is a kind and a plain name of lower-case letters, digits and single hyphens, never a path; '-' is not`, then read each name after it. A user would expect one name to a line, or a JSON array.
   - QUESTION FOR THE SPEC (Review Focus 3): "superseded" is a status the user writes, not the link. Run after this task: two decisions, the second with `supersedes` pointing at the first and neither with a status; `list --type decision --where status=superseded` printed `[]` and exited 0. A user would expect the link to count.
-  - QUESTION FOR THE SPEC (Review Focus 4): argparse still refuses in its own way. Run after this task: `shop-knol list` printed usage and `shop-knol list: error: the following arguments are required: --type` on stderr, exit 2; `shop-knol list --type decision --json` printed usage and `unrecognized arguments: --json`, exit 2. Rule 4 says one plain line and exit 1.
+  - QUESTION FOR THE SPEC, answered by rule 4 through slice 36.2 (argument errors are refused as any refusal, adrs/0023) (Review Focus 4): argparse still refuses in its own way. Run after this task: `shop-knol list` printed usage and `shop-knol list: error: the following arguments are required: --type` on stderr, exit 2; `shop-knol list --type decision --json` printed usage and `unrecognized arguments: --json`, exit 2. Rule 4 says one plain line and exit 1.
   - `--where status` (no `=`) is split as field `status` with the empty value; no scenario pins it and it is not refused. Run after this task: `shop-knol list --type decision --where status` printed `[]` and exited 0.
   Next: slice 30.1, the third architecture review, which runs before the next plan (adrs/0011).
 - 2026-09-27 Suite: 35 passed, 27 failed. Run in this checkout's virtualenv (kb v0.2.0 from its tag) before the review; the 35 are slices 1, 1.17, 1.24, 1.27, 1.28, 4, 15 to 20, 22, 24, 26, 28 and 30, and every failure is tagged 32 or later.
@@ -867,3 +867,14 @@ slices 2 onward, never ahead of them.
   Check: diff of the FAILED lines against `failing-36.1.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; request grep on `cli.py`: `0`; `cli.py`: 203 lines; `grep -cE "print\(|connect|client" kb_requests.py`: `0`; `grep -c "kb_requests.py" CLAUDE.md`: `1`; shape check `2 1 1 0`, no module over 250, no renderer listed; help snapshot `36.1` against `36.1-before`: no diff.
   Surprised by: the module's first docstring said "connects", which the check's grep for `connect` counted; reworded.
   Next: slice 36.2.
+- 2026-09-27 slice 36.2 green. An argument shop-knol cannot take is refused the one way every refusal is: `arguments.py` builds its parser from a subclass whose `error` raises `ArgumentRefused` (the `prog` and argparse's message), and `main` parses inside its handling, turns that into one `Fault` with the `prog` as artifact, and prints it through the same `_refuse` call as a `Refused`. CLAUDE.md's `arguments.py` row says it refuses by raising and never prints. The argparse question raised at slices 20.1, 22 and 30 is answered by rule 4 through this slice. Carry-over from slice 36.1's review done: `init_request` normalises the root again, `str(Path(args.root))`.
+  The six lines, verbatim:
+  - `shop-knol: the following arguments are required: command`
+  - `shop-knol: argument command: invalid choice: 'nosuch' (choose from 'init', 'create', 'read', 'write', 'validate', 'apply', 'journal', 'list', 'refs', 'search', 'render')`
+  - `shop-knol list: the following arguments are required: --type`
+  - `shop-knol: unrecognized arguments: --json`
+  - `shop-knol read: argument --resolve: invalid int value: 'two'`
+  - `shop-knol create: the following arguments are required: --from`
+  Check: diff of the FAILED lines against `failing-36.2.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; each of `shop-knol`, `nosuch`, `list`, `list --type decision --json`, `read decision/x --resolve two`, `create decision`: exit 1, 1 stderr line, 0 bytes stdout, 0 `usage:` (e.g. `shop-knol list: the following arguments are required: --type`); help snapshot `36.2` against `36.2-before`: no diff, `-h` of every command exit 0; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 209 lines.
+  Surprised by: nothing.
+  Next: slice 36.3.

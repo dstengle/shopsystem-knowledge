@@ -25,11 +25,18 @@ class Refused(Exception):
 
 
 def main(argv=None) -> int:
-    args = arguments.command_parser().parse_args(argv)
     try:
-        return _run(args)
+        return _run(_parsed(argv))
     except Refused as refusal:
         return _refuse(refusal.faults)
+
+
+def _parsed(argv):
+    """The arguments the user gave, or a refusal naming the command that could not take them."""
+    try:
+        return arguments.command_parser().parse_args(argv)
+    except arguments.ArgumentRefused as error:
+        raise Refused([kb_pb2.Fault(artifact=error.prog, message=error.message)]) from error
 
 
 def _run(args) -> int:
@@ -90,8 +97,7 @@ def _answered(response):
 
 
 def _init(args) -> int:
-    root = Path(args.root)
-    client = kb_client.connect(root)
+    client = kb_client.connect(Path(args.root))
     client.Init(kb_requests.init_request(args))
     bootstrap.load(client, args.by["actor"])
     return 0

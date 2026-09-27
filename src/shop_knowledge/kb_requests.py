@@ -1,6 +1,8 @@
 """Each command's arguments turned into the request it sends kb: one public function per command that calls kb,
 named `<command>_request`. The actor and message are read from `args.by`, set by the command line's `_run`; a
 command that sends a file's content takes the document that was read. Nothing here shows anything or makes a call."""
+from pathlib import Path
+
 from kb.content import dumps, text
 from kb.contract import kb_pb2
 
@@ -8,7 +10,7 @@ from shop_knowledge import batch
 
 
 def init_request(args) -> kb_pb2.InitRequest:
-    return kb_pb2.InitRequest(root=str(args.root), actor=args.by["actor"])
+    return kb_pb2.InitRequest(root=str(Path(args.root)), actor=args.by["actor"])
 
 
 def create_request(args, document: dict) -> kb_pb2.CreateRequest:

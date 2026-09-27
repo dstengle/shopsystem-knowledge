@@ -1,4 +1,5 @@
-"""The arguments of every shop-knol command, declared with argparse; it knows what a command is called and takes, not what it does."""
+"""The arguments of every shop-knol command, declared with argparse; it knows what a command is called and takes, not what it does.
+An argument it cannot take is refused by raising `ArgumentRefused`, never printed."""
 import argparse
 
 from shop_knowledge.renderers import RENDERERS
@@ -6,9 +7,25 @@ from shop_knowledge.renderers import RENDERERS
 SCOPES = ("sections", "fields", "all")
 
 
+class ArgumentRefused(Exception):
+    """An argument shop-knol cannot take: the `prog` of the parser that refused, and argparse's own message."""
+
+    def __init__(self, prog: str, message: str):
+        super().__init__(f"{prog}: {message}")
+        self.prog = prog
+        self.message = message
+
+
+class _Parser(argparse.ArgumentParser):
+    """A parser that refuses by raising where argparse would print its usage and exit; help still prints and exits 0."""
+
+    def error(self, message):
+        raise ArgumentRefused(self.prog, message)
+
+
 def command_parser() -> argparse.ArgumentParser:
     """Every command's arguments and help, the renderer names from RENDERERS as the choices of render."""
-    parser = argparse.ArgumentParser(prog="shop-knol")
+    parser = _Parser(prog="shop-knol")
     commands = parser.add_subparsers(dest="command", required=True)
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")

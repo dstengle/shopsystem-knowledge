@@ -12,7 +12,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 |---|---|---|
 | `cli.py` | `shop-knol`: one handler per command making the kb calls that command maps to, the actor from the environment and the client, whose store kb finds upward from the working directory or through `KB_ROOT`, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
 | `kb_requests.py` | each command's arguments as the request it sends kb, one public function per command, `<command>_request` | kb calls, printing, reading files |
-| `arguments.py` | every `shop-knol` command's arguments and help, declared with argparse, and the renderer names from `RENDERERS` | handlers, kb calls, printing |
+| `arguments.py` | every `shop-knol` command's arguments and help, declared with argparse, and the renderer names from `RENDERERS`; an argument it cannot take is refused by raising, never printed | handlers, kb calls, printing |
 | `answers.py` | each kb answer as the document the user is shown: plain dicts from kb's response messages or plain values, one public function per answer (`glance`, `change`, `history`, `created`, `written_over`, `applied`, `listed`, `names`, `written`, `reached`, `matched`) | printing, kb calls, arguments |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
