@@ -235,7 +235,7 @@ def _decision_from_another_command():
 
 @when("the user records it by piping it in, saying who they are and why", target_fixture="result")
 def _record_by_piping(env, piped_decision):
-    return knol(env, "create", "decision", "--from", "-", "-m", "Record the monthly review", input=piped_decision)
+    return knol(env, "create", "decision", "--from", "-", "-m", "Record the monthly review", piped=piped_decision)
 
 
 @then("the shop holds the decision just as if it had come from a file")

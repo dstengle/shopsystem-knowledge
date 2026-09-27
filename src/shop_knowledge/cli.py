@@ -68,7 +68,7 @@ def _client():
     return kb_client.connect()
 
 
-def _show(document: dict, as_json: bool = False) -> None:
+def _show(document: dict | list, as_json: bool = False) -> None:
     """An answer as YAML, or as the same document in JSON when asked."""
     if as_json:
         print(json.dumps(document, indent=2, ensure_ascii=False))
@@ -135,8 +135,8 @@ def _write_artifact(args) -> int:
 
 def _read(args) -> int:
     response = _answered(_client().Read(kb_requests.read_request(args)))
-    shape = answers.section if args.section else answers.whole if kb_requests.is_whole(args) else answers.glance
-    _show(shape(response), args.json)
+    answer = answers.section if args.section else answers.whole if kb_requests.is_whole(args) else answers.glance
+    _show(answer(response), args.json)
     return 0
 
 

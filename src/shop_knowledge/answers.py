@@ -1,4 +1,4 @@
-"""Each kb answer as the document the user is shown: plain dicts, ready for the command line to show."""
+"""Each kb answer as the document the user is shown: plain dicts and lists, ready for the command line to show."""
 from kb.content import loads
 from kb.contract import kb_pb2
 

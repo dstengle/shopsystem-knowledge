@@ -357,7 +357,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader of the code finds no assignment nothing reads, no hint naming a type an argument is not given, no parameter hiding a built-in or a local hiding a module, and a module map that names every public function the answers module has.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 38: Record what a piece of work read
 
@@ -878,3 +878,7 @@ slices 2 onward, never ahead of them.
   Check: diff of the FAILED lines against `failing-36.2.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; each of `shop-knol`, `nosuch`, `list`, `list --type decision --json`, `read decision/x --resolve two`, `create decision`: exit 1, 1 stderr line, 0 bytes stdout, 0 `usage:` (e.g. `shop-knol list: the following arguments are required: --type`); help snapshot `36.2` against `36.2-before`: no diff, `-h` of every command exit 0; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 209 lines.
   Surprised by: nothing.
   Next: slice 36.3.
+- 2026-09-27 slice 36.3 green. No name says less or other than it does: `arguments.py` adds `validate`'s subparser without an assignment; `cli._show` is hinted `dict | list`; `cli._read`'s local is `answer`, no longer hiding the module `shape`; `driver.knol`'s parameter is `piped` (one caller, in `tests/test_record_a_decision.py`); `answers.py`'s docstring and CLAUDE.md's row say dicts and lists, and the row names all thirteen public functions (`glance`, `whole`, `section`, `change`, `history`, `created`, `written_over`, `applied`, `listed`, `names`, `reached`, `matched`, `written`).
+  Check: diff of the FAILED lines against `failing-36.3.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; the four greps: `0`, `0`, `0`, and the `inspect` assertion succeeds; help snapshot `36.3` against `36.3-before`: no diff; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 209 lines.
+  Surprised by: nothing.
+  Next: slice 38.

@@ -51,7 +51,7 @@ def command_parser() -> argparse.ArgumentParser:
     write.add_argument("--from", dest="source", required=True, metavar="FILE")
     write.add_argument("-m", dest="message", help="why")
 
-    validate = commands.add_parser(
+    commands.add_parser(
         "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
     )
 
