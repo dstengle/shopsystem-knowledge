@@ -3,6 +3,8 @@ import argparse
 
 from shop_knowledge.renderers import RENDERERS
 
+SCOPES = ("sections", "fields", "all")
+
 
 def command_parser() -> argparse.ArgumentParser:
     """Every command's arguments and help, the renderer names from RENDERERS as the choices of render."""
@@ -59,6 +61,14 @@ def command_parser() -> argparse.ArgumentParser:
     refs.add_argument("--via", metavar="FIELD", help="only through this link")
     refs.add_argument("--type", help="only the artifacts of this type")
     refs.add_argument("--depth", type=int, help="how many steps to follow (one when not said)")
+
+    search = commands.add_parser("search", help="find what the shop knows by the words in it, the one holding them most often first")
+    search.add_argument("text")
+    search.add_argument("--type", help="only the artifacts of this type")
+    search.add_argument(
+        "--in", dest="scope", choices=SCOPES, default="sections",
+        help="where to look: the prose (sections), the fields, or all (sections when not said)",
+    )
 
     render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
     render.add_argument("renderer", choices=sorted(RENDERERS))

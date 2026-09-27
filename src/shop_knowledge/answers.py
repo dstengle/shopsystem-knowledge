@@ -90,6 +90,19 @@ def reached(response: kb_pb2.RefsResponse) -> list:
     ]
 
 
+def matched(response: kb_pb2.SearchResponse) -> list:
+    """What a search gives back, in kb's order: each match's name, type and title, the section or field that matched
+    and its snippet."""
+    return [
+        {
+            "id": match.stub.id, "type": match.stub.type, "title": match.stub.title,
+            **({"section": match.section} if match.section else {"field": match.field}),
+            "snippet": match.snippet,
+        }
+        for match in response.matches
+    ]
+
+
 def names(response: kb_pb2.ListResponse) -> list:
     """What a list asking for names alone gives back: the names, and nothing else."""
     return list(response.ids)

@@ -201,6 +201,13 @@ def _refs(args) -> int:
     return 0
 
 
+def _search(args) -> int:
+    scope = getattr(kb_pb2.SearchRequest, args.scope.upper())
+    response = _answered(_client().Search(kb_pb2.SearchRequest(text=args.text, type=args.type or "", scope=scope)))
+    _show(answers.matched(response))
+    return 0
+
+
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
     _write(rendered.files, Path(args.to))
@@ -226,5 +233,6 @@ _HANDLERS = {
     "journal": _journal,
     "list": _list,
     "refs": _refs,
+    "search": _search,
     "render": _render,
 }

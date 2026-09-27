@@ -321,7 +321,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user searches for a word and sees each result with the section it matched and a snippet with the heaviest section first, narrows to decisions and sees the two decisions and not the process, or includes the fields and also sees a decision whose title carries the word.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 36: Review by role, piece of work, or date
 
@@ -853,3 +853,8 @@ slices 2 onward, never ahead of them.
   Check: diff of the FAILED lines against `failing-32.1.txt`: `same` (23); `make test`: `23 failed, 39 passed`; `grep -c "def shown" tests/*.py | grep -v ":0"`: `tests/conftest.py:1`; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 230 lines, unchanged from slice 32.
   Surprised by: nothing.
   Next: slice 34.
+- 2026-09-27 slice 34 green. Someone can now: search for a word and see each result with the section it matched and a snippet, the heaviest first, narrow the search to decisions and not see the process, or search the fields as well as the prose and also see the decision whose title carries the word.
+  Surprised by: a decision must carry both its Purpose and its Rationale sections, so the Background's decisions each carry a Rationale that does not say the word.
+  Evidence (`shop-knol search ...` in the Background's shop, script `.superpowers/batch6/s34.py`): `search restocking`: three entries, `decision/restocking-is-weekly` first (section Purpose, snippet "Restocking happens every week. Restocking on Mondays, restocking again..."), then `decision/shelves-are-counted-first`, then `process/close-up` (section Purpose). `--type decision`: the first two only. `--in all`: those three plus `decision/who-owns-restocking` with `field: title`, `snippet: Who owns restocking`; the first decision also appears a second time with `field: title`, since its own title says the word.
+  Open questions: Review Focus 5, `--json` is on `read` alone: `shop-knol search restocking --json` is refused by argparse, usage and exit 2 (before Task 6 changes that to one line and exit 1). Whether a match inside a part should be found: the probe created a process whose only mention of "zebrafish" is a step's `does`; `search zebrafish` and `search zebrafish --in all` both show `[]` and exit 0, so the user cannot find a step by what it does. Scenario 3 sees the same title twice for a decision whose title and prose both say the word; the scenarios are silent on whether one artifact should be shown once.
+  Next: slice 36.
