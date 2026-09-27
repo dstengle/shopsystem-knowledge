@@ -48,7 +48,7 @@ def _run(args) -> int:
         raise Refused([kb_pb2.Fault(artifact=str(error.filename or ""), message=error.strerror or str(error))]) from error
 
 
-_MUTATING = ("init", "create", "write", "apply", "snapshot")
+_MUTATING = ("init", "create", "write", "apply", "snapshot", "append")
 _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
 _NO_MESSAGE = "every change must carry a message, given with -m"
 
@@ -133,6 +133,13 @@ def _write_artifact(args) -> int:
     return 0
 
 
+def _append(args) -> int:
+    request = kb_requests.append_request(args, _document(args.source, "content"))
+    response = _answered(_client().Append(request))
+    _show(answers.appended(request.locator, response))
+    return 0
+
+
 def _read(args) -> int:
     response = _answered(_client().Read(kb_requests.read_request(args)))
     answer = answers.section if args.section else answers.whole if kb_requests.is_whole(args) else answers.glance
@@ -203,6 +210,7 @@ def _write(files: dict[str, str], directory: Path) -> None:
 _HANDLERS = {
     "init": _init,
     "create": _create,
+    "append": _append,
     "read": _read,
     "write": _write_artifact,
     "validate": _validate,

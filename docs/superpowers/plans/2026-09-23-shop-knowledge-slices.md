@@ -375,7 +375,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user adds a step written in place and it is the last step with the user told its name, or adds a step that uses a shared step with its own settings and the process runs it there with those settings while the shared step and its other users are unchanged.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 42: Retire what the shop no longer uses
 
@@ -887,3 +887,9 @@ slices 2 onward, never ahead of them.
   Surprised by: nothing.
   Open questions: QUESTION FOR THE SPEC (Review Focus 3): `snapshot`'s `--execution` and `KB_ACTOR`'s execution can disagree. Reproduction, run after this task: `KB_ACTOR=agent:one shop-knol snapshot --execution two decision/prices -m read`, then `journal --execution one` answers `changes: []` and `journal --execution two` answers the one snapshot entry, actor `agent`, execution `two`, read `decision/prices` at revision 1. The entry is made under `two` (adrs/0025); a user would expect one source for the piece of work, or a refusal when they differ.
   Next: slice 40.
+- 2026-09-27 slice 40 green. Someone can now: add a step to a process with `shop-knol append <process>#steps --from FILE -m WHY`, written in place or using a shared step with its own settings, and be told the name it is known by.
+  Evidence (a Close up process of two steps, the shared step `step/check-the-stock` with `settings: [shelf]`): a step written in place answers `id: process/close-up#steps/tidy`, `revision: 2`; a step with `uses: step/check-the-stock` and `with: [{name: shelf, value: dairy}]` answers `id: process/close-up#steps/check-the-dairy`, `revision: 3`. The process whole after both: steps `lock`, `lights`, `tidy` (`does: Tidy up.`), `check-the-dairy` (`uses: step/check-the-stock`, `with: [{name: shelf, value: dairy}]`), revision 3. An append naming no collection is refused, `process/close-up: an item is added to a collection, and '' in 'process/close-up' is not one`, exit 1; with no `-m`, `every change must carry a message, given with -m`, exit 1. Seen red first on the Background (no step), then on the missing command (`invalid choice: 'append'`); scenario 2 red on its undefined When.
+  Check: `-m slice-40` 2 passed; `.venv/bin/python -m pytest -q` 14 failed, 48 passed (the FAILED set is the earlier 16 less slice 40's two); GREEN plus slices 32 to 40: 48 passed; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 224 lines; help snapshot 40 against 40-before: only `append` added.
+  Surprised by: nothing.
+  Open questions: QUESTION FOR THE SPEC (Review Focus 4): a step added with a title already used. Reproduction, run after this task: append `{title: Tidy, does: Tidy up.}` twice to `process/close-up#steps`; the first answers `process/close-up#steps/tidy`, the second `process/close-up#steps/tidy-2` (revision 4), and the whole read holds both, titled "Tidy", ids `tidy` and `tidy-2`. kb gives the second a name of its own, as slice 28 shows for a decision, so the expectation holds; what the spec says of it is still unwritten.
+  Next: slice 42.

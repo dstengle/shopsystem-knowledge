@@ -24,6 +24,10 @@ def write_request(args, document: dict) -> kb_pb2.WriteRequest:
     return kb_pb2.WriteRequest(locator=locator(args.locator), content=dumps(document), **args.by)
 
 
+def append_request(args, document: dict) -> kb_pb2.AppendRequest:
+    return kb_pb2.AppendRequest(locator=locator(args.locator), content=dumps(document), **args.by)
+
+
 def locator(words: str) -> kb_pb2.Locator:
     """A locator as the user says it: a name, or a name and after # a place inside it."""
     name, _, place = words.partition("#")

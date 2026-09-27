@@ -51,6 +51,11 @@ def command_parser() -> argparse.ArgumentParser:
     write.add_argument("--from", dest="source", required=True, metavar="FILE")
     write.add_argument("-m", dest="message", help="why")
 
+    append = commands.add_parser("append", help="add an item last to a collection, as <name>#<collection>, from a YAML file")
+    append.add_argument("locator")
+    append.add_argument("--from", dest="source", required=True, metavar="FILE")
+    append.add_argument("-m", dest="message", help="why")
+
     commands.add_parser(
         "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
     )
