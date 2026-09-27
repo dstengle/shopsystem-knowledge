@@ -14,33 +14,55 @@ import driver
 from driver import start
 
 
+NO_STORE = "store"
+"""The `rule` kb's contract publishes (kb adrs/0018) for the fault `store.locate` gives when it finds no store."""
+
+
 def _reachable_from(directory: Path) -> bool:
     """Whether kb finds a store looking upward from `directory` alone: no KB_ROOT to name one outright, and the
-    developer's own KB_ROOT (if the shell running the suite has one) never consulted."""
+    developer's own KB_ROOT (if the shell running the suite has one) never consulted. Anything but kb's own
+    no-store refusal (`rule == "store"`, kb adrs/0018) counts as a store found - an empty answer, a fault of
+    another rule, or more than one fault - so a cause kb adds later is never mistaken for "no store here"; an
+    exception from the call counts the same way, refused rather than let escape as a traceback."""
     kept = os.environ.pop("KB_ROOT", None)
     here = Path.cwd()
     os.chdir(directory)
     try:
-        return not connect().Journal(kb_pb2.JournalRequest()).faults
+        faults = connect().Journal(kb_pb2.JournalRequest()).faults
+    except Exception:
+        return True
     finally:
         os.chdir(here)
         if kept is not None:
             os.environ["KB_ROOT"] = kept
+    return not (len(faults) == 1 and faults[0].rule == NO_STORE)
+
+
+def _starting_directories(config) -> list[Path]:
+    """Every directory the guard looks upward from: the checkout, the system's own temporary directory, and
+    pytest's own base temp root beneath it, since every test's `tmp_path` sits under that one. A seam of its own,
+    so a throwaway demonstration can point the guard at a directory of its choosing instead of the real ones."""
+    return [config.rootpath, Path(tempfile.gettempdir()), config._tmp_path_factory.getbasetemp().parent]
 
 
 def _refuse_near_a_real_store(config):
     """The suite refuses to start rather than risk reading or writing a knowledge base outside a test's own
-    temporary directory (adrs/0047): one is looked for, upward, from the checkout and from the system's temporary
-    directory, the way every other kb call looks for its store."""
-    for directory in (config.rootpath, Path(tempfile.gettempdir())):
+    temporary directory (adrs/0047): one is looked for, upward, from each of `_starting_directories`, the way
+    every other kb call looks for its store."""
+    for directory in _starting_directories(config):
         if _reachable_from(directory):
             raise pytest.UsageError(f"a knowledge base is reachable above {directory}; refusing to run near one")
 
 
+def pytest_sessionstart(session):
+    """Refuse to start near a real knowledge base (adrs/0047), before any test is collected. Waits for session
+    start, not configure, so pytest's own `_tmp_path_factory` (`_starting_directories`) is already attached to
+    `config`."""
+    _refuse_near_a_real_store(session.config)
+
+
 def pytest_configure(config):
-    """Refuse to start near a real knowledge base, then register every @slice-<n> tag in the feature files as a
-    marker, so -m slice-<n> selects a slice."""
-    _refuse_near_a_real_store(config)
+    """Register every @slice-<n> tag in the feature files as a marker, so -m slice-<n> selects a slice."""
     tags = set()
     for feature in Path(config.rootpath, "features").glob("*.feature"):
         tags.update(re.findall(r"@(slice-\d+(?:\.\d+)?)", feature.read_text()))
@@ -56,9 +78,27 @@ def shop(tmp_path):
     return shop
 
 
+_LEAKABLE = ("KB_STAND_IN", "TEST_NOW")
+"""The stand-in's and the clock's own variables (`driver.answering`, `driver.at`): never the developer shell's to
+carry into a scenario."""
+
+
+def _shells_own_environment() -> dict:
+    """The developer's shell, copied for a scenario's subprocess but stripped of anything this suite's own test
+    wiring would otherwise leak into it by accident: `_LEAKABLE`'s variables, and either `driver.CLOCK` or
+    `driver.STAND_IN` if already on PYTHONPATH (which would trip `driver._refuse_if_combined` were a scenario to
+    add the other)."""
+    kept = {name: value for name, value in os.environ.items() if name not in _LEAKABLE}
+    on_path = kept.get("PYTHONPATH", "").split(os.pathsep)
+    kept["PYTHONPATH"] = os.pathsep.join(
+        entry for entry in on_path if entry not in (str(driver.CLOCK), str(driver.STAND_IN))
+    )
+    return kept
+
+
 @pytest.fixture
 def env(shop):
-    return {**os.environ, "KB_ROOT": str(shop), "KB_ACTOR": "shopkeeper"}
+    return {**_shells_own_environment(), "KB_ROOT": str(shop), "KB_ACTOR": "shopkeeper"}
 
 
 @pytest.fixture(autouse=True)
