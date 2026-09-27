@@ -483,7 +483,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds every When that runs shop-knol handing on what it ran as `result`, every whole read a Then makes going through the driver's one way, and no comment saying a command is missing that the shop now has.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.4: No step definition module is over 250 lines
 
@@ -1038,3 +1038,7 @@ slices 2 onward, never ahead of them.
   Placed after 50.2, in the order they run: 50.3, then 50.4. Neither adds or moves a scenario, so no feature file and no `@slice` tag changes, and nothing under `src/` changes. Decisions in adrs/0034 and 0035.
   Next: writing-plans over slices 50.3 and 50.4, one task per slice in that order, to `2026-09-27-shop-knowledge-batch8-implementation.md`.
 - 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch8-implementation.md`, two tasks for slices 50.3 and 50.4 in slice order. Written under adrs/0011: no code, nothing built or replayed. Each task says why its check fails today, from this checkout (the greps and the size check run 2026-09-27). The one unknown, how a feature's steps reach its test module from a sibling module, was settled by a throwaway spike: by star import, not by a plain import. Expected counts: 0 failed, 62 passed before and after each task; the touched modules collect 12, 8 and 10, and `-m slice-49` selects 2. Decisions in adrs/0034 and 0035. No request to bump the pin beyond kb slice 97's. No feature file touched. Its Review Focus holds three failure modes of the split, and two questions for the spec from this review: the agent renderer checking no harness limit, and `init ""`. Next: slice 50.3.
+- 2026-09-27 slice 50.3 green.
+  Check: `pytest -q` gives `62 passed`; `-m slice-49` gives `2 passed, 60 deselected`; `test_record_a_decision.py` gives `10 passed`; `test_read_back_what_the_shop_knows.py` gives `12 passed`; the Whens grep gives `42 target_fixture="result"`; `"--whole"` gives `tests/driver.py:35` and `tests/test_read_back_what_the_shop_knows.py:90`; "does not exist yet" gives no line; `git diff --stat -- src features` is empty. Lines after: `test_record_a_decision.py` 246, `test_start_a_shop_knowledge_base.py` 255, `test_read_back_what_the_shop_knows.py` 276 (the last two are slice 50.4's).
+  Surprised by: nothing, except that the start module grew from 251 to 255 lines, since the two Whens now write and run `create` themselves.
+  Next: slice 50.4.

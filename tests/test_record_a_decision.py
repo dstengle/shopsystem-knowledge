@@ -1,7 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import knol, record
+from driver import knol, record, whole
 
 scenarios("record-a-decision.feature")
 
@@ -219,12 +219,10 @@ def _shown_a_name_of_its_own(result):
 
 @then("the decision recorded earlier still reads back by the name it had")
 def _earlier_still_reads_back(env):
-    read = knol(env, "read", TAKEN, "--whole")
-    assert read.returncode == 0, read.stderr
-    shown = loads(read.stdout)
-    assert shown["title"] == OLDER["title"]
-    assert shown["revision"] == 1
-    assert "Monthly was enough once." in read.stdout
+    read = whole(env, TAKEN)
+    assert read["title"] == OLDER["title"]
+    assert read["revision"] == 1
+    assert "Monthly was enough once." in [section["body"].strip() for section in read["sections"]]
 
 
 @given("a decision produced by another command", target_fixture="piped_decision")
@@ -239,13 +237,10 @@ def _record_by_piping(env, piped_decision):
 
 
 @then("the shop holds the decision just as if it had come from a file")
-def _holds_the_piped_decision(env, result):
-    assert result.returncode == 0, result.stderr
-    read = knol(env, "read", loads(result.stdout)["id"], "--whole")
-    assert read.returncode == 0, read.stderr
-    shown = loads(read.stdout)
-    assert shown["title"] == OLDER["title"]
-    assert [(section["title"], section["body"]) for section in shown["sections"]] == [
+def _holds_the_piped_decision(env, shown):
+    read = whole(env, shown["id"])
+    assert read["title"] == OLDER["title"]
+    assert [(section["title"], section["body"]) for section in read["sections"]] == [
         (section["title"], section["body"]) for section in OLDER["sections"]
     ]
-    assert shown["revision"] == 1
+    assert read["revision"] == 1

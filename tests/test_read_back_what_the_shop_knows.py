@@ -147,7 +147,7 @@ def _older_points_by_name(shown):
 
 @given('the older decision is tagged "seasonal"')
 def _older_decision_tagged_seasonal(env, tmp_path):
-    # Drives shop-knol as a user does: `apply`, since `write` does not exist yet.
+    # Drives shop-knol as a user does: `apply`, one batch to create a tag and write the decision as one change.
     path = tmp_path / "tag-the-older-decision.yaml"
     path.write_text(dumps({"changes": [
         {"create": "tag", "content": {"title": "seasonal", "description": "Changes with the season.\n"}},
