@@ -172,4 +172,8 @@ observable.
 
 Built with the shopsystem-bdd workflow. Feature files are formulated from
 this spec, from the perspective of a shopsystem user at the command line.
-kb is exercised through its in-process transport, never mocked.
+kb is exercised through its in-process transport. shop-knowledge knows
+kb only through what kb publishes, in its tests as in its code; where a
+scenario needs kb in a state no contract call can produce, a stand-in for
+kb at the contract boundary answers with kb's contract messages. No test
+reaches a knowledge base outside its own temporary directory.
