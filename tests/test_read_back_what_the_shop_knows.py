@@ -43,9 +43,9 @@ def _shop_with_a_linked_decision(env, shop, tmp_path):
 
 
 @pytest.fixture
-def workdir():
-    """Where the user works, when a Given moves them; None is where the suite runs."""
-    return None
+def workdir(tmp_path):
+    """Where the user works: the test's own temporary directory, unless a Given moves them elsewhere in it."""
+    return tmp_path
 
 
 @when("the user reads the decision", target_fixture="result")

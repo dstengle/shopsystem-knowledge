@@ -29,14 +29,23 @@ def removed(tmp_path: Path) -> Removed:
     return Removed(gone)
 
 
+_default_cwd: Path | None = None
+"""The working directory a run is given when a step names none of its own: unset outside a test, so a run made
+that way is refused; set to the scenario's own temporary directory by conftest's `_working_directory`, for every
+test in the suite (adrs/0047 - no test reaches a knowledge base outside its own temporary directory)."""
+
+
 def knol(env, *args, cwd=None, piped=None):
-    """Run one shop-knol command, from `cwd` when the user works somewhere other than where the suite runs,
-    with `piped` on its standard input when another command's output is piped in; a `Removed` cwd is gone by the
-    time shop-knol starts."""
+    """Run one shop-knol command, from `cwd` when the user works somewhere other than the suite's default for this
+    test, with `piped` on its standard input when another command's output is piped in; a `Removed` cwd is gone by
+    the time shop-knol starts. Refused if no `cwd` is given and the suite has set no default."""
+    directory = cwd if cwd is not None else _default_cwd
+    if directory is None:
+        raise RuntimeError("shop-knol was run with no working directory, and the suite set no default")
     return subprocess.run(
         [sys.executable, "-m", "shop_knowledge", *args],
-        env=env, capture_output=True, text=True, cwd=cwd, input=piped,
-        preexec_fn=cwd.remove if isinstance(cwd, Removed) else None,
+        env=env, capture_output=True, text=True, cwd=directory, input=piped,
+        preexec_fn=directory.remove if isinstance(directory, Removed) else None,
     )
 
 
@@ -77,15 +86,28 @@ def _on_path(env, directory: Path) -> dict:
     return {**env, "PYTHONPATH": os.pathsep.join(filter(None, [str(directory), env.get("PYTHONPATH")]))}
 
 
+def _refuse_if_combined(env, other: Path, this_name: str, other_name: str) -> None:
+    """`at` and `answering` are both loaded as `sitecustomize`, so a process puts only the first of them a caller
+    combines on its PYTHONPATH; the other never loads, silently. Refused until slice 50.23 removes the clock's own
+    sitecustomize, so no scenario can carry both without knowing it."""
+    if str(other) in env.get("PYTHONPATH", "").split(os.pathsep):
+        raise RuntimeError(f"driver.{this_name} refuses: driver.{other_name} is already on this environment's PYTHONPATH")
+
+
 def at(env, moment):
     """The environment shop-knol runs in when the history is to say it ran at `moment` (ISO, UTC)."""
+    _refuse_if_combined(env, STAND_IN, "at", "answering")
     return {**_on_path(env, CLOCK), "TEST_NOW": moment}
 
 
 def answering(env, tmp_path, *answers):
     """The environment shop-knol runs in when kb is to be in a state no contract call can produce: the stand-in
     (tests/stand_in) answers each call an answer describes with the message the step wrote, and every other call reaches
-    the real kb. Each answer is as the stand-in's docstring says; its faults are the step's own words."""
+    the real kb. Each answer is as the stand-in's docstring says; its faults are the step's own words. Refused for a
+    second call in one scenario, which would silently replace the first call's answers rather than add to them."""
+    _refuse_if_combined(env, CLOCK, "answering", "at")
     path = tmp_path / "kb-answers.yaml"
+    if path.exists():
+        raise RuntimeError("driver.answering was already called for this scenario; it does not replace answers")
     path.write_text(dumps(list(answers)))
     return {**_on_path(env, STAND_IN), "KB_STAND_IN": str(path)}

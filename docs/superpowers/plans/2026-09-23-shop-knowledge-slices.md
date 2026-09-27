@@ -618,7 +618,7 @@ slices 2 onward, never ahead of them.
 - Observable: A developer running the suite in a directory whose parents hold the shop's real knowledge base finds the suite refusing to run rather than reading or writing it.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.16.3: The steps hold kb only to a fault order kb states
 
@@ -1509,3 +1509,17 @@ slices 2 onward, never ahead of them.
   Checks: `-m slice-1.27` 1 passed; the check markers 7 passed; the start and publish markers 9 passed (each as before). The greps give nothing, `kb.journal` only in `tests/clock/sitecustomize.py`, no `/ "kb" /`, kb imports only `kb.client`, `kb.content`, `kb.contract`; `git diff --stat -- features src` empty; size check lists nothing.
   Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`, `failing-before.txt` unchanged.
   Surprised by: nothing. Open questions: the stand-in and the clock are both `sitecustomize` modules, so one process can load only the first on its path; no scenario needs both before 50.23 replaces the clock. Next: slice 50.16.2.
+- 2026-09-27 Slice 50.16.2 green (enabling). No test reaches a knowledge base outside its own temporary directory.
+  Driver: `tests/driver.py`'s `knol` takes its working directory from `cwd`, or, with none given, from module-level `_default_cwd`; with neither set it refuses (`RuntimeError`). `tests/conftest.py`'s autouse `_working_directory` fixture sets `_default_cwd` to the test's own `tmp_path` for every test, so every shop-knol run the driver makes, named or not, stays inside it; no call site elsewhere changed. The read-back `workdir` fixture's default is now `tmp_path` (was `None`, "where the suite runs"); the six Givens that move the user still return their own directory, so no scenario's meaning changed.
+  Guard: `tests/conftest.py`'s `pytest_configure` now calls `_refuse_near_a_real_store` before collecting anything: from the checkout (`config.rootpath`) and from the system's temporary directory (`tempfile.gettempdir()`), it asks kb's own `connect().Journal(...)`, with the shell's own `KB_ROOT` set aside for the call and restored after, whether a store is found upward; an answer carrying no faults means one was, and the suite refuses to run (`pytest.UsageError`), naming where. Only `kb.client.connect` and `kb.contract.kb_pb2` are used; no file under a store is opened.
+  Controller's ruling, three more guards: (a) `driver.at` and `driver.answering` each refuse when the other's directory is already on the environment's PYTHONPATH (`_refuse_if_combined`), since both are `sitecustomize` modules and a process loads only the first, until 50.23 removes the clock's; (b) demonstrated, not a code change: the publish feature's "the shop's knowledge base is unchanged" Then can go red; (c) `driver.answering` refuses a second call in one scenario, which would silently replace the first call's answers.
+  Throwaway demonstrations, logged then reverted:
+  - a `kb/store.yaml` written at `/home/vscode/kb` (the checkout's parent) made the suite refuse before running any test (`pytest -q` -> exit 4, "a knowledge base is reachable above /home/vscode/shopsystem-knowledge; refusing to run near one"), and stopped `tests/test_check_the_shops_knowledge_is_sound.py` (a stand-in scenario) the same way; the store removed, the suite ran as before (Review Focus 2).
+  - a bare call of `driver.knol` with no `cwd` and no default set (outside pytest) raised `RuntimeError: shop-knol was run with no working directory, and the suite set no default`.
+  - a throwaway store started at `.superpowers/batch12/devstore`, the developer's own shell `KB_ROOT` naming it: `pytest -q` (that `KB_ROOT` exported) gave `21 failed, 80 passed`, the same as without it, and kb's own `connect(root).Journal(...)` showed the same 9 entries before and after; the store removed (Review Focus 3).
+  - `driver.at` then `driver.answering` on the same environment, and the reverse order, each raised `RuntimeError` naming the sitecustomize already on the path.
+  - a second `driver.answering` call for one `tmp_path` raised `RuntimeError: driver.answering was already called for this scenario; it does not replace answers`.
+  - `record(...)` inserted in `_unchanged` (`tests/test_publish_what_the_shop_knows.py`) between reading `before` and the assertion turned `test_the_user_publishes_a_process_as_a_skill` red (`AssertionError`); reverted, `1 passed`, `git diff` on the file empty.
+  Checks: size check clean; `git diff --stat -- features src` empty.
+  Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`, `failing-before.txt` unchanged.
+  Surprised by: the controller's three extra guards, beyond the brief's check line; each demonstrated above. Next: slice 50.16.3.
