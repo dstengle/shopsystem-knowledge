@@ -178,7 +178,7 @@ def _apply(args) -> int:
 
 
 def _journal(args) -> int:
-    response = _answered(_client().Journal(kb_pb2.JournalRequest(artifact=args.artifact)))
+    response = _answered(_client().Journal(kb_pb2.JournalRequest(artifact=args.artifact, role=args.actor, execution=args.execution, since=args.since)))
     _show(answers.history(response))
     return 0
 

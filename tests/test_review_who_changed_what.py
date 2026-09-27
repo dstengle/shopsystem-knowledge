@@ -23,7 +23,9 @@ def _today(day):
     "as part of a named piece of work"
 )
 def _recorded_then_revised(env, shop, tmp_path, today):
-    started = knol(at(env, "2026-09-21T09:00:00"), "init", str(shop))
+    # The Background does not say who started the store; a role of its own keeps the start out of the shopkeeper's
+    # history (adrs/0025).
+    started = knol({**at(env, "2026-09-21T09:00:00"), "KB_ACTOR": "founder"}, "init", str(shop))
     assert started.returncode == 0, started.stderr
     record(at(env, "2026-09-21T10:00:00"), tmp_path, "decision",
            {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly reviews")
@@ -51,3 +53,41 @@ def _both_changes(result, today):
         ({"role": "shopkeeper", "execution": ""}, "2026-09-21", "create", "Record weekly reviews"),
         ({"role": "agent", "execution": PIECE_OF_WORK}, today, "write", "Accept weekly reviews"),
     ]
+
+
+@when("the user reviews the changes made by the shopkeeper", target_fixture="result")
+def _review_the_shopkeeper(env):
+    return knol(env, "journal", "--actor", "shopkeeper")
+
+
+@then("the user sees only the recording of the decision")
+def _only_the_recording(shown):
+    assert [(change["actor"]["role"], change["op"], change["artifact"]) for change in shown["changes"]] == [
+        ("shopkeeper", "create", WEEKLY),
+    ]
+
+
+def _revision_by_the_agent(shown, today):
+    assert [(change["actor"], change["at"][:10], change["op"], change["artifact"]) for change in shown["changes"]] == [
+        ({"role": "agent", "execution": PIECE_OF_WORK}, today, "write", WEEKLY),
+    ]
+
+
+@when("the user reviews the changes made for that piece of work", target_fixture="result")
+def _review_the_piece_of_work(env):
+    return knol(env, "journal", "--execution", PIECE_OF_WORK)
+
+
+@then("the user sees only the revision made by the agent")
+def _only_the_agents_revision(shown, today):
+    _revision_by_the_agent(shown, today)
+
+
+@when(parsers.parse("the user reviews the changes since {day}"), target_fixture="result")
+def _review_since(env, day):
+    return knol(env, "journal", "--since", day)
+
+
+@then("the user sees only the revision made today")
+def _only_todays_revision(shown, today):
+    _revision_by_the_agent(shown, today)

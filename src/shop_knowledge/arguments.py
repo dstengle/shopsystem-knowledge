@@ -44,6 +44,9 @@ def command_parser() -> argparse.ArgumentParser:
 
     journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
     journal.add_argument("--artifact", default="", help="only the changes to this one")
+    journal.add_argument("--actor", default="", metavar="ROLE", help="only the changes made by this role")
+    journal.add_argument("--execution", default="", metavar="ID", help="only the changes made for this piece of work")
+    journal.add_argument("--since", default="", metavar="WHEN", help="only the changes made since then, as 2026-09-22")
 
     listing = commands.add_parser("list", help="list what the shop has recorded of one type, each with its name and title")
     listing.add_argument("--type", required=True, help="the type to list")

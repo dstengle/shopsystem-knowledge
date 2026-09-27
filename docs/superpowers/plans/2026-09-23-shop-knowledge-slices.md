@@ -330,7 +330,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user reviews the shopkeeper's changes and sees only the recording of the decision, a piece of work's changes and sees only the agent's revision, or the changes since yesterday and sees only today's revision.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 36.1: Each command's request to kb is built apart from its handler
 
@@ -858,3 +858,8 @@ slices 2 onward, never ahead of them.
   Evidence (`shop-knol search ...` in the Background's shop, script `.superpowers/batch6/s34.py`): `search restocking`: three entries, `decision/restocking-is-weekly` first (section Purpose, snippet "Restocking happens every week. Restocking on Mondays, restocking again..."), then `decision/shelves-are-counted-first`, then `process/close-up` (section Purpose). `--type decision`: the first two only. `--in all`: those three plus `decision/who-owns-restocking` with `field: title`, `snippet: Who owns restocking`; the first decision also appears a second time with `field: title`, since its own title says the word.
   Open questions: Review Focus 5, `--json` is on `read` alone: `shop-knol search restocking --json` is refused by argparse, usage and exit 2 (before Task 6 changes that to one line and exit 1). Whether a match inside a part should be found: the probe created a process whose only mention of "zebrafish" is a step's `does`; `search zebrafish` and `search zebrafish --in all` both show `[]` and exit 0, so the user cannot find a step by what it does. Scenario 3 sees the same title twice for a decision whose title and prose both say the word; the scenarios are silent on whether one artifact should be shown once.
   Next: slice 36.
+- 2026-09-27 slice 36 green. Someone can now: review the shopkeeper's changes and see only the recording of the decision, a piece of work's changes and see only the agent's revision, or the changes since 2026-09-22 and see only today's revision.
+  Surprised by: nothing.
+  Evidence (`shop-knol journal ...` in the Background's shop): `--actor shopkeeper`: one change, `create` of `decision/price-reviews-happen-weekly` by `{role: shopkeeper, execution: ""}`, message "Record weekly reviews". `--execution reprice-dairy`: one change, `write` of the decision by `{role: agent, execution: reprice-dairy}`, dated today, "Accept weekly reviews". `--since 2026-09-22`: the same one change.
+  Open questions: Review Focus 1, who started the store. The Background does not say; the step starts it as `founder` (adrs/0025). Reproduction: `mkdir shop; KB_ACTOR=shopkeeper shop-knol init shop; KB_ROOT=shop KB_ACTOR=shopkeeper shop-knol journal --actor shopkeeper | grep -c "op:"` gives `9`, nine `create` entries for the start and the types, so scenario 1's "only the recording of the decision" cannot hold if the shopkeeper started the store; the scenario's first run with `--actor` showed the same nine before the Background's change.
+  Next: slice 36.1.
