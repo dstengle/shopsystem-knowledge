@@ -152,9 +152,24 @@ def _a_diagram(result, target):
     ]
 
 
+@pytest.fixture
+def role_name():
+    """The role the user publishes as an agent: the Background's, unless a Given names another."""
+    return "role/stock-keeper"
+
+
 @when("the user publishes the role as an agent into a directory", target_fixture="result")
-def _publish_as_an_agent(env, target):
-    return knol(env, "render", "agent", "role/stock-keeper", "--to", str(target))
+def _publish_as_an_agent(env, role_name, target):
+    return knol(env, "render", "agent", role_name, "--to", str(target))
+
+
+@given("a role whose harness fields run past the limits the harness publishes", target_fixture="role_name")
+def _a_role_past_the_limits(env, tmp_path):
+    return record(env, tmp_path, "role", {
+        "title": "Shop steward",
+        "harness": {"name": "-shop:steward", "description": "Keeps the shop."},
+        "shop": {"responsible_for": "The shop"},
+    }, "Describe the shop steward")
 
 
 @then("that directory holds an agent whose heading block is the role's harness fields and whose body is the role's prose")
@@ -170,3 +185,14 @@ def _an_agent(result, target):
         assert f"# {section['title']}\n\n{section['body'].rstrip()}" in body
         assert f"# {section['title']}" in body.splitlines()
     assert ROLE["shop"]["responsible_for"] not in body
+
+
+@then("the agent is rejected because it goes beyond the limits the harness publishes")
+def _rejected_agent_for_the_limits(result):
+    assert result.stderr.splitlines() == [
+        'role/shop-steward at harness.name: an agent\'s name holds no ":", the limit the harness publishes; '
+        "this one is -shop:steward",
+        'role/shop-steward at harness.name: an agent\'s name does not start with "-", the limit the harness '
+        "publishes; this one is -shop:steward",
+    ]
+    assert result.returncode != 0

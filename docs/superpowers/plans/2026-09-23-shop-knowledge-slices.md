@@ -519,7 +519,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user publishing a role whose harness name the harness would not load is told which limit it breaks, and finds nothing written.
 - Unknown: whether the agent renderer can hold a role's harness fields to the limits the harness publishes for an agent the way the skill renderer holds a process's body to its limit, before anything is written
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.8: The shop's knowledge base starts where the user works, and elsewhere only when they name the place
 
@@ -1117,3 +1117,10 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 1): a `|` in a value is not escaped. Reproduced: a step's `does: "Count a | b.\n"` renders its table row as `| count-it | Count it | Count a | b. |`, which reads as five cells instead of three to a markdown renderer. adrs/0041 says nothing of a pipe. A person would expect the pipe shown as written, but that reads as a broken table; escaping it as `\|` is markdown, not behaviour of its own, so it is not implemented here.
   - Review Focus 2, settled: a feature's `scenarios` (a list of mappings) lays out as a table, `| id | title | pins |` with one row a scenario, same as the process's steps. A decision's empty `tags` list lays out as `- **tags**` with nothing under it, no repr, no `[]` — a QUESTION FOR THE SPEC in its own right: a person reading the page cannot tell an empty list from a mapping with nothing shown yet.
   Next: slice 50.7.
+- 2026-09-27 slice 50.7 green.
+  Check: `pytest -q -m "slice-50.7 or slice-50 or slice-18"` gives `3 passed`; `pytest -q` gives `59 passed, 7 failed`, and the seven are the start scenarios; the size check lists nothing; `git diff --stat -- features` is empty.
+  Seen red: `_rejected_agent_for_the_limits` failed on `[] == ['role/shop-steward at harness.name: ...]`, with `result.returncode == 0` and `.claude/agents/shop-steward.md` written, before `limits.agent` and `agent._agent` existed.
+  Surprised by: nothing; `renderers/agent.py` held its own `_agent` split out from `render` exactly as `skill.py` splits `_skill` from `render`, once the harness group was pulled out of `render` before `dumps`.
+  Settled: this answers the QUESTION FOR THE SPEC logged at slice 50.2 about the agent's limits. The harness's subagent documentation publishes exactly two limits on an agent's `name` — no `:`, no leading `-` — and no length limit on the name, the description or the body; `render agent` now checks both, in that order, before writing anything, giving one fault each, and writes nothing when either is broken.
+  Review Focus 3 probes (throwaway store under `.superpowers/batch9/`, deleted after): a role with `harness.name: -steward` published as an agent gave exactly one line, `role/steward-a at harness.name: an agent's name does not start with "-", the limit the harness publishes; this one is -steward`, exit 1, nothing written. A role with `harness.name: shop:steward` gave exactly one line, `role/steward-b at harness.name: an agent's name holds no ":", the limit the harness publishes; this one is shop:steward`, exit 1, nothing written. `-m slice-50` (the Background's `stock-keeper` role) still gives `1 passed`.
+  Next: slice 50.8.
