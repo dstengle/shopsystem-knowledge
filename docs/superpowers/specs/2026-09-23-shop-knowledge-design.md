@@ -61,7 +61,9 @@ should watch once the system runs.
 repository, upward from the working directory to a directory holding
 `kb/store.yaml`, or through `KB_ROOT` when set; none found, `KB_ROOT` naming no store, or
 the working directory inside one store while `KB_ROOT` names another: the
-command refuses and says which. The actor comes from `KB_ACTOR` as `role` or
+command refuses and says which. A working directory that no longer exists
+is inside no store: `KB_ROOT` still serves, and with none set the command
+refuses, saying the working directory is gone. The actor comes from `KB_ACTOR` as `role` or
 `role:execution-id`.
 Every mutating command requires an actor and `-m`.
 
@@ -78,7 +80,7 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol search <text> [--type t] [--in sections|fields|all]` | Search |
 | `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
 | `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
-| `shop-knol validate` | Validate |
+| `shop-knol validate` | Validate; a check that finds faults refuses with them and still shows what is behind its type |
 | `shop-knol init [<root>]` | Init, which creates `<root>/kb/` where `<root>` defaults to the working directory, since the shop's knowledge sits beside the shop's work; the argument exists only to start a knowledge base somewhere else on purpose. Then loads the bootstrap set through Create; needs an actor but no `-m`, its messages are fixed; refused where `<root>/kb/` exists or `<root>` is inside a store |
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
@@ -92,7 +94,9 @@ read, for a tag, an anchor, a directive, a second document, or a duplicate
 key, is refused the way kb refuses it, naming the place, with a non-zero
 exit. Errors are
 printed as returned by kb, with artifact, path, and message, and exit
-non-zero. The boundary for a corpus-only role is a harness permission
+non-zero. Every refusal of shop-knol's own says in plain words what was
+refused and names the place it concerns: the file, the directory, or the
+artifact. A name given empty names no place and is refused. The boundary for a corpus-only role is a harness permission
 allowlist of exactly `shop-knol *`.
 
 ## Bootstrap types
@@ -119,7 +123,8 @@ status, and tags, are declared once.
 
 Client code, invoked only by `shop-knol render`. Each reads the resolved
 whole artifact, the stubs of its references, and its schema through the
-contract, and writes files to the target directory.
+contract, and writes files to the target directory. A renderer given an
+artifact of a type it does not render refuses it, naming the type.
 
 - `skill` for `process`: `SKILL.md` in Anthropic's frontmatter-plus-body
   shape with resolved steps as the body.
@@ -132,8 +137,11 @@ contract, and writes files to the target directory.
   list of scalars is a bullet list, a mapping is a nested definition list.
   No value is ever printed as a programming language's representation of
   it.
-  A yes or a no is the word `yes` or `no`, and an empty value is shown as
-  nothing: the field's name and its colon, or an empty table cell.
+  A yes or a no is the word `yes` or `no`, and an empty value, an empty
+  list among them, is shown as nothing: the field's name and its colon, or
+  an empty table cell. Whatever a value holds, the page stays well-formed
+  markdown: a table row keeps one cell per column, and no line ends in a
+  space.
 
 `skill` and `agent` validate their output against the limits the harness
 publishes and fail rather than emit something it would reject.
