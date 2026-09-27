@@ -51,6 +51,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
+  @slice-50.8
   Scenario: The user starts a knowledge base somewhere else on purpose by naming the place
     Pins that naming a place is the only way to start the shop's knowledge away from where the user works, so it lands elsewhere only when they mean it to.
     Given the user is working in one directory, and another directory is empty

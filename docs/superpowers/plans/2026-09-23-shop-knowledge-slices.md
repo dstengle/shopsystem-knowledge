@@ -494,6 +494,51 @@ slices 2 onward, never ahead of them.
 - Needs: none
 - Status: green
 
+## Slice 50.5: The publish feature's markdown steps sit apart from its other steps
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same ten failing scenarios as before the slice, and `56 passed, 10 failed`; `.venv/bin/python -m pytest --collect-only -q tests/test_publish_what_the_shop_knows.py | grep -c ::` -> 8; `find src tests -name "*.py" -exec wc -l {} + | awk '$2 != "total" && $1 > 250'` -> nothing; `grep -l "import \*" tests/*.py` -> exactly the test modules of publish-what-the-shop-knows, read-back-what-the-shop-knows and start-a-shop-knowledge-base; no new module under `tests/` is named `test_*`; `git diff --stat -- src features` -> empty
+- Observable: A reader finds the publish feature's markdown steps in a module of their own beside its test module, so the markdown and agent steps slices 50.6 and 50.7 add keep every module under 250 lines.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.6: Markdown lays out each kind of value as markdown
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown lays out each kind of value as markdown (both rows: the process's steps, the role's tags)
+- Observable: A user publishes a process as markdown and finds its steps as a table with a column for each thing a step says, and a role with tags and finds its tags as a bullet list, with no value on either page written the way a program prints it.
+- Unknown: whether every value kb's content model holds, a part collection and the lists and mappings inside its items among them, can be laid out as markdown from the content alone, with no schema read and no type named
+- Needs: slice 20's page Then expects the role's `tools` as a bullet list, the layout adrs/0038 and 0041 set; its Then line is unchanged
+- Status: planned
+
+## Slice 50.7: An agent the harness would reject is not published
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / An agent the harness would reject is not published
+- Observable: A user publishing a role whose harness name the harness would not load is told which limit it breaks, and finds nothing written.
+- Unknown: whether the agent renderer can hold a role's harness fields to the limits the harness publishes for an agent the way the skill renderer holds a process's body to its limit, before anything is written
+- Needs: none
+- Status: planned
+
+## Slice 50.8: The shop's knowledge base starts where the user works, and elsewhere only when they name the place
+
+- Kind: capability
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / The user starts a knowledge base somewhere else on purpose by naming the place. The six start scenarios rewritten in commit 1133296 go green with it under the tags they keep: The user starts a knowledge base and the shop's types are ready (`@slice-4`); Starting a knowledge base asks for no reason, Starting a knowledge base without saying who is refused, The shop's knowledge sits in a place of its own inside the directory it was started in, Starting a knowledge base where the directory already holds one is refused, Starting a knowledge base inside one the shop already has is refused (`@slice-47`)
+- Observable: A user starts the shop's knowledge base from the directory they work in without naming one, is refused there as before where one exists or they are inside one, and starts one elsewhere only by naming the place.
+- Unknown: whether a knowledge base started from the working directory with no directory named is made, and refused, just as one started by naming it
+- Needs: the suite's shared way of starting a knowledge base starts it from the shop's directory without naming it (adrs/0037, 0042)
+- Status: planned
+
+## Slice 50.9: Sixth architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 50.2 (50.3 to 50.8), is in this plan's log, and every refactor it calls for is a slice of its own with a check -> the log entry and those slices
+- Observable: Anyone can read whether the markdown layout, the agent's limits and the init default kept the code in the shape CLAUDE.md sets.
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
@@ -1051,3 +1096,11 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 5): `init ""` starts a store in the working directory. Reproduced after this task: from an empty directory, `KB_ACTOR=a shop-knol init ""` exits 0 and the directory then holds `kb/`. A user might expect a refusal naming the empty root.
   Next: none. Every slice in the plan is green. What remains is the QUESTION FOR THE SPEC lines in the log, for formulating-features and the human, and the kb pin bump for the empty batch's traceback.
 - 2026-09-27 kb v0.2.1 pinned (commit below). The empty batch is now refused in one line, `a set must hold at least one change`, exit 1: rule 4 holds everywhere. The question logged at slice 28 is closed.
+- 2026-09-27 Suite: 56 passed, 10 failed. The ten are the scenarios commit 1133296 added or rewrote, each red on a missing step definition (`StepDefinitionNotFoundError`): the six start scenarios on "Given the user is working in ...", the named-place scenario, both rows of the markdown outline, and the agent past the limits. Settled by the spec and adrs/0037, 0038 and 0039, so they are sliced without approval.
+  Probed in a throwaway store under `.superpowers/` (since deleted): `shop-knol init` with no directory is refused by argparse, `the following arguments are required: root`; `init .` starts one, and from inside it is refused `stores do not nest; '.' is inside ...`, naming `.`. `render markdown` of the Background's process prints its steps as one field of Python dict reprs; of a role with two tags prints `- **tags**: tag/stock, tag/dairy`. `render agent` of a role with `harness.name: shop:steward` exits 0 and writes the file.
+  Spike: the harness's subagent documentation (code.claude.com/docs/en/sub-agents, read today) publishes that an agent's `name` may not contain `:` or start with `-`, and no length limit on the name, the description or the body. This answers which limits the agent is held to, the QUESTION FOR THE SPEC logged at slice 50.2; the 1500-character description and `Stock Keeper!` in that reproduction break no published limit.
+  Cut, in order: 50.5, enabling, splits the publish feature's markdown steps into a sibling module first, since 50.6 and 50.7 together take that test module past 250 lines (CLAUDE.md, split first; adrs/0035). 50.6, markdown, the largest unknown: every value of the content model laid out without a schema. 50.7, the agent's limits, its unknown narrowed by the spike. 50.8, init, its unknown the smallest after the probe; it carries the named-place scenario and the six rewritten scenarios, which keep `@slice-4` and `@slice-47` as asked. 50.9, the sixth architecture review, falls due after 50.8, six slices after 50.2.
+  Tags written: `@slice-50.6` on the markdown outline (2 selected), `@slice-50.7` on the agent (1), `@slice-50.8` on the named-place scenario (1); `-m "slice-4 or slice-47 or slice-50.8"` selects 7. 66 collected in all.
+  Decisions: adrs/0040 (an agent is held to the name limits the harness publishes), 0041 (lists, tables and what sits inside them on a markdown page), 0042 (init starts in the absolute working directory, never reads `KB_ROOT`, and the suite starts it that way).
+  Next: writing-plans over slices 50.5 to 50.9, one task per slice in that order, to `2026-09-27-shop-knowledge-batch9-implementation.md`.
+- 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch9-implementation.md`, five tasks for slices 50.5 to 50.9 in slice order. Written under adrs/0011: no code, nothing built or replayed. Each task says why it is red today from this checkout's run (56 passed, 10 failed, every one on a missing step definition) and from probes of `init`, `render markdown` and `render agent`. Expected counts from the tags: `-m slice-50.6` 2, `-m slice-50.7` 1, `-m "slice-4 or slice-47 or slice-50.8"` 7; 56/10 after 50.5, 58/8 after 50.6, 59/7 after 50.7, 66/0 after 50.8. Decisions in adrs/0040, 0041 and 0042. No request to bump the pin. Its Review Focus holds five probes: a pipe in a table cell, other types' lists and an empty list on a markdown page, a name breaking one agent limit, `init` beside a `KB_ROOT` naming elsewhere, and `init ""` (still a QUESTION FOR THE SPEC). Next: slice 50.5.

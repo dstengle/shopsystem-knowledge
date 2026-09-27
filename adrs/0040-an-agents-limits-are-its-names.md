@@ -1,0 +1,3 @@
+# 0040 An agent is held to the limits the harness publishes for its name
+
+2026-09-27. The harness's subagent documentation (code.claude.com/docs/en/sub-agents, read 2026-09-27) publishes two limits an agent file can break through the role's harness fields: its `name` may not contain `:` and may not start with `-`; the harness does not load such a file. It publishes no length limit on the name, the description or the body, so none is checked. `render agent` checks the role's `harness.name` against both, one fault for each limit broken, rule `harness-limit`, path `harness.name`, the message naming the limit and where it was published, and writes nothing when any is broken. The limits sit with the skill's in the module that holds the harness's published limits.

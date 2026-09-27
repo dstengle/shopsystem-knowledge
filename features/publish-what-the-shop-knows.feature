@@ -29,6 +29,7 @@ So that the harness and people outside the command line can use what the shop kn
     When the user publishes the role as markdown into a directory
     Then that directory holds a page with the identity as a heading, the fields as a list, the sections at their levels and the parts as tables
 
+  @slice-50.6
   Scenario Outline: Markdown lays out each kind of value as markdown
     Pins that a page published as markdown reads as markdown all the way down, so a person never meets a value written the way a program would print it.
     Given the <thing> holds <holding>
@@ -49,6 +50,7 @@ So that the harness and people outside the command line can use what the shop kn
     Then the skill is rejected because it goes beyond the limits the harness publishes
     And nothing is written to the directory
 
+  @slice-50.7
   Scenario: An agent the harness would reject is not published
     Pins that an agent is held to the harness's limits just as a skill is, so a role never becomes an agent file the harness will not load.
     Given a role whose harness fields run past the limits the harness publishes
