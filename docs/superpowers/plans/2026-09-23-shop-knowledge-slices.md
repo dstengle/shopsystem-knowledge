@@ -753,7 +753,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, the review-by-date scenarios' days given through the clock kb publishes on `kb.client.connect` instead of by replacing a kb function, and nothing else of kb's internals anywhere in the repository.
 - Unknown: none
 - Needs: the kb release carrying kb slices 100 (`NotCanonical` re-exported from `kb.content`) and 102 (a clock given to the in-process client), pinned
-- Status: blocked: awaiting a kb release carrying kb slices 100 and 102
+- Status: blocked: awaiting kb 0.3.0 (kb slices 100, 102 and 102.2 to 102.6); the stand-in's `connect(root=None)` must take the `clock` keyword kb publishes (kb batch 20 review)
 
 ## Satisfied by existing behaviour
 
