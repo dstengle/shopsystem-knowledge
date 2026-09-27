@@ -58,6 +58,13 @@ def _shown_in_plain_words(result):
     assert result.stdout == ""
 
 
+@then("the user is shown the refusal in plain words, never a traceback")
+def _refusal_in_plain_words(result):
+    """The fault said in plain words, as one line: a refusal of one fault (a check lists one line per fault)."""
+    _shown_in_plain_words(result)
+    assert result.stderr.count("\n") == 1, result.stderr
+
+
 @then("the command reports failure to whatever ran it")
 def _reports_failure(result):
     assert result.returncode != 0, result.stdout

@@ -31,7 +31,7 @@ def command_parser() -> argparse.ArgumentParser:
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
     init.add_argument(
-        "root", nargs="?", type=Path, default=Path.cwd(),
+        "root", nargs="?", type=Path, default=Path("."),
         help="where to start it; the working directory unless one is named",
     )
 

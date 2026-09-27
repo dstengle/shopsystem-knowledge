@@ -2,7 +2,7 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start
+from driver import Removed, knol, record, start
 from start_roles_and_tags import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("start-a-shop-knowledge-base.feature")
@@ -208,3 +208,10 @@ def _kept_in_its_own_place_named(elsewhere, result):
     # Lists the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
     assert {path.name for path in elsewhere.iterdir()} == {"kb"}
     assert (elsewhere / "kb" / "store.yaml").is_file()
+
+
+@given("the user is working in a directory that has since been removed", target_fixture="start_in")
+def _a_removed_directory(tmp_path):
+    gone = tmp_path / "gone"
+    gone.mkdir()
+    return Removed(gone)
