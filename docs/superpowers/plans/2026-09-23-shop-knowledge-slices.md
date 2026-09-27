@@ -184,7 +184,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user publishes a process into a directory and finds a diagram of its steps and their branches.
 - Unknown: Do steps and branches carry enough structure to draw the diagram without hand layout?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 19.1: Second architecture review
 
@@ -560,3 +560,14 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 3): the name and description limits have no scenario, so a process titled "Ask Claude first" publishes `ask-claude-first/SKILL.md`.
   Next: slice 19.
 - 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch3-implementation.md`, one task for slice 19. It was assembled in a scratch clone and replayed from its own text in a second clone, in the foreground, every file under `src/` and `tests/` and `CLAUDE.md` byte-identical to the scratch run's. Suite counts (failed/passed): 50/12 before, 49/13 after, the 49 left all tagged 20 or later. What it settles: the diagram is a Mermaid flowchart, `<name>.mmd`, one node a step numbered in order (a reused step in the subroutine shape), a step without branches going on to the next and a step with them going where each says, labelled with its condition; Mermaid lays it out, so nothing places a node. Of what slice 17 settled, `Rendered`, `_answered` and `_write` are reused with `cli.py` untouched; reading each reused step is not, since a diagram labels a reused step with the title the process gives it. Node ids are `step<n>`, not kb's step names, which a user may write and Mermaid may read as its own words (`end`). No request to bump the pin. Its Review Focus holds five questions for the spec: a `"` in a title or condition breaks the file, a non-process or a process with no steps gives an empty diagram, a branch to no step is drawn to a bare node, `--to` a file gives a `FileExistsError` traceback, and no Mermaid tool here judges whether the drawn diagram is readable. The file name `<name>.mmd` against the spec's `<id>.mmd` is logged as a question too. No feature file touched. Nothing implemented in this repository. Next: slice 19.
+- 2026-09-27 slice 19 green. A user can now: publish a process into a directory as a Mermaid diagram of its steps and their branches, `<name>.mmd`, which places no node itself.
+  Assumption "steps and branches carry enough structure to draw the diagram without hand layout": held. The steps' order gives each step without branches its next step, each branch gives a labelled edge to the step it names, and a reused step is known from its own item, so the renderer reads the process whole once and nothing else; Mermaid lays the flowchart out. Evidence: `restock-a-shelf.mmd` holds `flowchart TD`, `    step1[["1. Check it"]]`, `    step2["2. Decide"]`, `    step3["3. Order more"]`, `    step4["4. Stop"]`, `    step1 --> step2`, `    step2 -->|"the shelf is short"| step3`, `    step2 -->|"it is not"| step4`, `    step3 --> step4`, one to a line.
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC: the spec names the file `<id>.mmd`; it is `<name>.mmd`, the process's name without its kind, as the skill's directory is. Literally `<id>` would put it at `process/<name>.mmd`.
+  - QUESTION FOR THE SPEC (Review Focus 1): a step title or branch condition holding `"` gives a label Mermaid cannot parse (`step1["1. Greet with "hi""]`), and the command exits 0.
+  - QUESTION FOR THE SPEC (Review Focus 2): `shop-knol render diagram tag/pricing` writes `pricing.mmd` holding only `flowchart TD` and succeeds; so does a process with no steps.
+  - QUESTION FOR THE SPEC (Review Focus 3): a branch whose go_to names no step is drawn to a bare node of that name.
+  - QUESTION FOR THE SPEC (Review Focus 4): `render diagram --to` a path that is a file gives a `FileExistsError` traceback.
+  - QUESTION FOR THE SPEC (Review Focus 5): no Mermaid tool is installed here, so the bet's "needs manual arrangement to be readable" is judged by a person opening the file, not by the suite.
+  Next: slice 19.1.

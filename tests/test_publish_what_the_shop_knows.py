@@ -119,3 +119,27 @@ def _rejected_for_the_limits(result):
 @then("nothing is written to the directory")
 def _nothing_written(target):
     assert list(target.iterdir()) == []
+
+
+@when("the user publishes the process as a diagram into a directory", target_fixture="result")
+def _publish_as_a_diagram(env, process_name, target):
+    return knol(env, "render", "diagram", process_name, "--to", str(target))
+
+
+@then("that directory holds a diagram of the process's steps and their branches")
+def _a_diagram(result, target):
+    """One node a step, in order and numbered, the reused step drawn as a subroutine; a step without branches goes on to
+    the next, and a step with them goes where each says, labelled with its condition. Nothing places a node."""
+    assert result.returncode == 0, result.stderr
+    assert [path.name for path in target.iterdir()] == ["restock-a-shelf.mmd"]
+    assert (target / "restock-a-shelf.mmd").read_text().splitlines() == [
+        "flowchart TD",
+        '    step1[["1. Check it"]]',
+        '    step2["2. Decide"]',
+        '    step3["3. Order more"]',
+        '    step4["4. Stop"]',
+        "    step1 --> step2",
+        '    step2 -->|"the shelf is short"| step3',
+        '    step2 -->|"it is not"| step4',
+        "    step3 --> step4",
+    ]
