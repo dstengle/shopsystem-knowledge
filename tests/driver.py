@@ -17,7 +17,8 @@ def knol(env, *args, cwd=None, piped=None):
 
 
 def start(env, shop):
-    result = knol(env, "init", str(shop))
+    """Start a knowledge base the way the user now does: run init from the shop's directory, naming none."""
+    result = knol(env, "init", cwd=shop)
     assert result.returncode == 0, result.stderr
 
 

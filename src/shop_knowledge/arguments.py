@@ -30,7 +30,10 @@ def command_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
-    init.add_argument("root", type=Path)
+    init.add_argument(
+        "root", nargs="?", type=Path, default=Path.cwd(),
+        help="where to start it; the working directory unless one is named",
+    )
 
     create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
     create.add_argument("type")

@@ -11,7 +11,7 @@ _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role o
 THE_SHOPS_TYPES = {"shop-artifact", "decision", "feature", "work-item", "role", "process", "step", "tag"}
 
 
-@given("an empty directory for the shop's knowledge")
+@given("the user is working in an empty directory for the shop's knowledge")
 def _an_empty_directory(shop):
     assert not any(shop.iterdir())
 
@@ -22,13 +22,14 @@ def start_in(shop):
     return shop
 
 
-@when("the user starts a shop knowledge base in that directory, saying who they are", target_fixture="result")
+@when("the user starts a shop knowledge base there without naming a directory, saying who they are", target_fixture="result")
 def _start_saying_who(env, start_in):
     return _init(env, start_in)
 
 
 def _init(env, directory):
-    return knol(env, "init", str(directory))
+    """Run init from the directory the user works in, naming none: it starts the knowledge base there."""
+    return knol(env, "init", cwd=directory)
 
 
 @then("the shop can hold decisions, features, work items, roles, processes, steps and tags")
@@ -82,7 +83,10 @@ def _defines_nothing(shop):
     assert held == THE_SHOPS_TYPES | {"schema"}
 
 
-@when("the user starts a shop knowledge base in that directory, saying who they are and giving no reason", target_fixture="result")
+@when(
+    "the user starts a shop knowledge base there without naming a directory, saying who they are and giving no reason",
+    target_fixture="result",
+)
 def _start_giving_no_reason(env, shop):
     return _init(env, shop)
 
@@ -103,7 +107,7 @@ def _recorded_with_its_own_reason(env, result):
         assert created.get(f"schema/{name}"), f"no reason recorded for schema/{name}"
 
 
-@when("the user starts a shop knowledge base in that directory", target_fixture="result")
+@when("the user starts a shop knowledge base there without naming a directory", target_fixture="result")
 def _start(env, shop):
     return _init(env, shop)
 
@@ -114,11 +118,12 @@ def _rejected_for_no_role(result):
 
 
 @then("that directory holds no knowledge base")
+@then("the directory they are working in holds no knowledge base")
 def _holds_none(shop):
     assert not (shop / "kb").exists()
 
 
-@given("a directory holding work of the shop's that is not its knowledge", target_fixture="shops_work")
+@given("the user is working in a directory holding work of the shop's that is not its knowledge", target_fixture="shops_work")
 def _a_directory_with_work(shop):
     (shop / "notes.txt").write_text("Order oats on Monday.\n")
     (shop / "orders").mkdir()
@@ -151,12 +156,12 @@ def _started_and_noted(env, shop, known_before):
     known_before["journal"] = knol(env, "journal").stdout
 
 
-@given("a directory that already holds the shop's knowledge")
+@given("the user is working in a directory that already holds the shop's knowledge")
 def _a_directory_already_started(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
 
 
-@given("a directory that sits inside the shop's knowledge", target_fixture="start_in")
+@given("the user is working in a directory that sits inside the shop's knowledge", target_fixture="start_in")
 def _a_directory_inside_a_started_one(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
     # Names kb/schema, a directory kb made, because no shop-knol command names one (CLAUDE.md, Step definitions).
@@ -180,3 +185,26 @@ def _rejected_inside_one(result):
 @then("everything the shop already knows is still there, unchanged")
 def _still_there(env, known_before):
     assert knol(env, "journal").stdout == known_before["journal"]
+
+
+@given("the user is working in one directory, and another directory is empty", target_fixture="elsewhere")
+def _another_directory_is_empty(tmp_path):
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    return elsewhere
+
+
+@when(
+    "the user starts a shop knowledge base in the other directory by naming it, saying who they are",
+    target_fixture="result",
+)
+def _start_elsewhere_by_naming(env, shop, elsewhere):
+    return knol(env, "init", str(elsewhere), cwd=shop)
+
+
+@then("the shop's knowledge is kept in a place of its own inside the named directory")
+def _kept_in_its_own_place_named(elsewhere, result):
+    assert result.returncode == 0, result.stderr
+    # Lists the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
+    assert {path.name for path in elsewhere.iterdir()} == {"kb"}
+    assert (elsewhere / "kb" / "store.yaml").is_file()
