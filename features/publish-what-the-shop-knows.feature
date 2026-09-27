@@ -29,10 +29,29 @@ So that the harness and people outside the command line can use what the shop kn
     When the user publishes the role as markdown into a directory
     Then that directory holds a page with the identity as a heading, the fields as a list, the sections at their levels and the parts as tables
 
+  Scenario Outline: Markdown lays out each kind of value as markdown
+    Pins that a page published as markdown reads as markdown all the way down, so a person never meets a value written the way a program would print it.
+    Given the <thing> holds <holding>
+    When the user publishes the <thing> as markdown into a directory
+    Then that directory holds a page showing <shown> as <layout>
+    And nothing on the page is a programming language's representation of a value
+
+    Examples:
+      | thing   | holding                                 | shown     | layout                                             |
+      | process | steps that each say more than one thing | its steps | a table with one column for each thing a step says |
+      | role    | more than one tag                       | its tags  | a bullet list                                      |
+
   @slice-18
   Scenario: A skill the harness would reject is not published
     Pins that publishing checks its own output against the harness's limits and refuses outright, rather than leaving a file that fails later.
     Given a process whose steps run past the limits the harness publishes
     When the user publishes the process as a skill into a directory
     Then the skill is rejected because it goes beyond the limits the harness publishes
+    And nothing is written to the directory
+
+  Scenario: An agent the harness would reject is not published
+    Pins that an agent is held to the harness's limits just as a skill is, so a role never becomes an agent file the harness will not load.
+    Given a role whose harness fields run past the limits the harness publishes
+    When the user publishes the role as an agent into a directory
+    Then the agent is rejected because it goes beyond the limits the harness publishes
     And nothing is written to the directory
