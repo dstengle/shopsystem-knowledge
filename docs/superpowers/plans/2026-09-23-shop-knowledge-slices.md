@@ -429,7 +429,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user applies a batch whose second change does not fit its type; the batch is refused with every fault, and none of it is in the shop.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 48.1: A whole read the steps make is driven one way
 
@@ -967,3 +967,7 @@ slices 2 onward, never ahead of them.
   Evidence: `init` of a started directory: stderr `a store is never started over another; 'shop' already has a store inside it`, exit 1. `init shop/kb/schema`: stderr `stores do not nest; 'shop/kb/schema' is inside the store at '/home/vscode/shopsystem-knowledge/.superpowers/batch7/ev/shop'`, exit 1. `KB_ACTOR=a shop-knol init nope` (no such directory): `a store is started in a directory that exists; 'nope' does not`, exit 1 (was exit 0, nothing started). Checks: `-m slice-47` 5 passed; `-m slice-4` 1 passed; `make test` 4 failed, 58 passed; GREEN plus slice-44 and slice-47 58 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 233; arguments snapshot TAG=47 no diff.
   Surprised by: scenarios 1, 2 and 3 passed once their steps existed, as the brief said; each seen red first on a wrong Then (`len(changes) == 0`, `stderr == "nothing"` and `exists()`, entries without `kb`), then made right. Scenarios 4 and 5 went red on code, `assert 0 == 1` at "rejected because". `cli.py` is 233, not 234 to 235.
   Open questions: QUESTION FOR THE SPEC: a reason given to `init` is refused. Reproduction: `KB_ACTOR=a shop-knol init shop -m why` gives `shop-knol: unrecognized arguments: -m why`, exit 1. A user who gives one out of habit might expect it taken, or told plainly that starting writes its own. Also: a Create refused mid-load leaves a store holding only some of the types, which no scenario reaches. Next: slice 48.
+- 2026-09-27 slice 48 green. Someone can now: apply a batch whose second change does not fit its type, be told every fault at once, and find none of the batch in the shop.
+  Evidence: stderr `work-item/reprice-the-dairy-shelf at owner: 3 is not of type 'string'` and `work-item/reprice-the-dairy-shelf at status: 3 is not of type 'string'`, stdout empty, exit 1. After it `shop-knol read decision/price-reviews-happen-weekly`: `decision/price-reviews-happen-weekly: the store holds nothing by the name 'decision/price-reviews-happen-weekly'`, exit 1; `read work-item/reprice-the-dairy-shelf`: `revision: 1`, `title: Reprice the dairy shelf`, `references: []`, no `owner`, no `status`. Checks: `-m slice-48` 1 passed; `make test` 3 failed, 59 passed; GREEN plus slices 44, 47 and 48 59 passed; shape check `2 7 1 0`, nothing listed, `cli.py` 233; arguments snapshot TAG=48 no diff.
+  Surprised by: the scenario passed once its steps existed, as the brief said; seen red first on a wrong Then (`returncode == 0`), then made right. Nothing under `src/` changed.
+  Open questions: QUESTION FOR THE SPEC: a fault in a batch names a change by an artifact that does not exist. Reproduction: apply a batch whose one change creates a decision titled "Bad one" with `owner: 3`; stderr says `decision/bad-one at owner: 3 is not of type 'string'` (and two lines for the missing sections), exit 1, and `read decision/bad-one` finds nothing. A user fixing the batch in one pass would expect the fault to say which change it is. Next: slice 48.1.

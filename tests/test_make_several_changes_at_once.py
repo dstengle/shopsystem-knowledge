@@ -53,3 +53,35 @@ def _one_change(shop, result):
     history = kb_client.connect(shop).Journal(kb_pb2.JournalRequest(batch=batch))
     assert [(entry.op, entry.artifact) for entry in history.entries] == [("create", WEEKLY), ("write", WORK_ITEM)]
     assert {entry.message for entry in history.entries} == {"Review prices weekly, starting with dairy"}
+
+
+@given("a batch whose second change does not fit its type", target_fixture="batch_file")
+def _a_batch_with_a_bad_second_change(tmp_path):
+    path = tmp_path / "batch.yaml"
+    path.write_text(dumps({"changes": [
+        {"create": "decision", "content": {"title": "Price reviews happen weekly", "sections": SECTIONS}},
+        {"write": WORK_ITEM, "content": {"owner": 3, "status": 3}},
+    ]}))
+    return path
+
+
+@then("the batch is rejected because a change in it does not fit its type")
+def _rejected_for_its_type(result):
+    assert result.returncode == 1
+    assert result.stdout == ""
+    lines = result.stderr.splitlines()
+    assert lines and all(line.startswith(f"{WORK_ITEM} at ") for line in lines), result.stderr
+
+
+@then("none of the changes are in the shop")
+def _none_in_the_shop(env):
+    assert knol(env, "read", WEEKLY).returncode == 1
+    work_item = loads(knol(env, "read", WORK_ITEM).stdout)
+    assert not work_item.get("references")
+    assert "owner" not in work_item and "status" not in work_item
+
+
+@then("the user is told every fault in the batch, not only the first")
+def _every_fault(result):
+    lines = result.stderr.splitlines()
+    assert [line.split(" ")[1:3] for line in lines] == [["at", "owner:"], ["at", "status:"]], result.stderr
