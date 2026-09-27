@@ -627,7 +627,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds no Then that fails if kb returns the same faults in another order.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.16.4: The steps never spell kb's fault wording
 
@@ -1523,3 +1523,9 @@ slices 2 onward, never ahead of them.
   Checks: size check clean; `git diff --stat -- features src` empty.
   Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`, `failing-before.txt` unchanged.
   Surprised by: the controller's three extra guards, beyond the brief's check line; each demonstrated above. Next: slice 50.16.3.
+- 2026-09-27 Slice 50.16.3 green (enabling). A reader finds no Then that fails if kb returns the same faults in another order.
+  Reshaped, each holding its lines to a set rather than a position: `tests/test_check_the_shops_knowledge_is_sound.py`'s `_unreadable_listed` (membership, not `splitlines()[0]`), `_the_rest_listed` (the two lines as a set, not `splitlines()[1:]`), `_both_listed` (the two lines as a set, not `lines[0]`/`lines[1]`) and `_the_fault_listed` (a one-element list compared whole, dropping `lines[0]` so the R4 grep finds nothing); `tests/test_make_several_changes_at_once.py`'s `_every_fault` (the `(at, field)` pairs as a set, not a positional list).
+  Throwaway reversal: `cli._refuse`'s loop over `reversed(list(faults))` turned `test_the_user_checks_a_knowledge_base_with_faults`, `test_the_user_checks_a_knowledge_base_holding_a_file_the_shop_cannot_read` and `test_one_bad_change_in_a_batch_leaves_the_shop_untouched` red before the reshape (confirmed, all three), green after (confirmed, all three; the rest of both files' other failures were the baseline's own, unchanged); reverted, `git diff --stat -- src` empty.
+  Checks: the R4 grep on `tests/test_check_the_shops_knowledge_is_sound.py` gives nothing; size check clean (158 and 88 lines); `git diff --stat -- features src` empty.
+  Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`, `failing-before-t3.txt` and `failing-after-t3.txt` identical to `failing-before.txt`.
+  Surprised by: the R4 grep still matched `_the_fault_listed`'s `lines[0]`, a single-fault Then with no ordering question; reshaped anyway to satisfy the check literally. Next: slice 50.16.4.

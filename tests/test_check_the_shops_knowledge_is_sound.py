@@ -61,12 +61,13 @@ def _check(env):
 
 @then("that file is listed as a fault, naming the file")
 def _unreadable_listed(result):
-    assert result.stderr.splitlines()[0] == _line(UNREADABLE)
+    assert _line(UNREADABLE) in result.stderr.splitlines()
 
 
 @then("everything else the shop knows is checked and listed alongside it")
 def _the_rest_listed(result):
-    assert result.stderr.splitlines()[1:] == [_line(NO_BODY)]
+    """kb states no order among a check's faults, so the two lines are held to as a set, not a position."""
+    assert set(result.stderr.splitlines()) == {_line(UNREADABLE), _line(NO_BODY)}
 
 
 @given("a shop knowledge base where everything fits its type")
@@ -97,10 +98,8 @@ def _shop_with_two_faults(env, shop, tmp_path):
 
 @then("both faults are listed, each naming the artifact and the place in it at fault")
 def _both_listed(result):
-    lines = result.stderr.splitlines()
-    assert len(lines) == 2
-    assert lines[0] == _line(_without_its_rationale(WEEKLY))
-    assert lines[1] == _line(DANGLING)
+    """kb states no order among a check's faults, so the two lines are held to as a set, not a position."""
+    assert set(result.stderr.splitlines()) == {_line(_without_its_rationale(WEEKLY)), _line(DANGLING)}
 
 
 @given(
@@ -137,9 +136,7 @@ def _shop_with_a_fault_and_a_decision_behind(env, shop, tmp_path):
 
 @then("the fault is listed, naming the artifact and the place in it at fault")
 def _the_fault_listed(result, decisions):
-    lines = result.stderr.splitlines()
-    assert len(lines) == 1, result.stderr
-    assert lines[0] == _line(decisions["at_fault"])
+    assert result.stderr.splitlines() == [_line(decisions["at_fault"])], result.stderr
 
 
 @then("the other decision is listed as behind its type")
