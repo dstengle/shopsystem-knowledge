@@ -384,7 +384,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user retires a tag nothing points at and the shop no longer holds it, or retires a tag a decision carries and is refused, seeing everything that points at it.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 42.1: Fourth architecture review
 
@@ -893,3 +893,9 @@ slices 2 onward, never ahead of them.
   Surprised by: nothing.
   Open questions: QUESTION FOR THE SPEC (Review Focus 4): a step added with a title already used. Reproduction, run after this task: append `{title: Tidy, does: Tidy up.}` twice to `process/close-up#steps`; the first answers `process/close-up#steps/tidy`, the second `process/close-up#steps/tidy-2` (revision 4), and the whole read holds both, titled "Tidy", ids `tidy` and `tidy-2`. kb gives the second a name of its own, as slice 28 shows for a decision, so the expectation holds; what the spec says of it is still unwritten.
   Next: slice 42.
+- 2026-09-27 slice 42 green. Someone can now: retire an artifact with `shop-knol delete <name> -m WHY`, and be refused, told what still points at it, when something does.
+  Evidence (a store with `tag/seasonal`, `tag/pricing` and a decision `decision/d` tagged `tag/pricing`, `KB_ACTOR=shopkeeper`): `delete tag/seasonal -m gone` answers `id: tag/seasonal`, `revision: 2`, exit 0, and `read tag/seasonal` is then refused. `delete tag/pricing -m gone` prints nothing on stdout, exit 1, and on stderr `decision/d at tags/0: 'tag/pricing' cannot be removed while 'decision/d' points at it at 'tags/0'`. `delete tag/pricing` with no `-m` prints `every change must carry a message, given with -m`, exit 1.
+  Check: `-m slice-42` 2 passed; `.venv/bin/python -m pytest -q` 12 failed, 50 passed (all 12 tagged 44 or later); GREEN plus slices 32 to 42: 50 passed; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 232 lines; the arguments snapshot differs from before only by `delete` in the command list and its help line.
+  Surprised by: nothing.
+  Open questions: QUESTION FOR THE SPEC: several things pointing at one artifact. The scenario has one decision pointing at the tag, so "one line for each thing that points at it" is not observed with two. Reproduction: tag two decisions with `tag/pricing`, run `shop-knol delete tag/pricing -m x`, and count the stderr lines. QUESTION FOR THE SPEC: retiring a place inside an artifact. `delete process/close-up#steps/tidy -m x` hands the place to kb as the locator's path; no scenario says whether that is retiring a step or a refusal. QUESTION FOR THE SPEC: retiring a name the store lacks. `delete tag/nothing -m x`: no scenario in this feature says what the user sees; kb's refusal is passed through.
+  Next: slice 42.1, the fourth architecture review, which runs before the next plan (adrs/0011).

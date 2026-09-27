@@ -28,6 +28,11 @@ def appended(locator: kb_pb2.Locator, response: kb_pb2.AppendResponse) -> dict:
     return {"id": f"{locator.id}#{locator.path}/{response.id}", "revision": response.revision}
 
 
+def deleted(locator: kb_pb2.Locator, response: kb_pb2.DeleteResponse) -> dict:
+    """What a delete gives back: the artifact retired, by its name, and the revision the removal left behind."""
+    return {"id": locator.id, "revision": response.revision}
+
+
 def glance(response: kb_pb2.ReadResponse) -> dict:
     """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
     return {
