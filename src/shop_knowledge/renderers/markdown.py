@@ -4,7 +4,7 @@ type is named. The page is the title as a heading, the fields as a list in the o
 each a heading one level below the one that holds it."""
 from kb.content import loads
 
-from shop_knowledge.renderers import source
+from shop_knowledge.renderers import sections, source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
@@ -23,7 +23,7 @@ def _page(title: str, content: dict) -> str:
     blocks = [f"# {title}"]
     if fields:
         blocks.append("\n".join(_items(fields, 0)))
-    blocks += _sections(content.get("sections", []), 2)
+    blocks += sections.laid_out(content.get("sections", []), 2)
     return "\n\n".join(blocks) + "\n"
 
 
@@ -43,11 +43,3 @@ def _value(value) -> str:
     """A list of plain values joined with commas; anything else as it is written."""
     return ", ".join(str(each) for each in value) if isinstance(value, list) else str(value)
 
-
-def _sections(sections: list[dict], level: int) -> list[str]:
-    """Each section as its heading and its body, then the sections inside it a level down."""
-    blocks = []
-    for section in sections:
-        blocks += [f"{'#' * level} {section['title']}", section.get("body", "").rstrip()]
-        blocks += _sections(section.get("sections", []), level + 1)
-    return blocks

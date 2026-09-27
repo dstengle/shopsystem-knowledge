@@ -171,3 +171,22 @@ def _a_page(result, target):
         "",
         "Counts, then orders.",
     ]
+
+
+@when("the user publishes the role as an agent into a directory", target_fixture="result")
+def _publish_as_an_agent(env, target):
+    return knol(env, "render", "agent", "role/stock-keeper", "--to", str(target))
+
+
+@then("that directory holds an agent whose heading block is the role's harness fields and whose body is the role's prose")
+def _an_agent(result, target):
+    """The one file under the directory: the role's harness group as its heading block, then its sections as the body,
+    each a heading and its text, and nothing of the role's shop fields."""
+    assert result.returncode == 0, result.stderr
+    files = [path.relative_to(target) for path in target.rglob("*") if path.is_file()]
+    assert [str(path) for path in files] == [".claude/agents/stock-keeper.md"]
+    heading, body = _heading_block_and_body((target / files[0]).read_text())
+    assert heading == ROLE["harness"]
+    for section in ROLE["sections"]:
+        assert f"# {section['title']}\n\n{section['body'].rstrip()}" in body
+    assert ROLE["shop"]["responsible_for"] not in body
