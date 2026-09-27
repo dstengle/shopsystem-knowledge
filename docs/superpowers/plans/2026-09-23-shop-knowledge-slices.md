@@ -267,6 +267,15 @@ slices 2 onward, never ahead of them.
 - Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, a user working as the shopkeeper on a named piece of work records one and the change is attributed to both; and a user records a decision whose title is already used and is shown a name of its own for it, the taken name with a number added, while the earlier decision still reads back by its name.
 - Unknown: none
 - Needs: none
+- Status: in progress: two of three green; the pipe scenario waits on slice 28.1 and finishes after it
+
+## Slice 28.1: The command line's arguments sit apart from its handlers
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort` -> the same 31 failing scenarios as before the slice (31 failed, 31 passed); `shop-knol -h`, `shop-knol <command> -h` for each of the eight commands, and `shop-knol nosuch` give byte for byte what they gave before, with the same exit codes; `grep -cE "argparse|add_parser|add_argument" src/shop_knowledge/cli.py` -> 0; `wc -l < src/shop_knowledge/cli.py` -> under 210; the module that now holds the arguments holds no handler, no kb call and no `print`, and CLAUDE.md's module map has a row for it
+- Observable: The command line has room again: slice 28's pipe and slice 30's list each add a few lines to the module holding the handlers without it reaching CLAUDE.md's 250-line limit, because the arguments every command takes are declared in a module of their own.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Slice 30: List what the shop has recorded
@@ -281,7 +290,7 @@ slices 2 onward, never ahead of them.
 ## Slice 30.1: Third architecture review
 
 - Kind: enabling
-- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the nine implemented slices since slice 19.1 (19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30), is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the ten implemented slices since slice 19.1 (19.2, 20, 20.1, 20.2, 22, 24, 26, 28, 28.1 and 30), is in this plan's log, and every refactor it calls for is a slice of its own right after this one with a check -> the log entry and those slices
 - Observable: Anyone can read whether the read, revise, record and list commands kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
@@ -735,3 +744,5 @@ slices 2 onward, never ahead of them.
 - 2026-09-27 HAND-BACK slice 28, scenario "The user pipes a decision in instead of naming a file": going green needs a change to `cli._document` that `cli.py` (exactly 250 lines) has no room for, and CLAUDE.md says split first; the split is a refactor slice of its own, not improvised here.
   Evidence: red as predicted, `create decision --from -` stderr `-: No such file or directory`, exit 1. Measured the smallest natural change to `_document` (read `sys.stdin` when the source is `-`, and name the source `standard input` in a fault, brief decision 1): `cli.py` 254 lines. The only change that stays at 250 is one line, `loads(sys.stdin.read() if source == "-" else Path(source).read_text())`; it makes the read work but a fault on piped text would name its source `-`, against decision 1, so it was not kept. Candidates to move out of `cli.py` (function line counts measured): `_render` and `_write` (lines 238-250, 13 lines, the render command's handler and file writing); `_init` (146-152, 7); `_document` (154-166, 13, with `Refused` handling), which could sit in a module that owns reading a user's file; `_read_request` and `_read` (198-214, 17); `_parser` (50-101, 52 lines) is the largest single piece. A refactor slice must free at least 4 lines, preferably more, before slice 28's stdin read can land.
   Green in this slice: "The user records a decision as part of a piece of work", "A decision whose title is already used is given a name of its own" (both met by existing behaviour once their steps existed; each first went red on a wrong Then, the execution `restock-the-shelvesx` and the name `-3`). Red: "The user pipes a decision in instead of naming a file" (its steps are not in the tree; the attempt is in `.superpowers/batch4/s28-scenario1-attempt.diff`).
+- 2026-09-27 Suite: 31 passed, 31 failed
+- 2026-09-27 RE-SLICE after the HAND-BACK of slice 28 (first row of the table: split the remaining work; no Given, When or Then changes, no scenario is added, no feature file is touched). Cut slice 28.1, an enabling refactor with a check, that moves the arguments out of `cli.py` so the handlers and the parser no longer share one module (adrs/0021). Slice 28 keeps its number, tag and two green scenarios; it is in progress, and its pipe scenario finishes after 28.1, the only work it needs first. Slice 30 follows unchanged. Order: 28.1, then slice 28's pipe scenario, then 30, then the 30.1 review, which now counts ten slices.
