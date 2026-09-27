@@ -62,10 +62,30 @@ def whole(env, name):
     return loads(result.stdout)
 
 
+def store_in(root: Path) -> Path:
+    """Where kb keeps the store it starts in `root`: the subdirectory kb/, which kb's contract names (its Init row).
+    The one place a step names it; what kb keeps inside it is kb's own."""
+    return root / "kb"
+
+
 CLOCK = Path(__file__).parent / "clock"
+STAND_IN = Path(__file__).parent / "stand_in"
+
+
+def _on_path(env, directory: Path) -> dict:
+    """`env` with `directory` first on shop-knol's PYTHONPATH, so its sitecustomize loads when shop-knol starts."""
+    return {**env, "PYTHONPATH": os.pathsep.join(filter(None, [str(directory), env.get("PYTHONPATH")]))}
 
 
 def at(env, moment):
     """The environment shop-knol runs in when the history is to say it ran at `moment` (ISO, UTC)."""
-    path = os.pathsep.join(filter(None, [str(CLOCK), env.get("PYTHONPATH")]))
-    return {**env, "PYTHONPATH": path, "TEST_NOW": moment}
+    return {**_on_path(env, CLOCK), "TEST_NOW": moment}
+
+
+def answering(env, tmp_path, *answers):
+    """The environment shop-knol runs in when kb is to be in a state no contract call can produce: the stand-in
+    (tests/stand_in) answers each call an answer describes with the message the step wrote, and every other call reaches
+    the real kb. Each answer is as the stand-in's docstring says; its faults are the step's own words."""
+    path = tmp_path / "kb-answers.yaml"
+    path.write_text(dumps(list(answers)))
+    return {**_on_path(env, STAND_IN), "KB_STAND_IN": str(path)}

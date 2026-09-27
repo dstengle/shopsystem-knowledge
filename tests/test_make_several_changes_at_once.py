@@ -1,4 +1,4 @@
-from kb import client as kb_client
+from kb.client import connect
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
@@ -50,7 +50,7 @@ def _both_in_the_shop(env, result):
 def _one_change(shop, result):
     # Calls kb's in-process Journal with the batch because `shop-knol journal` has no --batch filter and does not show the batch.
     batch = loads(result.stdout)["batch"]
-    history = kb_client.connect(shop).Journal(kb_pb2.JournalRequest(batch=batch))
+    history = connect(shop).Journal(kb_pb2.JournalRequest(batch=batch))
     assert [(entry.op, entry.artifact) for entry in history.entries] == [("create", WEEKLY), ("write", WORK_ITEM)]
     assert {entry.message for entry in history.entries} == {"Review prices weekly, starting with dairy"}
 

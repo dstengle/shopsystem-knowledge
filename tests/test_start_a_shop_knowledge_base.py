@@ -2,7 +2,7 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, removed, start
+from driver import knol, record, removed, start, store_in
 from start_roles_and_tags import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("start-a-shop-knowledge-base.feature")
@@ -77,10 +77,10 @@ def _holds_the_seven(env, tmp_path, result):
 
 
 @then("the user defines nothing of their own before recording the first one")
-def _defines_nothing(shop):
-    # Reads kb's schema directory directly because no shop-knol command lists the types yet (CLAUDE.md, Step definitions).
-    held = {path.stem for path in (shop / "kb" / "schema").glob("*.yaml")}
-    assert held == THE_SHOPS_TYPES | {"schema"}
+def _defines_nothing(env):
+    listed = knol(env, "list", "--type", "schema", "--ids")
+    assert listed.returncode == 0, listed.stderr
+    assert set(loads(listed.stdout)) == {f"schema/{name}" for name in THE_SHOPS_TYPES | {"schema"}}
 
 
 @when(
@@ -92,10 +92,17 @@ def _start_giving_no_reason(env, shop):
 
 
 @then("the shop's knowledge base is started")
-def _is_started(shop, result):
+def _is_started(env, shop, result):
     assert result.returncode == 0, result.stderr
-    # Reads the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
-    assert (shop / "kb" / "store.yaml").is_file()
+    _found_from(env, shop)
+
+
+def _found_from(env, directory):
+    """A shop-knol command run from `directory`, with no KB_ROOT to name a store, finds one there holding a history."""
+    unnamed = {name: value for name, value in env.items() if name != "KB_ROOT"}
+    found = knol(unnamed, "journal", cwd=directory)
+    assert found.returncode == 0, found.stderr
+    assert loads(found.stdout)["changes"], found.stdout
 
 
 @then("everything it was given is recorded in the shop's history under a reason the command writes itself")
@@ -120,7 +127,9 @@ def _rejected_for_no_role(result):
 @then("that directory holds no knowledge base")
 @then("the directory they are working in holds no knowledge base")
 def _holds_none(shop):
-    assert not (shop / "kb").exists()
+    # Looks for the directory kb's contract says init makes (its Init row), since no shop-knol command can say where a
+    # store would be kept if one had been started.
+    assert not store_in(shop).exists()
 
 
 @given("the user is working in a directory holding work of the shop's that is not its knowledge", target_fixture="shops_work")
@@ -132,11 +141,11 @@ def _a_directory_with_work(shop):
 
 
 @then("the shop's knowledge is kept in a place of its own inside that directory")
-def _kept_in_its_own_place(shop, shops_work, result):
+def _kept_in_its_own_place(env, shop, shops_work, result):
     assert result.returncode == 0, result.stderr
-    # Lists the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
-    assert {path.name for path in shop.iterdir()} == {"notes.txt", "orders", "kb"}
-    assert (shop / "kb" / "store.yaml").is_file()
+    # Lists the directory for the one kb's contract says init makes (its Init row), beside the work already there.
+    assert {path.name for path in shop.iterdir()} == {"notes.txt", "orders", store_in(shop).name}
+    _found_from(env, shop)
 
 
 @then("the work that was already in that directory is left as it was")
@@ -164,8 +173,8 @@ def _a_directory_already_started(env, shop, known_before):
 @given("the user is working in a directory that sits inside the shop's knowledge", target_fixture="start_in")
 def _a_directory_inside_a_started_one(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
-    # Names kb/schema, a directory kb made, because no shop-knol command names one (CLAUDE.md, Step definitions).
-    return shop / "kb" / "schema"
+    # Works in the directory kb's contract says init made (its Init row), inside the knowledge base.
+    return store_in(shop)
 
 
 @then("starting the knowledge base is rejected because that directory already holds a knowledge base")
@@ -203,11 +212,11 @@ def _start_elsewhere_by_naming(env, shop, elsewhere):
 
 
 @then("the shop's knowledge is kept in a place of its own inside the named directory")
-def _kept_in_its_own_place_named(elsewhere, result):
+def _kept_in_its_own_place_named(env, elsewhere, result):
     assert result.returncode == 0, result.stderr
-    # Lists the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
-    assert {path.name for path in elsewhere.iterdir()} == {"kb"}
-    assert (elsewhere / "kb" / "store.yaml").is_file()
+    # Lists the directory for the one kb's contract says init makes (its Init row), and nothing else.
+    assert {path.name for path in elsewhere.iterdir()} == {store_in(elsewhere).name}
+    _found_from(env, elsewhere)
 
 
 @given("the user is working in a directory that has since been removed", target_fixture="start_in")

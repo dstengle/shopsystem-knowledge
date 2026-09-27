@@ -4,7 +4,7 @@ import pytest
 from kb.content import dumps, loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start
+from driver import answering, knol, record, start
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("read-back-what-the-shop-knows.feature")
@@ -76,14 +76,21 @@ def _inbound(shown):
 
 
 
+UNREADABLE = {"artifact": DECISION, "rule": "unreadable", "message": "the decision's file, edited by hand, cannot be read"}
+
+
 @given("someone edited the decision's file by hand and left it in a shape the shop cannot read")
-def _decision_file_mangled_by_hand(shop):
-    (shop / "kb" / f"{DECISION}.yaml").write_text("title: [a bracket opened by hand and never closed\n")
+def _decision_file_mangled_by_hand(env, tmp_path):
+    """No contract call leaves a stored file unreadable, so kb's answer to reading it comes from the stand-in
+    (adrs/0047), its fault in this step's own words."""
+    env.update(answering(env, tmp_path, {
+        "call": "Read", "asking": {"locator": {"id": DECISION}}, "answer": {"faults": [UNREADABLE]},
+    }))
 
 
 @then("the command is rejected because that file cannot be read, naming the file")
 def _rejected_as_unreadable(result):
-    assert result.stderr.startswith(f"{DECISION}: the stored file {DECISION}.yaml cannot be read: ")
+    assert result.stderr == f"{DECISION}: {UNREADABLE['message']}\n", result.stderr
 
 
 @when("the user reads the whole decision", target_fixture="result")

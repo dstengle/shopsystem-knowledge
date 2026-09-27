@@ -4,7 +4,7 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import knol, record, start
+from driver import knol, record, start, whole
 from markdown_well_formed import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from publish_as_markdown import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
@@ -19,9 +19,12 @@ ROLE = {
 }
 
 
-def _everything_under(directory):
-    # Reads the knowledge base's files directly, to observe that no shop-knol command changed them (CLAUDE.md, Step definitions).
-    return {path.relative_to(directory): path.read_bytes() for path in sorted(directory.rglob("*")) if path.is_file()}
+def _as_shown(env, process_name):
+    """What shop-knol shows of the knowledge base a skill is published from: its history, and the process and the shared
+    step it uses, each read whole."""
+    return {"journal": knol(env, "journal").stdout, **{
+        name: whole(env, name) for name in (process_name, "step/check-the-stock")
+    }}
 
 
 @pytest.fixture
@@ -40,9 +43,9 @@ def target(tmp_path):
 
 
 @pytest.fixture
-def before(shop):
-    """Every file of the shop's knowledge base, byte for byte, as it was when first asked for."""
-    return _everything_under(shop / "kb")
+def before(env, process_name):
+    """What shop-knol showed of the knowledge base when first asked for (`_as_shown`)."""
+    return _as_shown(env, process_name)
 
 
 @pytest.fixture
@@ -111,8 +114,8 @@ def _a_skill(result, target):
 
 
 @then("the shop's knowledge base is unchanged")
-def _unchanged(shop, before):
-    assert _everything_under(shop / "kb") == before
+def _unchanged(env, process_name, before):
+    assert _as_shown(env, process_name) == before
 
 
 @given("a process whose steps run past the limits the harness publishes", target_fixture="process_name")

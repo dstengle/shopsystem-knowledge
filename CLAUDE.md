@@ -30,10 +30,12 @@ own it.
 
 ## Rules that make whole classes of defect unreachable
 
-1. **kb only through its contract.** Code under `src/` calls kb through `kb.client.connect` with
-   `kb.contract.kb_pb2` messages. From the rest of kb it imports only `kb.content`, content as YAML 1.2 text, and
-   `kb.canonical`, for `NotCanonical` alone, the exception `kb.content` raises. It never reads or writes a file inside a
-   knowledge base and never runs git. `jsonschema` is imported by `shape.py` alone.
+1. **kb only through its contract.** Code under `src/` and `tests/` knows kb only through what kb publishes
+   (adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, and from the rest of kb
+   imports only `kb.content`, content as YAML 1.2 text. Until slice 50.23 two exceptions stand: `src/` takes
+   `NotCanonical`, the exception `kb.content` raises, from `kb.canonical`, and `tests/clock/` replaces kb's clock. Neither
+   ever reads or writes a file inside a knowledge base, names kb's storage or runs git. `jsonschema` is imported by
+   `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
@@ -59,8 +61,12 @@ own it.
 ## Step definitions
 
 - Step definitions drive shop-knol the way a user does, a subprocess per command, through `tests/driver.py`.
-- They may use kb's in-process client, or read and hand-edit a knowledge base's files, only to set up or observe
-  what no shop-knol command yet does; the step says so where it does.
+- They use kb only through what kb publishes (adrs/0047), and never read or write a knowledge base's files. A state
+  no contract call can produce (a stored file damaged, an artifact unfit for its type, a link pointing at nothing)
+  comes from the stand-in, `tests/stand_in/`: put on shop-knol's `PYTHONPATH` only through `driver.answering`, it
+  answers the calls a step describes with the `kb_pb2` messages the step wrote, its faults in the step's own words,
+  and hands every other call to the real kb. Nothing under `src/` knows it is there. The one place kb's contract names,
+  a root's `kb/`, is named in `tests/driver.py` alone.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).

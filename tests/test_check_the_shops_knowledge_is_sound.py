@@ -1,8 +1,7 @@
-from kb import canonical
 from kb.content import dumps, loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, start, whole
+from driver import answering, knol, record, start, whole
 
 scenarios("check-the-shops-knowledge-is-sound.feature")
 
@@ -12,21 +11,47 @@ SECTIONS = [
     {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
     {"title": "Rationale", "body": "Costs move weekly.\n"},
 ]
+WORK_ITEM = "work-item/reprice-the-dairy-shelf"
+
+
+def _checked_as(env, tmp_path, *violations):
+    """kb refuses to store an artifact unreadable, unfit for its type or pointing at nothing, so no contract call can
+    leave the shop so: kb's check answers for that state through the stand-in (adrs/0047), with the violations as this
+    module words them, beside what the real check finds behind its type."""
+    env.update(answering(env, tmp_path, {
+        "call": "Validate", "answer": {"violations": list(violations)}, "from_kb": ["stale"],
+    }))
+
+
+def _line(fault: dict) -> str:
+    """A fault the stand-in gave, as the line the user is shown."""
+    where = f"{fault['artifact']} at {fault['path']}" if fault.get("path") else fault["artifact"]
+    return f"{where}: {fault['message']}"
+
+
+def _without_its_rationale(decision: str) -> dict:
+    """The fault of a decision whose file was edited by hand to drop a section its type requires."""
+    return {"artifact": decision, "path": "sections", "rule": "sections", "message": "its rationale was removed by hand"}
+
+
+UNREADABLE = {"artifact": WEEKLY, "rule": "unreadable", "message": "the decision's file, edited by hand, cannot be read"}
+NO_BODY = {"artifact": MONTHLY, "path": "sections/0", "rule": "required", "message": "its purpose lost its body by hand"}
+DANGLING = {
+    "artifact": WORK_ITEM, "path": "decisions/0", "rule": "ref",
+    "message": "it was pointed by hand at decision/nothing, which the shop does not hold",
+}
 
 
 @given(
     "a shop knowledge base where someone edited a decision's file by hand and left it in a shape the shop cannot read"
 )
 def _shop_with_a_file_mangled_by_hand(env, shop, tmp_path):
-    """Two decisions edited by hand: one left unreadable, one left readable but without the body of its purpose."""
+    """Two decisions recorded, then edited by hand: one left unreadable, one left readable but without the body of its
+    purpose; the check's answer for that comes from the stand-in."""
     start(env, shop)
     record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
     record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", "sections": SECTIONS}, "Record monthly")
-    (shop / "kb" / f"{WEEKLY}.yaml").write_text("title: [a bracket opened by hand and never closed\n")
-    monthly = shop / "kb" / f"{MONTHLY}.yaml"
-    held = canonical.load(monthly.read_text())
-    del held["sections"][0]["body"]
-    monthly.write_text(canonical.dump(held))
+    _checked_as(env, tmp_path, UNREADABLE, NO_BODY)
 
 
 @when("the user checks the shop's knowledge", target_fixture="result")
@@ -36,12 +61,12 @@ def _check(env):
 
 @then("that file is listed as a fault, naming the file")
 def _unreadable_listed(result):
-    assert result.stderr.splitlines()[0].startswith(f"{WEEKLY}: the stored file {WEEKLY}.yaml cannot be read: ")
+    assert result.stderr.splitlines()[0] == _line(UNREADABLE)
 
 
 @then("everything else the shop knows is checked and listed alongside it")
 def _the_rest_listed(result):
-    assert result.stderr.splitlines()[1:] == [f"{MONTHLY} at sections/0: 'body' is a required property"]
+    assert result.stderr.splitlines()[1:] == [_line(NO_BODY)]
 
 
 @given("a shop knowledge base where everything fits its type")
@@ -62,32 +87,20 @@ def _told_nothing_is_wrong(result, shown):
     "a shop knowledge base where a decision is missing something its type requires and a work item points at something the shop does not hold"
 )
 def _shop_with_two_faults(env, shop, tmp_path):
-    """kb refuses to create either fault, so no shop-knol command can leave an artifact unfit (CLAUDE.md, Step
-    definitions): both are recorded through shop-knol, then their files are edited by hand."""
+    """Both are recorded through shop-knol, then their files edited by hand; the check's answer for that comes from
+    the stand-in."""
     start(env, shop)
     record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
     record(env, tmp_path, "work-item", {"title": "Reprice the dairy shelf"}, "Open the repricing")
-    _without_its_rationale(shop, WEEKLY)
-    work_item = shop / "kb" / "work-item" / "reprice-the-dairy-shelf.yaml"
-    held = canonical.load(work_item.read_text())
-    held["decisions"] = ["decision/nothing"]
-    work_item.write_text(canonical.dump(held))
-
-
-def _without_its_rationale(shop, decision):
-    """A decision's file edited by hand to drop a section its type requires, which no shop-knol command can do."""
-    path = shop / "kb" / f"{decision}.yaml"
-    held = canonical.load(path.read_text())
-    del held["sections"][1]
-    path.write_text(canonical.dump(held))
+    _checked_as(env, tmp_path, _without_its_rationale(WEEKLY), DANGLING)
 
 
 @then("both faults are listed, each naming the artifact and the place in it at fault")
 def _both_listed(result):
     lines = result.stderr.splitlines()
     assert len(lines) == 2
-    assert lines[0].startswith(f"{WEEKLY} at sections: ")
-    assert lines[1].startswith("work-item/reprice-the-dairy-shelf at decisions/0: ")
+    assert lines[0] == _line(_without_its_rationale(WEEKLY))
+    assert lines[1] == _line(DANGLING)
 
 
 @given(
@@ -114,19 +127,19 @@ def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
     target_fixture="decisions",
 )
 def _shop_with_a_fault_and_a_decision_behind(env, shop, tmp_path):
-    """Recorded after the decision type is at version 2, so only the first decision is behind it; the second is then
-    left unfit by hand (CLAUDE.md, Step definitions), as kb refuses to create it so."""
+    """Recorded after the decision type is at version 2, so only the first decision is behind it, which the real check
+    finds; the second is then left unfit by hand, which the stand-in answers for."""
     decisions = _shop_with_a_decision_behind_its_type(env, shop, tmp_path)
     record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", "sections": SECTIONS}, "Record monthly")
-    _without_its_rationale(shop, MONTHLY)
-    return {**decisions, "at_fault": MONTHLY}
+    _checked_as(env, tmp_path, _without_its_rationale(MONTHLY))
+    return {**decisions, "at_fault": _without_its_rationale(MONTHLY)}
 
 
 @then("the fault is listed, naming the artifact and the place in it at fault")
 def _the_fault_listed(result, decisions):
     lines = result.stderr.splitlines()
     assert len(lines) == 1, result.stderr
-    assert lines[0].startswith(f"{decisions['at_fault']} at sections: ")
+    assert lines[0] == _line(decisions["at_fault"])
 
 
 @then("the other decision is listed as behind its type")
