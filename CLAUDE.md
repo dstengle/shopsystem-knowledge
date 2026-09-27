@@ -77,6 +77,22 @@ own it.
   ended, such as "the command reports failure to whatever ran it", read it under one name in every feature.
 - `tests/clock/` is put on shop-knol's `PYTHONPATH`, with `TEST_NOW` set, only through `driver.at`, when a scenario
   says what day it is. Nothing under `src/` knows the day is set.
+- Every shop-knol run the driver makes stays inside the scenario's own temporary directory: `tests/driver.py`'s
+  `knol` takes its working directory from `cwd`, or, with none given, from `_default_cwd`, which conftest's autouse
+  `_working_directory` fixture sets to the test's own `tmp_path`; a run with neither is refused. The suite itself
+  refuses to start if a knowledge base is reachable upward from the checkout or the system's own temporary
+  directory (conftest's `pytest_sessionstart` guard, `_refuse_near_a_real_store`).
+- A scenario's environment, and the guard's own call to kb, is built from an allowlist (conftest's `_allowlisted`),
+  never copied from the developer's whole shell: PATH, LANG and LC_*, whatever the interpreter needs, and HOME
+  pointed at a directory of the test's own, with KB_ROOT and KB_ACTOR set by the `env` fixture as today. Nothing
+  else of the developer's shell - a shell GIT_DIR, a shell sitecustomize on PYTHONPATH, global git config reached
+  through the developer's own HOME - reaches a scenario's shop-knol or the guard's own call.
+- No Then relies on the order kb gives its faults in; each compares a set of lines (or of `(at, field)` pairs),
+  never a position.
+- A Then that reads kb's own words gets them from `driver.kb_answer`: kb's own answer to the same call for the
+  same state, asked in-process, under the same allowlisted environment, after shop-knol's own call was refused, so
+  no step spells kb's wording, which is kb's to change. A Then over a fault the stand-in gave compares with what
+  the stand-in gave (`driver.printed`, over the step's own words), never with kb's.
 
 ## Working here
 

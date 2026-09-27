@@ -20,7 +20,7 @@ def _checked_as(env, tmp_path, *violations):
     leave the shop so: kb's check answers for that state through the stand-in (adrs/0047), with the violations as this
     module words them, beside what the real check finds behind its type."""
     env.update(answering(env, tmp_path, {
-        "call": "Validate", "answer": {"violations": list(violations)}, "from_kb": ["stale"],
+        "call": "Validate", "answer": {"violations": list(violations)}, "from_kb": ["stale", "violations"],
     }))
 
 

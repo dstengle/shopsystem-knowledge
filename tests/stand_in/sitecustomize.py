@@ -31,11 +31,10 @@ def _asks(answer: dict, request) -> bool:
     return all(asked.get(field) == value for field, value in answer.get("asking", {}).items())
 
 
-def _response(rpc: str, answer: dict, call, request, timeout):
+def _response(rpc: str, answer: dict, real, request, timeout):
     """The message the step described, with any fields it takes from the real kb's answer to the same request."""
     message = json_format.ParseDict(answer["answer"], getattr(kb_pb2, f"{rpc}Response")())
     if answer.get("from_kb"):
-        real = call(request, timeout=timeout)
         for field in answer["from_kb"]:
             getattr(message, field).extend(getattr(real, field))
     return message
@@ -55,10 +54,16 @@ class _StandIn:
             return call
 
         def answered(request, timeout=None):
+            """The real kb is always asked first: a call it refuses (no store found, say) is refused the same way
+            whether or not a step described it, so a described answer never hides a refusal the real kb would give.
+            Only when the real kb carries no faults does a matching description answer instead."""
+            real = call(request, timeout=timeout)
+            if real.faults:
+                return real
             for answer in described:
                 if _asks(answer, request):
-                    return _response(rpc, answer, call, request, timeout)
-            return call(request, timeout=timeout)
+                    return _response(rpc, answer, real, request, timeout)
+            return real
 
         return answered
 
