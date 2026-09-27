@@ -51,7 +51,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
-  @slice-50.10
+  @slice-50.18
   Scenario: Starting a knowledge base from a directory that has been removed ends in a plain refusal
     Pins that even the first command, with nowhere to put what it would make, stops in words the user can read and never in a traceback.
     Given the user is working in a directory that has since been removed
@@ -60,6 +60,7 @@ So that the shop has one place that holds everything it knows, the user can star
     And the user is shown the refusal in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-50.17
   Scenario: Starting a knowledge base in a directory given an empty name is refused
     Pins that an empty name is never taken to mean "here": the user who meant to name a place and named none is told so, and nothing is started where they happen to be working.
     Given the user is working in an empty directory for the shop's knowledge

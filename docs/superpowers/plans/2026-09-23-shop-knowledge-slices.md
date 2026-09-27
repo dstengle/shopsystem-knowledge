@@ -566,6 +566,96 @@ slices 2 onward, never ahead of them.
 - Needs: none
 - Status: green
 
+## Slice 50.13: A check that finds faults still shows what is behind its type
+
+- Kind: capability
+- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user is told what is behind its type even when the check finds faults
+- Observable: A user whose check finds faults sees them, one line each, and in the same run sees which artifacts are behind their type, the command still reporting failure (adrs/0046).
+- Unknown: whether a refusal can carry the check's answer on stdout while its faults still reach the user only through the one printer, one line each, exit 1
+- Needs: none
+- Status: planned
+
+## Slice 50.14: Markdown stays well-formed whatever a value holds, an empty list shown as nothing
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown stays well-formed whatever a value holds (all four rows); shop-knowledge / publish-what-the-shop-knows / Markdown never shows a yes, a no or an empty value the way a program prints it (all six rows; its first four were made green by slice 50.11, and the outline moves here with its two new empty-list rows)
+- Observable: A user publishing as markdown finds every table row with one cell per column, no line ending in a space, every value shown, and an empty list shown as its field's name and colon, or an empty cell (adrs/0043, 0045).
+- Unknown: whether any text a value holds can be shown in a cell or a line as written, the character that separates cells among it, without the page's layout breaking
+- Needs: none
+- Status: planned
+
+## Slice 50.15: A renderer refuses an artifact of a type it does not render
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Publishing something as a kind of file it cannot become is refused (all three rows: a process as an agent, a role as a skill, a role as a diagram)
+- Observable: A user publishing something as a kind of file it cannot become is refused, told the artifact's type and the type that kind is made from, and finds nothing written.
+- Unknown: whether a renderer can tell what type an artifact is from what it reads through the contract before it lays anything out
+- Needs: none
+- Status: planned
+
+## Slice 50.16: Seventh architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md`, after the six implemented slices since slice 50.9 (50.10 to 50.15), is in this plan's log, and every refactor it calls for is a slice of its own with a check -> the log entry and those slices
+- Observable: Anyone can read whether the removed working directory, the yes/no/empty spelling, the tidy, the check's answer beside its faults, the well-formed page and the renderers' type check kept the code in the shape CLAUDE.md sets.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.17: A name given empty is refused, starting a knowledge base first
+
+- Kind: capability
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base in a directory given an empty name is refused
+- Observable: A user who gives `init` an empty directory name is refused, told it names no place, and finds nothing started where they work.
+- Unknown: whether an empty name can be refused for every argument that names a place, the one way every argument refusal is (adrs/0023), with each argument's meaning still declared once (adrs/0032)
+- Needs: none
+- Status: planned
+
+## Slice 50.18: Starting a knowledge base from a removed directory says the directory is gone
+
+- Kind: capability
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green)
+- Observable: A user starting a knowledge base from a directory that has since been removed is told, in plain words, that the directory they are working in is gone.
+- Unknown: whether shop-knol can tell a working directory that is gone from the operating system's other refusals, before kb is called
+- Needs: none
+- Status: planned
+
+## Slice 50.19: Recording from a file given an empty name is refused
+
+- Kind: capability
+- Scenarios: shop-knowledge / record-a-decision / Recording from a file given an empty name is refused
+- Observable: A user recording from a file named with nothing is refused as naming no place, and the shop is unchanged.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.20: Reading something given an empty name is refused
+
+- Kind: capability
+- Scenarios: shop-knowledge / read-back-what-the-shop-knows / Reading something given an empty name is refused
+- Observable: A user reading an artifact named with nothing is refused as naming no place.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.21: Publishing into a directory given an empty name is refused
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Publishing into a directory given an empty name is refused
+- Observable: A user publishing into a directory named with nothing is refused as naming no place, and nothing is written where they work.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.22: Reading from a removed directory, refused or served through KB_ROOT
+
+- Kind: capability
+- Scenarios: shop-knowledge / read-back-what-the-shop-knows / Reading from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green); shop-knowledge / read-back-what-the-shop-knows / The user reads from a directory that has been removed, having named the knowledge base
+- Observable: A user reading from a directory that has since been removed is served through `KB_ROOT` when it names a knowledge base, and otherwise told the directory they are working in is gone.
+- Unknown: none here; kb finds the store
+- Needs: kb's store finding treats a working directory that no longer exists as inside no store (the kb pin-bump request logged 2026-09-27)
+- Status: blocked: awaiting a kb release carrying the pin-bump request
+
 ## Satisfied by existing behaviour
 
 - none
@@ -1257,4 +1347,9 @@ slices 2 onward, never ahead of them.
   Suite: `.venv/bin/python -m pytest -q` → `72 passed`; size check (`find src tests -name "*.py" -exec wc -l {} + | awk '$2 != "total" && $1 > 250'`) lists nothing.
 - 2026-09-27 Final whole-branch review of batch 10 (slices 50.10-50.12), on Fable 5.1 against the plan, CLAUDE.md and the ADRs, over `504841a..cdc2a0c`, the reviewer running the suite (`72 passed`) and every check itself. Ready to merge with fixes: one Important, a no-argument `init`'s refusals quoting `'.'` where they named the directory (slice 50.10's relative default, which kb quotes as named), fixed in 4c08614 by sending kb the root resolved; and a Minor, slice 50.12's fixture-order check reported met when the Background's Given still preceded the fixtures, fixed the same commit. A scoped re-review found both addressed and nothing broken by the fix. Ruling: an explicitly named relative root is now quoted absolute too, the cost of stating the root one way. Left as QUESTION FOR THE SPEC: a removed working directory's refusal names no path (`No such file or directory`); `KB_ROOT` does not serve a user whose working directory was removed (kb's `connect`). Deferred to a future tidy slice: a null item in a plain-value list lays out as a bullet with a trailing space (layout mechanics, not a spec question); `_steps_as_a_table` still spells out the table `_process_page` builds; the `_role_page` and conftest refusal Then docstrings; `_step_holding` passing silently on a missing id; `preexec_fn`'s thread-safety; `cli._init` connecting with the unresolved root while its request carries the resolved one (harmless, kb ignores it). Declined as out of scope: floats laid out by `str()`; a text `"True"` shown as written; `|` in a cell; whether an empty field or list is shown at all.
   Next: push. Every slice in this plan is green.
+- 2026-09-27 Spec amended in bdbd580 (decisions 0044-0046): refusals of shop-knol's own name their place and an empty name is refused; a working directory that no longer exists is inside no store; a failing check still shows what is behind its type; a renderer refuses a type it does not render; markdown stays well-formed and shows an empty list as nothing. Under adrs/0044 the open QUESTION FOR THE SPEC lines were sorted against the spec's principles: answered as defects, and cut below: a non-role published as an agent (and a non-process as a skill or diagram), an unescaped `|` in a cell, `init ""`, a removed working directory's refusal naming no path, `KB_ROOT` from a removed working directory, the trailing spaces after a null, an empty list's layout, the check's answer beside its faults. Answered as already right, and closed: a reason given to `init` is refused (the init row: "its messages are fixed"); tagging with a tag that does not exist is refused by kb (a tag is a reference with integrity); a batch's fault names the artifact kb names ("Errors are printed as returned by kb"). Closed as a fact: the harness's subagent documentation (code.claude.com/docs/en/sub-agents, read 2026-09-27) takes `tools` "as a comma-separated string such as `Read, Grep, Bash` or a YAML list", so the agent's list loads unchanged. Carried: a Create refused mid-way through `init` leaving some types, which no scenario reaches.
+- 2026-09-27 Formulation (feature-formulator, spec only), written in 7b23b54: eight new scenarios and three rewritten. Four came back deciding; the user approved the readings: `init` from a removed directory is refused as the directory being gone; a renderer refusing a type names the artifact's type and the type it takes; "whatever a value holds" reaches text over several lines and text ending in a space, the trailing space not shown. Three rewrites of the store-finding refusals ("naming the directory") were dropped at the user's choice: those refusals are kb's, and name their place already. The formulator's nine questions are answered by stated principles (adrs/0044): `init` never reads `KB_ROOT` (adrs/0042), so from a removed directory it refuses; "the working directory" said in words names a directory that no longer has a path; `KB_ROOT` set empty is refused by kb today; an empty `--section` or `--type` is a name given empty, refused by slice 50.17's rule, while search text names no place; `init`'s nesting refusals are kb's and name the directory (4c08614); an empty mapping is an empty value (adrs/0045, one spelling of nothing); a space inside a line before a separator is allowed, only a line's end is held; a name of spaces is not empty; `markdown` for any type includes schema artifacts.
+- 2026-09-27 Suite: 70 passed, 17 failed. The 17: the eleven new rows, the two new empty-list rows of the yes/no/empty outline, the new `KB_ROOT` scenario, and the two rewritten removed-directory scenarios, now red on their new Then.
+- 2026-09-27 KB PIN-BUMP REQUEST: kb's in-process client reads the working directory (`Path.cwd()`) before it looks at `KB_ROOT`, so from a working directory that no longer exists every call but Init raises the operating system's `No such file or directory` instead of finding the store. The spec now says such a directory is inside no store: `KB_ROOT` still serves, and with none set the command refuses, saying the working directory is gone. Requested of kb: its store finding treats a working directory that no longer exists that way. Slice 50.22 waits for the release carrying it and the pin that follows.
+- 2026-09-27 Re-slice: slices 50.13 to 50.22 cut. Ordered by unknown: the check's answer beside a refusal (it touches the one way to refuse) first, then the well-formed page, then the renderers' type check. Six implemented slices since the sixth review then fall due for the seventh (50.16, adrs/0010), which runs before the next plan (adrs/0011), so batch 11 is 50.13 to 50.15. After it: the empty-name rule (50.17, its unknown) and its three other commands (50.19 to 50.21, none), the removed directory's refusal at `init` (50.18), and 50.22, blocked on kb. The yes/no/empty outline moves from `@slice-50.11` to `@slice-50.14`, its first four rows credited to 50.11; the two rewritten removed-directory scenarios move from `@slice-50.10`, to 50.18 and 50.22, their earlier Thens credited to 50.10.
 

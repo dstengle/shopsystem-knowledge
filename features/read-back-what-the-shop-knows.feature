@@ -60,6 +60,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision
     Then the user sees the decision, from the knowledge base KB_ROOT names
 
+  @slice-50.22
   Scenario: The user reads from a directory that has been removed, having named the knowledge base
     Pins that a lost working directory takes away only the looking upward: naming the knowledge base outright still works, since a directory that is gone is inside no knowledge base to disagree with it.
     Given the user is working in a directory that has since been removed, with KB_ROOT naming the shop's
@@ -90,7 +91,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     Then the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at
     And the command reports failure to whatever ran it
 
-  @slice-50.10
+  @slice-50.22
   Scenario: Reading from a directory that has been removed ends in a plain refusal
     Pins that losing the place the user was working in is refused like any other failure to find the shop's knowledge: in plain words, never a traceback.
     Given the user is working in a directory that has since been removed, and nothing names a knowledge base
@@ -108,6 +109,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-50.20
   Scenario: Reading something given an empty name is refused
     Pins that asking for nothing by name is refused as naming no artifact, rather than answered as if some artifact were meant.
     When the user reads an artifact whose name is given empty

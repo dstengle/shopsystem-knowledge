@@ -85,6 +85,7 @@ So that a choice the shop has made is written down where the whole shop can find
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-50.19
   Scenario: Recording from a file given an empty name is refused
     Pins that a file named with nothing is refused as naming no file, rather than read from somewhere the user did not say.
     When the user records a decision from a file whose name is given empty, saying who they are and why

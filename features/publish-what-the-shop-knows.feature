@@ -42,7 +42,7 @@ So that the harness and people outside the command line can use what the shop kn
       | process | steps that each say more than one thing | its steps | a table with one column for each thing a step says |
       | role    | more than one tag                       | its tags  | a bullet list                                      |
 
-  @slice-50.11
+  @slice-50.14
   Scenario Outline: Markdown never shows a yes, a no or an empty value the way a program prints it
     Pins that the simplest values are held to the same rule as lists and mappings, wherever they sit on the page, so a person reading it never meets a program's spelling of true, false or nothing.
     Given the <thing> holds <holding>
@@ -59,6 +59,7 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a field holding an empty list                                        |
       | process | steps that each say more than one thing, one of them an empty list   |
 
+  @slice-50.14
   Scenario Outline: Markdown stays well-formed whatever a value holds
     Pins that nothing a value holds can break the page it is shown on: tables keep their columns and no line trails a space, so the page reads the same in any markdown reader.
     Given the <thing> holds <holding>
@@ -74,6 +75,7 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a list of plain values with an empty value among its items                                             |
       | role    | a field whose text ends in a space                                                                     |
 
+  @slice-50.21
   Scenario: Publishing into a directory given an empty name is refused
     Pins that an empty target is never taken to mean "here", so publishing never scatters files into wherever the user happens to be working.
     When the user publishes the role as markdown into a directory whose name is given empty
@@ -81,6 +83,7 @@ So that the harness and people outside the command line can use what the shop kn
     And nothing is written to the directory they are working in
     And the command reports failure to whatever ran it
 
+  @slice-50.15
   Scenario Outline: Publishing something as a kind of file it cannot become is refused
     Pins that each publisher takes only the type it is made for and says which type it was given, so a role never becomes a half-made skill and a process never a half-made agent.
     When the user publishes the <thing> as <kind> into a directory
