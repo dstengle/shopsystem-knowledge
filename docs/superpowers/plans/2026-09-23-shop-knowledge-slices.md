@@ -605,8 +605,8 @@ slices 2 onward, never ahead of them.
 ## Slice 50.16.1: The steps know kb only through what kb publishes, with a stand-in for kb where the contract cannot reach
 
 - Kind: enabling
-- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`, the same 21 as before the slice; `grep -rn "kb import canonical\|kb\.canonical\|kb\.journal\|kb\.store\|kb\.values\|store.yaml\|/ \"schema\"\|\"schema\")\|read_bytes\|_everything_under" tests` -> nothing; `grep -rn '/ "kb" /' tests` -> nothing; `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `git diff --stat -- features src` -> empty; CLAUDE.md's Step definitions section says what adrs/0047 says (no step reads or writes a knowledge base's files; a stand-in at the contract boundary for a state no contract call can produce), and its rule 1 names `tests/` alongside `src/`
-- Observable: A reader finds no step touching a knowledge base's files or any kb module kb does not publish: the damaged, unfit and dangling artifacts the check and read-back scenarios need, and the history on a given day the review scenarios need, come from a stand-in for kb that answers with kb's contract messages, while every other scenario runs against the real kb.
+- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`, the same 21 as before the slice; `grep -rn "kb import canonical\|kb\.canonical\|kb\.store\|kb\.values\|store.yaml\|/ \"schema\"\|\"schema\")\|read_bytes\|_everything_under" tests` -> nothing; `grep -rln "kb.journal" tests` -> only `tests/clock/sitecustomize.py`, which slice 50.23 replaces; `grep -rn '/ "kb" /' tests` -> nothing; `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `git diff --stat -- features src` -> empty; CLAUDE.md's Step definitions section says what adrs/0047 says (no step reads or writes a knowledge base's files; a stand-in at the contract boundary for a state no contract call can produce), and its rule 1 names `tests/` alongside `src/`
+- Observable: A reader finds no step touching a knowledge base's files or any kb module kb does not publish: the damaged, unfit and dangling artifacts the check and read-back scenarios need, and the history on a given day the review scenarios need, come from a stand-in for kb that answers with kb's contract messages, while every other scenario runs against the real kb. The clock the review-by-date scenarios pin stays as it is until kb publishes one (slice 50.23).
 - Unknown: whether a stand-in for kb can be put in front of shop-knol's own process at the contract boundary, from `tests/` alone, with nothing under `src/` knowing it is there
 - Needs: none
 - Status: planned
@@ -749,11 +749,11 @@ slices 2 onward, never ahead of them.
 ## Slice 50.23: shop-knowledge imports nothing of kb but what kb publishes
 
 - Kind: enabling
-- Check: `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" src tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `pyproject.toml` pins the kb release carrying kb's slice 100; `.venv/bin/python -m pytest -q` -> every scenario passes; CLAUDE.md's rule 1 names only what kb publishes (kb adrs/0018)
-- Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, and nothing else of kb's internals anywhere in the repository.
+- Check: `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" src tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `grep -rn "kb.journal" tests` -> nothing; `pyproject.toml` pins the kb release carrying kb's slices 100 and 102; `.venv/bin/python -m pytest -q` -> every scenario passes; CLAUDE.md's rule 1 names only what kb publishes (kb adrs/0018)
+- Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, the review-by-date scenarios' days given through the clock kb publishes on `kb.client.connect` instead of by replacing a kb function, and nothing else of kb's internals anywhere in the repository.
 - Unknown: none
-- Needs: the kb release carrying kb slice 100 (`NotCanonical` re-exported from `kb.content`), pinned
-- Status: blocked: awaiting a kb release carrying kb slice 100
+- Needs: the kb release carrying kb slices 100 (`NotCanonical` re-exported from `kb.content`) and 102 (a clock given to the in-process client), pinned
+- Status: blocked: awaiting a kb release carrying kb slices 100 and 102
 
 ## Satisfied by existing behaviour
 
