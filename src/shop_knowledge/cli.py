@@ -12,7 +12,7 @@ from kb import canonical, client as kb_client
 from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
-from shop_knowledge import batch, bootstrap, shape
+from shop_knowledge import answers, batch, bootstrap, shape
 from shop_knowledge.renderers import RENDERERS
 
 
@@ -142,32 +142,14 @@ def _create(args) -> int:
     response = _answered(_client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
     )))
-    _show({"id": response.id, "revision": response.revision})
+    _show(answers.created(response))
     return 0
 
 
 def _read(args) -> int:
     response = _answered(_client().Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=args.locator))))
-    _show(_glance(response))
+    _show(answers.glance(response))
     return 0
-
-
-def _glance(response: kb_pb2.ReadResponse) -> dict:
-    """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
-    return {
-        "id": response.id,
-        "type": response.type,
-        "schema_version": response.schema_version,
-        "revision": response.revision,
-        "title": response.title,
-        **loads(response.content),
-        "references": [
-            {"field": stub.field, "id": stub.id, "type": stub.type, "title": stub.title, **loads(stub.fields)}
-            for stub in response.references
-        ],
-        "parts": [{"collection": stub.collection, "id": stub.id, "title": stub.title} for stub in response.parts],
-        "inbound": [{"type": count.type, "field": count.field, "count": count.count} for count in response.inbound],
-    }
 
 
 def _validate(args) -> int:
@@ -183,35 +165,20 @@ def _apply(args) -> int:
     response = _answered(_client().Apply(kb_pb2.ApplyRequest(
         operations=operations, actor=_actor(), message=args.message,
     )))
-    _show({
-        "batch": response.batch,
-        "results": [{"id": result.id, "revision": result.revision} for result in response.results],
-    })
+    _show(answers.applied(response))
     return 0
 
 
 def _journal(args) -> int:
     response = _answered(_client().Journal(kb_pb2.JournalRequest(artifact=args.artifact)))
-    _show({"changes": [_change(entry) for entry in response.entries]})
+    _show(answers.history(response))
     return 0
-
-
-def _change(entry: kb_pb2.Entry) -> dict:
-    """One entry of the history as the user is shown it: when, who and for what piece of work, what it did, and why."""
-    return {
-        "at": entry.at,
-        "actor": {"role": entry.actor.role, "execution": entry.actor.execution},
-        "op": entry.op,
-        "artifact": entry.artifact,
-        "revision": entry.revision,
-        "message": entry.message,
-    }
 
 
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
     _write(rendered.files, Path(args.to))
-    _show({"written": sorted(rendered.files)})
+    _show(answers.written(rendered.files))
     return 0
 
 

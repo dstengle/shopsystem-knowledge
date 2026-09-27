@@ -231,7 +231,7 @@ slices 2 onward, never ahead of them.
 - Observable: The command line stays under the 250-line limit through slices 22 to 30, which add the whole, section and filled-in reads, JSON, revising, piping and listing, because turning each kb answer into what the user is shown sits in a module of its own.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 22: Read a decision at every depth, as text or JSON, from wherever the user works
 
@@ -691,3 +691,8 @@ slices 2 onward, never ahead of them.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 1): argparse still refuses in its own way, so rule 4 holds for files and paths but not for arguments. Reproduction, `shop-knol nosuch`: argparse's usage on stderr, exit 2. A user would expect one plain line and exit 1. No scenario pins any argument error.
   Next: slice 20.2.
+- 2026-09-27 slice 20.2 green. What the user is shown is shaped in `answers.py` (`created`, `glance`, `applied`, `history`, `change`, `written`), and `cli.py` calls it and prints through `_show`. Someone can now add a shape for an answer without touching the command line.
+  Moved: `_glance`, `_change`, the history's wrapper, the create, apply and render answers; `CLAUDE.md` has the `answers.py` row. Decision in adrs/0017.
+  Check: red first, the grep gave 2 and `cli.py` was 223 lines. Green: diff against `failing-20.1.txt` same 48; `make test` 48 failed, 14 passed; the grep gives 0; `wc -l` gives 190; `grep -cE "print|Request|connect" answers.py` gives 0; shape check 2, 1, 1, no module over 250, no renderer listed.
+  Surprised by: nothing.
+  Open questions: none. Next: slice 22.
