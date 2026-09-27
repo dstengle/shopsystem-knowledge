@@ -67,14 +67,19 @@ def _shop_with_two_faults(env, shop, tmp_path):
     start(env, shop)
     record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
     record(env, tmp_path, "work-item", {"title": "Reprice the dairy shelf"}, "Open the repricing")
-    decision = shop / "kb" / f"{WEEKLY}.yaml"
-    held = canonical.load(decision.read_text())
-    del held["sections"][1]
-    decision.write_text(canonical.dump(held))
+    _without_its_rationale(shop, WEEKLY)
     work_item = shop / "kb" / "work-item" / "reprice-the-dairy-shelf.yaml"
     held = canonical.load(work_item.read_text())
     held["decisions"] = ["decision/nothing"]
     work_item.write_text(canonical.dump(held))
+
+
+def _without_its_rationale(shop, decision):
+    """A decision's file edited by hand to drop a section its type requires, which no shop-knol command can do."""
+    path = shop / "kb" / f"{decision}.yaml"
+    held = canonical.load(path.read_text())
+    del held["sections"][1]
+    path.write_text(canonical.dump(held))
 
 
 @then("both faults are listed, each naming the artifact and the place in it at fault")
@@ -85,8 +90,12 @@ def _both_listed(result):
     assert lines[1].startswith("work-item/reprice-the-dairy-shelf at decisions/0: ")
 
 
-@given("a shop knowledge base where a decision was last checked against an older version of the decision type")
+@given(
+    "a shop knowledge base where a decision was last checked against an older version of the decision type",
+    target_fixture="decisions",
+)
 def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
+    """The decision recorded before the decision type is brought to version 2 is behind it."""
     start(env, shop)
     record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
     held = whole(env, "schema/decision")
@@ -96,6 +105,34 @@ def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
     path.write_text(dumps({**held, "version": 2}))
     written = knol(env, "write", "schema/decision", "--from", str(path), "-m", "Bring the decision type to version 2")
     assert written.returncode == 0, written.stderr
+    return {"behind": WEEKLY}
+
+
+@given(
+    "a shop knowledge base where a decision is missing something its type requires and another decision was last "
+    "checked against an older version of the decision type",
+    target_fixture="decisions",
+)
+def _shop_with_a_fault_and_a_decision_behind(env, shop, tmp_path):
+    """Recorded after the decision type is at version 2, so only the first decision is behind it; the second is then
+    left unfit by hand (CLAUDE.md, Step definitions), as kb refuses to create it so."""
+    decisions = _shop_with_a_decision_behind_its_type(env, shop, tmp_path)
+    record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", "sections": SECTIONS}, "Record monthly")
+    _without_its_rationale(shop, MONTHLY)
+    return {**decisions, "at_fault": MONTHLY}
+
+
+@then("the fault is listed, naming the artifact and the place in it at fault")
+def _the_fault_listed(result, decisions):
+    lines = result.stderr.splitlines()
+    assert len(lines) == 1, result.stderr
+    assert lines[0].startswith(f"{decisions['at_fault']} at sections: ")
+
+
+@then("the other decision is listed as behind its type")
+def _other_listed_as_behind(result, decisions):
+    """Read from stdout directly: the shared `shown` is for a command that succeeded, and a check with faults fails."""
+    assert loads(result.stdout)["behind"] == [{"artifact": decisions["behind"], "schema_version": 1, "current": 2}]
 
 
 @then("that decision is listed as behind its type")
@@ -104,6 +141,8 @@ def _listed_as_behind(shown):
 
 
 @then("it is not listed as a fault")
-def _not_a_fault(result):
-    assert result.stderr == ""
-    assert result.returncode == 0
+def _not_a_fault(result, decisions):
+    """No fault line names what is behind its type; a check that listed no fault at all succeeded."""
+    assert not [line for line in result.stderr.splitlines() if line.startswith(decisions["behind"])], result.stderr
+    if not result.stderr:
+        assert result.returncode == 0

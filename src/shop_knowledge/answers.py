@@ -133,9 +133,10 @@ def written(files) -> dict:
 
 
 def checked(response: kb_pb2.ValidateResponse) -> dict:
-    """What a check that found no fault gives back: sound, and each artifact last checked against an older version of its type."""
+    """What every check gives back: sound when it found no fault and no violation, and each artifact last checked
+    against an older version of its type, whether or not it found any."""
     return {
-        "sound": True,
+        "sound": not (response.faults or response.violations),
         "behind": [
             {"artifact": stale.artifact, "schema_version": stale.schema_version, "current": stale.current}
             for stale in response.stale
