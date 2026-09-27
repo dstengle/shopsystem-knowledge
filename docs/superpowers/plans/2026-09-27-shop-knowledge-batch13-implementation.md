@@ -4,11 +4,15 @@
 
 **This plan carries no code** (adrs/0011).
 
-**Goal:** every approved scenario is green except slice 50.22's two, which wait for kb 0.3.0. The work, in order:
+**Goal:** every approved scenario is green, and shop-knowledge knows kb only through what kb v0.3.0 (released 2026-09-27) publishes. The work, in order:
 - 50.16.8 makes room;
 - 50.17 refuses a name given empty, everywhere a place is named;
 - 50.18 and 50.18.1 cover a removed directory at `init`, and prose kb cannot keep;
 - 50.18.2 and 50.18.3 cover markdown's remaining well-formed cases, and a check with no store to check.
+- 50.22 pins kb v0.3.0 and reads from a removed directory;
+- 50.23 takes nothing of kb but what it publishes.
+
+The ninth architecture review runs after the batch, by a ruling: the batch is eight slices, and the review meets its cadence at the batch's end.
 
 **Spec:** `docs/superpowers/specs/2026-09-23-shop-knowledge-design.md`, especially these passages:
 - the CLI section: "Every refusal of shop-knol's own says in plain words what was refused and names the place it concerns ... A name given empty names no place and is refused"; "shop-knol never shows a traceback"; the store-finding sentence with the removed working directory; the validate row;
@@ -45,8 +49,8 @@ Read CLAUDE.md, adrs/0035, 0044 and 0047, and kb's adrs/0018. The eighth archite
 | 50.18.1 | 11 | 90 |
 | 50.18.2 | 5 | 96 |
 | 50.18.3 | 2 | 99 |
-
-The last 2 are 50.22's.
+| 50.22 | 0 | 101 |
+| 50.23 | 0 | 101 |
 
 **Checks**
 - Record the failing list at each slice's start with `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort`.
