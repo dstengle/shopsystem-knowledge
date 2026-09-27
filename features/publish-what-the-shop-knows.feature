@@ -74,6 +74,12 @@ So that the harness and people outside the command line can use what the shop kn
       | process | steps that each say more than one thing, one of them holding text over more than one line             |
       | role    | a list of plain values with an empty value among its items                                             |
       | role    | a field whose text ends in a space                                                                     |
+      | role    | a title whose text ends in a space |
+      | role    | a section whose title ends in a space |
+      | role    | a list of lists, one inner list's last item an empty value |
+      | role    | a list holding a mapping whose last value is an empty value |
+      | role    | a field group holding a list of mappings, one mapping's last value an empty value |
+      | process | steps that each say more than one thing, the name of one of those things holding the character that separates table cells |
 
   @slice-50.21
   Scenario: Publishing into a directory given an empty name is refused

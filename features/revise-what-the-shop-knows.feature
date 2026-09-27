@@ -17,3 +17,17 @@ So that what the shop knows stays true as the shop learns, the user can revise w
     When the user replaces the rationale of the decision from a file, saying who they are and why
     Then only the rationale changes
     And the rest of the decision reads as before
+
+  Scenario Outline: A revision whose prose the shop cannot keep is refused
+    Pins that a revision is held to the same rule as a new record: text the shop cannot keep as written is refused in plain words, and what was recorded stays as it was.
+    Given a file whose prose has a line ending in a space before its last line
+    When the user replaces <what> from that file, saying who they are and why
+    Then the change is rejected because the shop cannot keep prose in which a line before the last ends in a space, naming the place in the file
+    And the user is shown that fault in plain words, never a traceback
+    And the decision reads as before, still at its first version
+    And the command reports failure to whatever ran it
+
+    Examples:
+      | what                          |
+      | the decision                  |
+      | the rationale of the decision |

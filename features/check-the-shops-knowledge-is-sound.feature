@@ -43,3 +43,17 @@ So that the shop can trust what it has recorded, the user can check its knowledg
     And everything else the shop knows is checked and listed alongside it
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
+
+  Scenario Outline: Checking where the shop's knowledge cannot be found is refused
+    Pins that a check with no single knowledge base to check is refused rather than answered, so a failure to find the shop's knowledge never reads as a shop with nothing wrong.
+    Given the user is working <where>
+    When the user checks the shop's knowledge
+    Then the command is rejected because <reason>
+    And the user is shown no answer from a check, neither that nothing is wrong nor anything as behind its type
+    And the command reports failure to whatever ran it
+
+    Examples:
+      | where                                                                                    | reason                                                                                                      |
+      | outside any knowledge base and nothing names one                                         | no knowledge base was found, neither above where they are working nor named outright                        |
+      | outside any knowledge base, with KB_ROOT naming a directory that holds no knowledge base | KB_ROOT names a directory that holds no knowledge base                                                      |
+      | inside the shop's knowledge base, with KB_ROOT naming a different one                    | KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at |
