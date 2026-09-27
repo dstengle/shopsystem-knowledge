@@ -11,7 +11,7 @@ from kb.content import dumps
 from pytest_bdd import given, parsers, then, when
 
 from driver import knol, record, whole
-from markdown_pages import _process_page, _role_page, _step_holding, _write_over, pages
+from markdown_pages import process_page, role_page, step_holding, write_over, pages
 
 # A program's spelling of a yes, a no or nothing standing as a whole value where the page lays one out: after a field's
 # colon, a bullet or a `; `, or in a table cell, and running to the line's end, a cell's end or the next `, ` or `; `
@@ -35,7 +35,7 @@ def _process_steps_each_say_more_than_one_thing(env, process_name):
 @then("that directory holds a page showing its steps as a table with one column for each thing a step says")
 def _steps_as_a_table(result, target):
     assert result.returncode == 0, result.stderr
-    assert pages(target) == _process_page([], {})
+    assert pages(target) == process_page([], {})
 
 
 @given("the role holds more than one tag")
@@ -93,7 +93,7 @@ def _a_page(result, target):
     of plain values as a bullet list), then its section one level below the heading. The role holds no part, so no table."""
     assert result.returncode == 0, result.stderr
     assert [path.name for path in target.iterdir()] == ["stock-keeper.md"]
-    assert (target / "stock-keeper.md").read_text().splitlines() == _role_page()["stock-keeper.md"]
+    assert (target / "stock-keeper.md").read_text().splitlines() == role_page()["stock-keeper.md"]
 
 
 @then(parsers.parse("that directory holds a page of the {thing}"))
@@ -108,8 +108,8 @@ def _role_holds_a_yes_and_a_no(env, tmp_path, role_content, role_name):
     """The Background role, `ROLE` without its title, plus a yes and a no in the user's words; gives the page it
     publishes as."""
     content = {key: value for key, value in role_content.items() if key != "title"}
-    _write_over(env, tmp_path, role_name, {**content, "on_call": True, "retired": False}, "On call")
-    return _role_page(["- **on_call**: yes", "- **retired**: no"])
+    write_over(env, tmp_path, role_name, {**content, "on_call": True, "retired": False}, "On call")
+    return role_page(["- **on_call**: yes", "- **retired**: no"])
 
 
 @given("the role holds a field with no value", target_fixture="page")
@@ -117,26 +117,26 @@ def _role_holds_no_value(env, tmp_path, role_content, role_name):
     """The Background role, `ROLE` without its title, plus a field the user left empty; gives the page it publishes
     as."""
     content = {key: value for key, value in role_content.items() if key != "title"}
-    _write_over(env, tmp_path, role_name, {**content, "deputy": None}, "No deputy yet")
-    return _role_page(["- **deputy**:"])
+    write_over(env, tmp_path, role_name, {**content, "deputy": None}, "No deputy yet")
+    return role_page(["- **deputy**:"])
 
 
 @given("the process holds steps that each say more than one thing, one of them a yes and a no", target_fixture="page")
 def _process_step_holds_a_yes_and_a_no(env, tmp_path, process_name):
     """The Background process's steps as its whole read gives them, the order-more step also saying it is optional
     and cannot be skipped; gives the page it publishes as."""
-    steps = _step_holding(whole(env, process_name)["steps"], "order-more", optional=True, skippable=False)
-    _write_over(env, tmp_path, process_name, {"steps": steps}, "Ordering more is optional")
-    return _process_page(["optional", "skippable"], {"order-more": ["yes", "no"]})
+    steps = step_holding(whole(env, process_name)["steps"], "order-more", optional=True, skippable=False)
+    write_over(env, tmp_path, process_name, {"steps": steps}, "Ordering more is optional")
+    return process_page(["optional", "skippable"], {"order-more": ["yes", "no"]})
 
 
 @given("the process holds steps that each say more than one thing, one of them with no value", target_fixture="page")
 def _process_step_holds_no_value(env, tmp_path, process_name):
     """The Background process's steps as its whole read gives them, the stop step also holding a note the user left
     empty; gives the page it publishes as."""
-    steps = _step_holding(whole(env, process_name)["steps"], "stop", note=None)
-    _write_over(env, tmp_path, process_name, {"steps": steps}, "A note to write later")
-    return _process_page(["note"], {})
+    steps = step_holding(whole(env, process_name)["steps"], "stop", note=None)
+    write_over(env, tmp_path, process_name, {"steps": steps}, "A note to write later")
+    return process_page(["note"], {})
 
 
 @given("the role holds a field holding an empty list", target_fixture="page")
@@ -144,14 +144,14 @@ def _role_holds_an_empty_list(env, tmp_path, role_content, role_name):
     """The Background role, `ROLE` without its title, plus a list the user left empty; gives the page it publishes as,
     the empty list shown as an empty value is (adrs/0045)."""
     content = {key: value for key, value in role_content.items() if key != "title"}
-    _write_over(env, tmp_path, role_name, {**content, "deputies": []}, "No deputies yet")
-    return _role_page(["- **deputies**:"])
+    write_over(env, tmp_path, role_name, {**content, "deputies": []}, "No deputies yet")
+    return role_page(["- **deputies**:"])
 
 
 @given("the process holds steps that each say more than one thing, one of them an empty list", target_fixture="page")
 def _process_step_holds_an_empty_list(env, tmp_path, process_name):
     """The Background process's steps, the stop step also holding a list the user left empty; gives the page it
     publishes as, that list an empty cell (adrs/0045)."""
-    steps = _step_holding(whole(env, process_name)["steps"], "stop", checks=[])
-    _write_over(env, tmp_path, process_name, {"steps": steps}, "Checks to list later")
-    return _process_page(["checks"], {})
+    steps = step_holding(whole(env, process_name)["steps"], "stop", checks=[])
+    write_over(env, tmp_path, process_name, {"steps": steps}, "Checks to list later")
+    return process_page(["checks"], {})

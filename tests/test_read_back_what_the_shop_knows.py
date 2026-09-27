@@ -1,10 +1,10 @@
 import json
 
-import pytest
 from kb.content import dumps, loads
+from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import answering, knol, record, start
+from driver import answering, knol, printed, record
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("read-back-what-the-shop-knows.feature")
@@ -18,8 +18,7 @@ DECISION = "decision/price-reviews-happen-weekly"
     "superseding an older decision, and pointed at by two work items",
     target_fixture="decision_id",
 )
-def _shop_with_a_linked_decision(env, shop, tmp_path):
-    start(env, shop)
+def _shop_with_a_linked_decision(env, started_shop, tmp_path):
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
@@ -42,14 +41,9 @@ def _shop_with_a_linked_decision(env, shop, tmp_path):
     return decision_id
 
 
-@pytest.fixture
-def workdir(tmp_path):
-    """Where the user works: the test's own temporary directory, unless a Given moves them elsewhere in it."""
-    return tmp_path
-
-
 @when("the user reads the decision", target_fixture="result")
-def _read_the_decision(env, decision_id, workdir):
+def _read_the_decision(env, decision_id, workdir, called):
+    called.update(call="Read", request=kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=decision_id)))
     return knol(env, "read", decision_id, cwd=workdir)
 
 
@@ -90,7 +84,7 @@ def _decision_file_mangled_by_hand(env, tmp_path):
 
 @then("the command is rejected because that file cannot be read, naming the file")
 def _rejected_as_unreadable(result):
-    assert result.stderr == f"{DECISION}: {UNREADABLE['message']}\n", result.stderr
+    assert result.stderr.splitlines() == [printed(kb_pb2.Fault(**UNREADABLE))], result.stderr
 
 
 @when("the user reads the whole decision", target_fixture="result")

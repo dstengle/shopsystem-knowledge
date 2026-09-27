@@ -26,12 +26,14 @@ def _described() -> list:
 
 
 def _asks(answer: dict, request) -> bool:
-    """Whether the request carries every field the answer is asked with."""
+    """Whether the request equals the answer's `asking`, field by top-level field: each named field of the request
+    must equal that field of `asking` exactly, so a nested message (`locator`, say) is compared whole, not itself
+    field by field."""
     asked = json_format.MessageToDict(request, preserving_proto_field_name=True)
     return all(asked.get(field) == value for field, value in answer.get("asking", {}).items())
 
 
-def _response(rpc: str, answer: dict, real, request, timeout):
+def _response(rpc: str, answer: dict, real):
     """The message the step described, with any fields it takes from the real kb's answer to the same request."""
     message = json_format.ParseDict(answer["answer"], getattr(kb_pb2, f"{rpc}Response")())
     if answer.get("from_kb"):
@@ -62,7 +64,7 @@ class _StandIn:
                 return real
             for answer in described:
                 if _asks(answer, request):
-                    return _response(rpc, answer, real, request, timeout)
+                    return _response(rpc, answer, real)
             return real
 
         return answered

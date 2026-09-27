@@ -8,7 +8,7 @@ import re
 from pytest_bdd import given, parsers, then
 
 from driver import whole
-from markdown_pages import _process_page, _role_page, _step_holding, _write_over, pages
+from markdown_pages import process_page, role_page, step_holding, write_over, pages
 
 # A backslash and the character after it, which a markdown reader takes as that character, never as a cell's end.
 _ESCAPED = re.compile(r"\\.")
@@ -22,9 +22,9 @@ _ESCAPED = re.compile(r"\\.")
 def _process_step_holds_the_separator(env, tmp_path, process_name):
     """The Background process's steps, the order-more step also holding a note with the character between its words;
     gives the page it publishes as, that character escaped in its cell."""
-    steps = _step_holding(whole(env, process_name)["steps"], "order-more", note="milk | cream")
-    _write_over(env, tmp_path, process_name, {"steps": steps}, "Say what to order")
-    return _process_page(["note"], {"order-more": [r"milk \| cream"]})
+    steps = step_holding(whole(env, process_name)["steps"], "order-more", note="milk | cream")
+    write_over(env, tmp_path, process_name, {"steps": steps}, "Say what to order")
+    return process_page(["note"], {"order-more": [r"milk \| cream"]})
 
 
 @given(
@@ -34,9 +34,9 @@ def _process_step_holds_the_separator(env, tmp_path, process_name):
 def _process_step_holds_lines(env, tmp_path, process_name):
     """The Background process's steps, the order-more step also holding a note over two lines; gives the page it
     publishes as, the note's lines joined by a space in its cell (adrs/0041)."""
-    steps = _step_holding(whole(env, process_name)["steps"], "order-more", note="Order milk first.\nThen cream.\n")
-    _write_over(env, tmp_path, process_name, {"steps": steps}, "Say what to order first")
-    return _process_page(["note"], {"order-more": ["Order milk first. Then cream."]})
+    steps = step_holding(whole(env, process_name)["steps"], "order-more", note="Order milk first.\nThen cream.\n")
+    write_over(env, tmp_path, process_name, {"steps": steps}, "Say what to order first")
+    return process_page(["note"], {"order-more": ["Order milk first. Then cream."]})
 
 
 @given("the role holds a list of plain values with an empty value among its items", target_fixture="page")
@@ -44,8 +44,8 @@ def _role_list_holds_an_empty_item(env, tmp_path, role_content, role_name):
     """The Background role, `ROLE` without its title, plus a list whose second item the user left empty; gives the
     page it publishes as, that item a bullet with nothing after its dash (adrs/0043)."""
     content = {key: value for key, value in role_content.items() if key != "title"}
-    _write_over(env, tmp_path, role_name, {**content, "aisles": ["dairy", None]}, "Keeps the dairy aisle")
-    return _role_page(["- **aisles**", "  - dairy", "  -"])
+    write_over(env, tmp_path, role_name, {**content, "aisles": ["dairy", None]}, "Keeps the dairy aisle")
+    return role_page(["- **aisles**", "  - dairy", "  -"])
 
 
 @given("the role holds a field whose text ends in a space", target_fixture="page")
@@ -54,8 +54,8 @@ def _role_text_ends_in_a_space(env, tmp_path, role_content, role_name):
     page it publishes as, the line ending where the text's words end (the trailing space not shown, as the user chose
     on 2026-09-27)."""
     content = {key: value for key, value in role_content.items() if key != "title"}
-    _write_over(env, tmp_path, role_name, {**content, "motto": "Full shelves "}, "A motto for the stock keeper")
-    return _role_page(["- **motto**: Full shelves"])
+    write_over(env, tmp_path, role_name, {**content, "motto": "Full shelves "}, "A motto for the stock keeper")
+    return role_page(["- **motto**: Full shelves"])
 
 
 def _the_page(target) -> list[str]:

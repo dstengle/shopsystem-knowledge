@@ -8,20 +8,13 @@ import os
 import sys
 from pathlib import Path
 
-from kb import canonical, client as kb_client
-from kb.content import dumps, loads
+from kb import client as kb_client
+from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, kb_requests, shape
+from shop_knowledge import answers, arguments, bootstrap, document, kb_requests
+from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
-
-
-class Refused(Exception):
-    """A refusal on its way to the one printer: the faults to print, one line each."""
-
-    def __init__(self, faults):
-        super().__init__(faults)
-        self.faults = list(faults)
 
 
 def main(argv=None) -> int:
@@ -105,38 +98,22 @@ def _init(args) -> int:
     return 0
 
 
-def _document(source: str, shape_name: str) -> dict:
-    """A file the user gave, or the text piped in for `-`, read the way kb reads content and checked against its
-    shape, or refused as a fault on it."""
-    name = "standard input" if source == "-" else source
-    try:
-        document = loads(sys.stdin.read() if source == "-" else Path(source).read_text())
-    except UnicodeDecodeError as fault:
-        message = f"it is not text that can be read: {fault}"
-        raise Refused([kb_pb2.Fault(artifact=name, rule="content", message=message)])
-    except canonical.NotCanonical as fault:
-        raise Refused([kb_pb2.Fault(artifact=name, path=fault.path, rule="content", message=str(fault))])
-    if faults := shape.violations(document, shape_name, name):
-        raise Refused(faults)
-    return document
-
-
 def _create(args) -> int:
-    request = kb_requests.create_request(args, _document(args.source, "content"))
+    request = kb_requests.create_request(args, document.read(args.source, "content"))
     response = _answered(_client().Create(request))
     _show(answers.created(response))
     return 0
 
 
 def _write_artifact(args) -> int:
-    request = kb_requests.write_request(args, _document(args.source, "content"))
+    request = kb_requests.write_request(args, document.read(args.source, "content"))
     response = _answered(_client().Write(request))
     _show(answers.written_over(request.locator, response))
     return 0
 
 
 def _append(args) -> int:
-    request = kb_requests.append_request(args, _document(args.source, "content"))
+    request = kb_requests.append_request(args, document.read(args.source, "content"))
     response = _answered(_client().Append(request))
     _show(answers.appended(request.locator, response))
     return 0
@@ -168,7 +145,7 @@ def _validate(args) -> int:
 
 
 def _apply(args) -> int:
-    request = kb_requests.apply_request(args, _document(args.source, "batch"))
+    request = kb_requests.apply_request(args, document.read(args.source, "batch"))
     response = _answered(_client().Apply(request))
     _show(answers.applied(response))
     return 0

@@ -11,7 +11,7 @@ def pages(target) -> dict:
     return {path.name: path.read_text().splitlines() for path in target.iterdir()}
 
 
-def _write_over(env, tmp_path, name, content, message):
+def write_over(env, tmp_path, name, content, message):
     """Replace an artifact's content through `shop-knol write`, as a user does."""
     path = tmp_path / "written-over.yaml"
     path.write_text(dumps(content))
@@ -19,7 +19,7 @@ def _write_over(env, tmp_path, name, content, message):
     assert result.returncode == 0, result.stderr
 
 
-def _role_page(extra=()):
+def role_page(extra=()):
     """The role's base page (its harness and shop fields, then its section as `## How it works`). `extra` is the
     lines a Given's own field adds or changes, spliced in before the section, so each row's own lines stay the only
     thing said once for it."""
@@ -57,7 +57,7 @@ _STEP_ROWS = {
 }
 
 
-def _process_page(columns, cells):
+def process_page(columns, cells):
     """The process's expected page: its table's six base columns for every step, plus `columns`, each step's cells
     there taken from `cells` by id, empty where a step holds none of its own."""
     header = ["id", "title", "uses", "with", "does", "branches", *columns]
@@ -67,7 +67,7 @@ def _process_page(columns, cells):
     return {"restock-a-shelf.md": lines}
 
 
-def _step_holding(steps, step_id, **fields):
+def step_holding(steps, step_id, **fields):
     """`steps`, in the same order, the one whose id is `step_id` given `fields` besides its own. Refuses (`ValueError`)
     an id no step holds, rather than passing `steps` through unchanged."""
     if step_id not in {step["id"] for step in steps}:

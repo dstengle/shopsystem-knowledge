@@ -2,11 +2,12 @@ import re
 
 import pytest
 from kb.content import loads
-from pytest_bdd import given, parsers, scenarios, then, when
+from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start, whole
 from markdown_well_formed import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from publish_as_markdown import *  # noqa: F403  pytest-bdd registers steps only through a star import
+from publish_refused import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("publish-what-the-shop-knows.feature")
 
@@ -19,18 +20,21 @@ ROLE = {
 }
 
 
-def _as_shown(env, process_name):
-    """What shop-knol shows of the knowledge base a skill is published from: its history, and the process and the shared
-    step it uses, each read whole."""
-    return {"journal": knol(env, "journal").stdout, **{
-        name: whole(env, name) for name in (process_name, "step/check-the-stock")
-    }}
+@pytest.fixture
+def observed(env, process_name):
+    """Extends conftest's `observed`: what shop-knol shows of the knowledge base a skill is published from, its
+    history and the process and the shared step it uses, each read whole."""
+    def _snapshot():
+        return {"journal": knol(env, "journal").stdout, **{
+            name: whole(env, name) for name in (process_name, "step/check-the-stock")
+        }}
+    return _snapshot
 
 
 @pytest.fixture
 def role_content():
-    """The Background role's content, so a sibling module can change it without importing ROLE: adrs/0035's rule
-    that a sibling module reaches the test module's content only through a fixture, never by importing it."""
+    """The Background role's content, so a sibling module can change what it asks for without importing ROLE
+    directly."""
     return ROLE
 
 
@@ -40,12 +44,6 @@ def target(tmp_path):
     target = tmp_path / "published"
     target.mkdir()
     return target
-
-
-@pytest.fixture
-def before(env, process_name):
-    """What shop-knol showed of the knowledge base when first asked for (`_as_shown`)."""
-    return _as_shown(env, process_name)
 
 
 @pytest.fixture
@@ -113,32 +111,6 @@ def _a_skill(result, target):
     ]
 
 
-@then("the shop's knowledge base is unchanged")
-def _unchanged(env, process_name, before):
-    assert _as_shown(env, process_name) == before
-
-
-@given("a process whose steps run past the limits the harness publishes", target_fixture="process_name")
-def _a_process_past_the_limits(env, tmp_path):
-    """Two hundred steps written out at four lines each is past the five hundred lines a skill's body may run to."""
-    steps = [{"title": f"Count shelf {number}", "does": f"Count what is on shelf {number}.\n"} for number in range(1, 201)]
-    return record(env, tmp_path, "process", {"title": "Count every shelf", "steps": steps}, "Describe the stocktake")
-
-
-@then("the skill is rejected because it goes beyond the limits the harness publishes")
-def _rejected_for_the_limits(result):
-    assert result.stderr.splitlines() == [
-        "process/count-every-shelf at steps: a skill's body is under 500 lines, the limit the harness publishes; "
-        "this one is 801",
-    ]
-    assert result.returncode != 0
-
-
-@then("nothing is written to the directory")
-def _nothing_written(target):
-    assert list(target.iterdir()) == []
-
-
 @when("the user publishes the process as a diagram into a directory", target_fixture="result")
 def _publish_as_a_diagram(env, process_name, target):
     return knol(env, "render", "diagram", process_name, "--to", str(target))
@@ -168,15 +140,6 @@ def _publish_as_an_agent(env, role_name, target):
     return knol(env, "render", "agent", role_name, "--to", str(target))
 
 
-@given("a role whose harness fields run past the limits the harness publishes", target_fixture="role_name")
-def _a_role_past_the_limits(env, tmp_path):
-    return record(env, tmp_path, "role", {
-        "title": "Shop steward",
-        "harness": {"name": "-shop:steward", "description": "Keeps the shop."},
-        "shop": {"responsible_for": "The shop"},
-    }, "Describe the shop steward")
-
-
 @then("that directory holds an agent whose heading block is the role's harness fields and whose body is the role's prose")
 def _an_agent(result, target):
     """The one file under the directory: the role's harness group as its heading block, then its sections as the body,
@@ -190,41 +153,3 @@ def _an_agent(result, target):
         assert f"# {section['title']}\n\n{section['body'].rstrip()}" in body
         assert f"# {section['title']}" in body.splitlines()
     assert ROLE["shop"]["responsible_for"] not in body
-
-
-@then("the agent is rejected because it goes beyond the limits the harness publishes")
-def _rejected_agent_for_the_limits(result):
-    assert result.stderr.splitlines() == [
-        'role/shop-steward at harness.name: an agent\'s name holds no ":", the limit the harness publishes; '
-        "this one is -shop:steward",
-        'role/shop-steward at harness.name: an agent\'s name does not start with "-", the limit the harness '
-        "publishes; this one is -shop:steward",
-    ]
-    assert result.returncode != 0
-
-
-@when(
-    parsers.re(r"the user publishes the (?P<thing>process|role) as (?P<kind>agent|skill|diagram) into a directory"),
-    target_fixture="result",
-)
-def _publish_as_a_kind_it_cannot_become(env, thing, kind, process_name, role_name, target):
-    """The process by the Background's `process_name`, or its role by `role_name`, with the renderer the kind names."""
-    name = process_name if thing == "process" else role_name
-    return knol(env, "render", kind, name, "--to", str(target))
-
-
-# The refusal each of the outline's three rows gets, spelled out in `renderers.source.refusal`'s own words, not
-# recomputed here with a copy of its article rule (a wrong article in both would otherwise pass).
-_REFUSAL = {
-    "agent": "an agent is made from a role; this one is a process",
-    "skill": "a skill is made from a process; this one is a role",
-    "diagram": "a diagram is made from a process; this one is a role",
-}
-
-
-@then(parsers.parse("the {kind} is rejected because it is not made from a {thing}, naming the type {named}"))
-def _rejected_for_its_type(result, kind, process_name, role_name):
-    """One line on the artifact published from: the process by name for the agent row, the role by name for skill
-    and diagram, then `_REFUSAL`'s line for that kind."""
-    name = process_name if kind == "agent" else role_name
-    assert result.stderr.splitlines() == [f"{name}: {_REFUSAL[kind]}"]

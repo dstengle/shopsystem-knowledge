@@ -10,12 +10,14 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 
 | module | owns | never holds |
 |---|---|---|
-| `cli.py` | `shop-knol`: one handler per command making the kb calls that command maps to, the actor from the environment and the client, whose store kb finds upward from the working directory or through `KB_ROOT`, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
+| `cli.py` | `shop-knol`: one handler per command making the kb calls that command maps to, the actor from the environment and the client, whose store kb finds upward from the working directory or through `KB_ROOT`, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch, reading the file a user gives |
 | `kb_requests.py` | each command's arguments as the request it sends kb, one public function per command, `<command>_request`, and `is_whole` for `cli._read` | kb calls, printing, reading files |
 | `arguments.py` | every `shop-knol` command's arguments and help, declared with argparse, and the renderer names from `RENDERERS`; an argument it cannot take is refused by raising, never printed | handlers, kb calls, printing |
 | `answers.py` | each kb answer as the document the user is shown: plain dicts and lists from kb's response messages or plain values, one public function per answer (`glance`, `whole`, `section`, `change`, `history`, `created`, `written_over`, `appended`, `applied`, `recorded`, `listed`, `names`, `written`, `reached`, `matched`, `deleted`, `checked`) | printing, kb calls, arguments |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
+| `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape, or refused as a `Fault` on it | kb calls, printing, arguments |
+| `refusal.py` | the one exception every refusal travels in, `Refused`, before `cli`'s one printer shows it | kb calls, printing |
 | `renderers/` | one module per renderer, each reading an artifact through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
 | `renderers/source.py` | reading the artifact a renderer publishes, what stops it being published (the read's faults, then a type other than the one the renderer is made from), and its name without its kind | rendering, writing |
 | `renderers/sections.py` | the layout of a content model's `sections` as headings and bodies, shared by the markdown and agent renderers | rendering a whole artifact, files |
@@ -42,8 +44,8 @@ own it.
    No other YAML library is imported. JSON, the one other output, is the same document written by the standard
    library's `json`.
 4. **One way to refuse.** Every refusal, kb's or shop-knol's own, is a `Fault` printed by the one printer in
-   `cli.py`, one line each, with exit 1. shop-knol never shows a traceback. Code that refuses raises `cli.Refused`
-   with its faults and `main` alone prints them, so no handler prints a refusal of its own.
+   `cli.py`, one line each, with exit 1. shop-knol never shows a traceback. Code that refuses raises
+   `refusal.Refused` with its faults and `main` alone prints them, so no handler prints a refusal of its own.
 5. **Types are data.** The shop's types reach kb only as schema artifacts created at `init`. No code outside a
    renderer for that type, and the step definitions, knows a type's fields.
 6. **Renderers only read.** A renderer reads through the contract and gives back the files to write, or faults.
@@ -54,7 +56,7 @@ own it.
 - No module over 250 lines, under `src/` or `tests/`. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
-- A file a user gives is read, and checked against its shape, in one place, `cli._document`, and a kb answer's faults are refused in one way,
+- A file a user gives is read, and checked against its shape, in one place, `document.read`, and a kb answer's faults are refused in one way,
   `cli._answered`. One place differs: a renderer turns a kb answer's faults into the `Rendered` faults it gives back,
   which `_render` refuses through `_answered`.
 

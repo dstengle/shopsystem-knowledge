@@ -10,7 +10,7 @@ from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
 import driver
-from driver import NO_STORE, start
+from driver import NO_STORE, kb_answer, knol, printed, start
 
 
 def _reachable_from(directory: Path, env: dict) -> bool:
@@ -70,6 +70,13 @@ def shop(tmp_path):
     return shop
 
 
+@pytest.fixture
+def started_shop(env, shop):
+    """`shop`, started once for the scenario: by a feature's own Background, or, when it has none, by a Given here."""
+    start(env, shop)
+    return shop
+
+
 _ALLOWED_NAMES = ("PATH", "LANG", "SYSTEMROOT", "TMPDIR")
 """What a scenario's shop-knol, or the guard's own call to kb, needs from the machine the suite runs on - never the
 developer's whole shell (adrs/0047): PATH and LANG outright, LC_* alongside them, and the odd variable an
@@ -102,6 +109,76 @@ def _working_directory(tmp_path, monkeypatch):
 
 
 @pytest.fixture
+def workdir(tmp_path):
+    """Where the user works: the test's own temporary directory, unless a Given moves them elsewhere in it."""
+    return tmp_path
+
+
+@pytest.fixture
+def called():
+    """The kb call and request the scenario's own When made, for the store-refusal Thens below to repeat via `kb_answer`."""
+    return {}
+
+
+@given("the user is working outside any knowledge base and nothing names one", target_fixture="workdir")
+def _working_elsewhere_naming_nothing(env, tmp_path):
+    del env["KB_ROOT"]
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    return elsewhere
+
+
+@given(
+    "the user is working outside any knowledge base, with KB_ROOT naming a directory that holds no knowledge base",
+    target_fixture="workdir",
+)
+def _kb_root_names_an_empty_directory(env, tmp_path):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    env["KB_ROOT"] = str(empty)
+    return tmp_path
+
+
+@given(
+    "the user is working inside the shop's knowledge base, with KB_ROOT naming a different one",
+    target_fixture="workdir",
+)
+def _kb_root_names_another_store(env, started_shop, tmp_path):
+    other = tmp_path / "other"
+    other.mkdir()
+    start(env, other)
+    env["KB_ROOT"] = str(other)
+    return started_shop
+
+
+def _refused_as_kb_refuses(env, result, workdir, called):
+    """kb's own answer to the call the scenario's own When made, from the same directory and KB_ROOT, refuses the
+    store rule it publishes (kb adrs/0018); the user is shown that one fault, in kb's words, and nothing else."""
+    faults = kb_answer(env, called["call"], called["request"], cwd=workdir).faults
+    assert [fault.rule for fault in faults] == [NO_STORE], faults
+    assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
+    assert result.stdout == ""
+
+
+@then("the command is rejected because no knowledge base was found, neither above where they are working nor named outright")
+def _rejected_no_store(env, result, workdir, called):
+    _refused_as_kb_refuses(env, result, workdir, called)
+
+
+@then("the command is rejected because KB_ROOT names a directory that holds no knowledge base")
+def _rejected_kb_root_holds_none(env, result, workdir, called):
+    _refused_as_kb_refuses(env, result, workdir, called)
+
+
+@then(
+    "the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, "
+    "and neither of the two is guessed at"
+)
+def _rejected_two_stores(env, result, workdir, called):
+    _refused_as_kb_refuses(env, result, workdir, called)
+
+
+@pytest.fixture
 def shown(result):
     """What the user is shown, for every Then that expects the command to have succeeded."""
     assert result.returncode == 0, result.stderr
@@ -111,6 +188,26 @@ def shown(result):
 @given("a shop knowledge base holding the shop's types")
 def _shop_knowledge_base(env, shop):
     start(env, shop)
+
+
+@pytest.fixture
+def observed(env):
+    """What the "unchanged" Then below watches: shop-knol's own history, at least. A feature that watches more
+    overrides this fixture with a fuller snapshot, in the same shape before and after."""
+    def _snapshot():
+        return {"journal": knol(env, "journal").stdout}
+    return _snapshot
+
+
+@pytest.fixture
+def before(observed):
+    """What `observed` showed of the knowledge base before the command under test ran."""
+    return observed()
+
+
+@then("the shop's knowledge base is unchanged")
+def _unchanged(observed, before):
+    assert observed() == before
 
 
 @given("the user has not said which role they are")

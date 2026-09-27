@@ -55,8 +55,9 @@ def _shop_with_a_file_mangled_by_hand(env, shop, tmp_path):
 
 
 @when("the user checks the shop's knowledge", target_fixture="result")
-def _check(env):
-    return knol(env, "validate")
+def _check(env, workdir, called):
+    called.update(call="Validate", request=kb_pb2.ValidateRequest())
+    return knol(env, "validate", cwd=workdir)
 
 
 @then("that file is listed as a fault, naming the file")
