@@ -56,6 +56,43 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a field with no value                                                |
       | process | steps that each say more than one thing, one of them a yes and a no  |
       | process | steps that each say more than one thing, one of them with no value   |
+      | role    | a field holding an empty list                                        |
+      | process | steps that each say more than one thing, one of them an empty list   |
+
+  Scenario Outline: Markdown stays well-formed whatever a value holds
+    Pins that nothing a value holds can break the page it is shown on: tables keep their columns and no line trails a space, so the page reads the same in any markdown reader.
+    Given the <thing> holds <holding>
+    When the user publishes the <thing> as markdown into a directory
+    Then that directory holds a page where every table row has one cell for each column
+    And no line on the page ends in a space
+    And every value the <thing> holds is shown on the page
+
+    Examples:
+      | thing   | holding                                                                                                |
+      | process | steps that each say more than one thing, one of them holding the character that separates table cells |
+      | process | steps that each say more than one thing, one of them holding text over more than one line             |
+      | role    | a list of plain values with an empty value among its items                                             |
+      | role    | a field whose text ends in a space                                                                     |
+
+  Scenario: Publishing into a directory given an empty name is refused
+    Pins that an empty target is never taken to mean "here", so publishing never scatters files into wherever the user happens to be working.
+    When the user publishes the role as markdown into a directory whose name is given empty
+    Then publishing is rejected because the directory it was given has an empty name, which names no place
+    And nothing is written to the directory they are working in
+    And the command reports failure to whatever ran it
+
+  Scenario Outline: Publishing something as a kind of file it cannot become is refused
+    Pins that each publisher takes only the type it is made for and says which type it was given, so a role never becomes a half-made skill and a process never a half-made agent.
+    When the user publishes the <thing> as <kind> into a directory
+    Then the <kind> is rejected because it is not made from a <thing>, naming the type <thing>
+    And nothing is written to the directory
+    And the command reports failure to whatever ran it
+
+    Examples:
+      | thing   | kind    |
+      | process | agent   |
+      | role    | skill   |
+      | role    | diagram |
 
   @slice-18
   Scenario: A skill the harness would reject is not published

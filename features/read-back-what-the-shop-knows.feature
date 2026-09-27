@@ -60,6 +60,12 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision
     Then the user sees the decision, from the knowledge base KB_ROOT names
 
+  Scenario: The user reads from a directory that has been removed, having named the knowledge base
+    Pins that a lost working directory takes away only the looking upward: naming the knowledge base outright still works, since a directory that is gone is inside no knowledge base to disagree with it.
+    Given the user is working in a directory that has since been removed, with KB_ROOT naming the shop's
+    When the user reads the decision
+    Then the user sees the decision, from the knowledge base KB_ROOT names
+
   @slice-22
   Scenario: Reading where no knowledge base can be found is refused
     Pins that with neither way in available the command stops and says so, instead of guessing or quietly answering from nothing.
@@ -89,7 +95,8 @@ So that anyone in the shop can look up what has been recorded, the user can read
     Pins that losing the place the user was working in is refused like any other failure to find the shop's knowledge: in plain words, never a traceback.
     Given the user is working in a directory that has since been removed, and nothing names a knowledge base
     When the user reads the decision
-    Then the user is shown the refusal in plain words, never a traceback
+    Then the command is rejected because the directory they are working in is gone
+    And the user is shown the refusal in plain words, never a traceback
     And the command reports failure to whatever ran it
 
   @slice-1.27
@@ -99,4 +106,11 @@ So that anyone in the shop can look up what has been recorded, the user can read
     When the user reads the decision
     Then the command is rejected because that file cannot be read, naming the file
     And the user is shown that fault in plain words, never a traceback
+    And the command reports failure to whatever ran it
+
+  Scenario: Reading something given an empty name is refused
+    Pins that asking for nothing by name is refused as naming no artifact, rather than answered as if some artifact were meant.
+    When the user reads an artifact whose name is given empty
+    Then the command is rejected because the artifact it was given has an empty name, which names no place
+    And the user is shown the refusal in plain words, never a traceback
     And the command reports failure to whatever ran it

@@ -24,6 +24,15 @@ So that the shop can trust what it has recorded, the user can check its knowledg
     Then that decision is listed as behind its type
     And it is not listed as a fault
 
+  Scenario: The user is told what is behind its type even when the check finds faults
+    Pins that a failing check does not hide what is out of date: the user sees the faults and what needs catching up in the same answer, and the shop is still called unsound only for the faults.
+    Given a shop knowledge base where a decision is missing something its type requires and another decision was last checked against an older version of the decision type
+    When the user checks the shop's knowledge
+    Then the fault is listed, naming the artifact and the place in it at fault
+    And the other decision is listed as behind its type
+    And it is not listed as a fault
+    And the command reports failure to whatever ran it
+
   @slice-1.28
   Scenario: The user checks a knowledge base holding a file the shop cannot read
     Pins that a file mangled by hand is just another fault in the list, named and explained in plain words, rather than an error that stops the check.

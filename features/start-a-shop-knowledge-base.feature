@@ -56,7 +56,16 @@ So that the shop has one place that holds everything it knows, the user can star
     Pins that even the first command, with nowhere to put what it would make, stops in words the user can read and never in a traceback.
     Given the user is working in a directory that has since been removed
     When the user starts a shop knowledge base there without naming a directory, saying who they are
-    Then the user is shown the refusal in plain words, never a traceback
+    Then starting the knowledge base is rejected because the directory they are working in is gone
+    And the user is shown the refusal in plain words, never a traceback
+    And the command reports failure to whatever ran it
+
+  Scenario: Starting a knowledge base in a directory given an empty name is refused
+    Pins that an empty name is never taken to mean "here": the user who meant to name a place and named none is told so, and nothing is started where they happen to be working.
+    Given the user is working in an empty directory for the shop's knowledge
+    When the user starts a shop knowledge base in a directory whose name is given empty, saying who they are
+    Then starting the knowledge base is rejected because the directory it was given has an empty name, which names no place
+    And the directory they are working in holds no knowledge base
     And the command reports failure to whatever ran it
 
   @slice-50.8
