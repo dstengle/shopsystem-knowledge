@@ -763,7 +763,26 @@ slices 2 onward, never ahead of them.
 - 2026-09-27 slice 30 green. Someone can now: list the decisions with `shop-knol list --type decision`, see each with its name and title, narrow them with `--where FIELD=VALUE`, or take the names alone with `--ids`.
   Check: `-m slice-30`: 3 passed; `make test`: 27 failed, 35 passed; GREEN plus slices 28 and 30: 35 passed; 27 FAILED lines, and the later-slices expression collects 27; shape check `2 1 1 0`, no module over 250, no renderer listed; `wc -l < cli.py`: 219; arguments snapshot 30 against 28 (with `list` in the loop): only `list` in the top-level usage and choices, in the command list, in the `nosuch` choices, and the new `list -h` block.
   Red first: the undefined Background Given for all three (then the undefined When); scenario 1 then failed on argparse `invalid choice: 'list'` (exit 2); scenario 2 on `unrecognized arguments: --where status=superseded`; scenario 3 on `unrecognized arguments: --ids`. Each Then passed on first run once its When worked, so no Then was seen red on its own assertion.
-  Evidence: `list --type decision` gave three entries in the store's order (by name): `decision/price-reviews-happen-weekly` (title "Price reviews happen weekly", `supersedes: decision/prices-are-reviewed-monthly`), `decision/prices-are-reviewed-monthly` ("Prices are reviewed monthly"), `decision/the-shop-opens-at-nine` ("The shop opens at nine"). `--where status=superseded` gave only `decision/prices-are-reviewed-monthly`. `--ids` gave the three names as a sequence, `- decision/price-reviews-happen-weekly` and so on.
+  Evidence: the three answers, verbatim (`$` is the command; the sequence is printed indented two spaces):
+    list --type decision
+      - id: decision/price-reviews-happen-weekly
+        type: decision
+        title: Price reviews happen weekly
+        supersedes: decision/prices-are-reviewed-monthly
+      - id: decision/prices-are-reviewed-monthly
+        type: decision
+        title: Prices are reviewed monthly
+      - id: decision/the-shop-opens-at-nine
+        type: decision
+        title: The shop opens at nine
+    list --type decision --where status=superseded
+      - id: decision/prices-are-reviewed-monthly
+        type: decision
+        title: Prices are reviewed monthly
+    list --type decision --ids
+      - decision/price-reviews-happen-weekly
+      - decision/prices-are-reviewed-monthly
+      - decision/the-shop-opens-at-nine
   Surprised by: the sequence is printed indented two spaces (kb.content's output); the Thens load it, so no scenario minds.
   Open questions:
   - QUESTION FOR THE SPEC (Review Focus 2): `list --ids` is YAML, not bare lines. Run after this task: `shop-knol list --type decision --ids | xargs -n1 shop-knol read` first ran `read -` and printed `-: a name is a kind and a plain name of lower-case letters, digits and single hyphens, never a path; '-' is not`, then read each name after it. A user would expect one name to a line, or a JSON array.

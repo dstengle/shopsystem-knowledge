@@ -66,5 +66,6 @@ def _list_names(env):
 
 @then("the user sees three names and nothing else")
 def _three_names(shown, recorded):
+    assert isinstance(shown, list)
     assert sorted(shown) == sorted(recorded["ids"].values())
     assert all(isinstance(name, str) for name in shown)
