@@ -24,7 +24,7 @@
 
 **Tech Stack:** Python 3.11, pytest 8 + pytest-bdd 8.1, kb v0.2.1 (`kb.content` for YAML, `kb.contract.kb_pb2` for faults).
 
-**Spec:** `docs/superpowers/specs/2026-09-23-shop-knowledge-design.md`: the CLI section's "shop-knol never shows a traceback" and its `shop-knol init [<root>]` row, and the Renderers section's `markdown` bullet, amended in 57a1305. Read CLAUDE.md alongside it, and in the slice plan slices 50.10 to 50.12, the 2026-09-27 batch 9 final review entry and the re-slice entries after it. The decisions this plan rests on are adrs/0032, 0035, 0037, 0038, 0041, 0042 and 0043.
+**Spec:** `docs/superpowers/specs/2026-09-23-shop-knowledge-design.md`: the CLI section's "shop-knol never shows a traceback" and its `shop-knol init [<root>]` row, and the Renderers section's `markdown` bullet, amended in 4dc0068. Read CLAUDE.md alongside it, and in the slice plan slices 50.10 to 50.12, the 2026-09-27 batch 9 final review entry and the re-slice entries after it. The decisions this plan rests on are adrs/0032, 0035, 0037, 0038, 0041, 0042 and 0043.
 
 ## Global Constraints
 
