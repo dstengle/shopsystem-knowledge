@@ -79,7 +79,7 @@ Every mutating command requires an actor and `-m`.
 | `shop-knol journal [--artifact] [--actor] [--execution] [--since]` | Journal |
 | `shop-knol snapshot --execution <id> <ids...>` | Snapshot |
 | `shop-knol validate` | Validate |
-| `shop-knol init <root>` | Init, which creates `<root>/kb/`, then loads the bootstrap set through Create; needs an actor but no `-m`, its messages are fixed; refused where `<root>/kb/` exists or `<root>` is inside a store |
+| `shop-knol init [<root>]` | Init, which creates `<root>/kb/` where `<root>` defaults to the working directory, since the shop's knowledge sits beside the shop's work; the argument exists only to start a knowledge base somewhere else on purpose. Then loads the bootstrap set through Create; needs an actor but no `-m`, its messages are fixed; refused where `<root>/kb/` exists or `<root>` is inside a store |
 | `shop-knol render <renderer> <id> --to <dir>` | client-side rendering |
 
 Ids are minted by kb from titles and never supplied by the user; `create`
@@ -127,7 +127,11 @@ contract, and writes files to the target directory.
   group as frontmatter and the prose sections as the body.
 - `diagram` for `process`: `<id>.mmd` generated from steps and branches.
 - `markdown` for any type: identity as heading, fields as a definition
-  list, sections at their levels, parts as tables.
+  list, sections at their levels, parts as tables. Every value is laid out
+  as markdown: a list of mappings is a table with one column per key, a
+  list of scalars is a bullet list, a mapping is a nested definition list.
+  No value is ever printed as a programming language's representation of
+  it.
 
 `skill` and `agent` validate their output against the limits the harness
 publishes and fail rather than emit something it would reject.
