@@ -99,8 +99,9 @@ def _answered(response, also=()):
 
 def _init(args) -> int:
     client = kb_client.connect(Path(args.root))
-    client.Init(kb_requests.init_request(args))
-    bootstrap.load(client, args.by["actor"])
+    _answered(client.Init(kb_requests.init_request(args)))
+    for answer in bootstrap.load(client, args.by["actor"]):
+        _answered(answer)
     return 0
 
 

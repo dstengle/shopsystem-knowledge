@@ -8,11 +8,12 @@ TYPES = ("shop-artifact", "tag", "decision", "work-item", "feature", "role", "st
 
 
 def load(client, actor):
+    """Each type's Create answer, as it is made: the next Create is made only when the caller asks for the next answer."""
     for name in TYPES:
         text = resources.files("shop_knowledge.types").joinpath(f"{name}.yaml").read_text()
         content = loads(text)
         title = content.pop("title")
-        client.Create(kb_pb2.CreateRequest(
+        yield client.Create(kb_pb2.CreateRequest(
             type="schema", title=title, content=dumps(content), actor=actor,
             message=f"Define the shop's {title.lower()} type",
         ))

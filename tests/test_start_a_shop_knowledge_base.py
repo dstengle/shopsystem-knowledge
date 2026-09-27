@@ -1,9 +1,12 @@
+import pytest
+from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record
+from driver import knol, record, start
 
 scenarios("start-a-shop-knowledge-base.feature")
 
+_NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
 THE_SHOPS_TYPES = {"shop-artifact", "decision", "feature", "work-item", "role", "process", "step", "tag"}
 
 
@@ -12,9 +15,15 @@ def _an_empty_directory(shop):
     assert not any(shop.iterdir())
 
 
+@pytest.fixture
+def start_in(shop):
+    """The directory the user starts a knowledge base in: the shop's, unless a Given names another."""
+    return shop
+
+
 @when("the user starts a shop knowledge base in that directory, saying who they are", target_fixture="result")
-def _start_saying_who(env, shop):
-    return knol(env, "init", str(shop))
+def _start_saying_who(env, start_in):
+    return knol(env, "init", str(start_in))
 
 
 @then("the shop can hold decisions, features, work items, roles, processes, steps and tags")
@@ -66,3 +75,103 @@ def _defines_nothing(shop):
     # Reads kb's schema directory directly because no shop-knol command lists the types yet (CLAUDE.md, Step definitions).
     held = {path.stem for path in (shop / "kb" / "schema").glob("*.yaml")}
     assert held == THE_SHOPS_TYPES | {"schema"}
+
+
+@when("the user starts a shop knowledge base in that directory, saying who they are and giving no reason", target_fixture="result")
+def _start_giving_no_reason(env, shop):
+    return _start_saying_who(env, shop)
+
+
+@then("the shop's knowledge base is started")
+def _is_started(shop, result):
+    assert result.returncode == 0, result.stderr
+    # Reads the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
+    assert (shop / "kb" / "store.yaml").is_file()
+
+
+@then("everything it was given is recorded in the shop's history under a reason the command writes itself")
+def _recorded_with_its_own_reason(env, result):
+    assert result.returncode == 0, result.stderr
+    changes = loads(knol(env, "journal").stdout)["changes"]
+    created = {change["artifact"]: change["message"] for change in changes if change["op"] == "create"}
+    for name in THE_SHOPS_TYPES:
+        assert created.get(f"schema/{name}"), f"no reason recorded for schema/{name}"
+
+
+@when("the user starts a shop knowledge base in that directory", target_fixture="result")
+def _start(env, shop):
+    return knol(env, "init", str(shop))
+
+
+@then("starting the knowledge base is rejected because starting one must say which role did it")
+def _rejected_for_no_role(result):
+    assert result.stderr.strip() == _NO_ROLE
+
+
+@then("that directory holds no knowledge base")
+def _holds_none(shop):
+    assert not (shop / "kb").exists()
+
+
+@given("a directory holding work of the shop's that is not its knowledge", target_fixture="shops_work")
+def _a_directory_with_work(shop):
+    (shop / "notes.txt").write_text("Order oats on Monday.\n")
+    (shop / "orders").mkdir()
+    (shop / "orders" / "monday.txt").write_text("Twelve sacks of oats.\n")
+    return {"notes.txt": "Order oats on Monday.\n", "orders/monday.txt": "Twelve sacks of oats.\n"}
+
+
+@then("the shop's knowledge is kept in a place of its own inside that directory")
+def _kept_in_its_own_place(shop, shops_work, result):
+    assert result.returncode == 0, result.stderr
+    # Lists the directory because no shop-knol command shows where the store is kept (CLAUDE.md, Step definitions).
+    assert {path.name for path in shop.iterdir()} == {"notes.txt", "orders", "kb"}
+    assert (shop / "kb" / "store.yaml").is_file()
+
+
+@then("the work that was already in that directory is left as it was")
+def _work_left_as_it_was(shop, shops_work):
+    for name, text in shops_work.items():
+        assert (shop / name).read_text() == text
+
+
+@pytest.fixture
+def known_before(env):
+    """What `shop-knol journal` answered before the user started a knowledge base, filled in by the Given that starts one."""
+    return {}
+
+
+def _started_and_noted(env, shop, known_before):
+    start(env, shop)
+    known_before["journal"] = knol(env, "journal").stdout
+
+
+@given("a directory that already holds the shop's knowledge")
+def _a_directory_already_started(env, shop, known_before):
+    _started_and_noted(env, shop, known_before)
+
+
+@given("a directory that sits inside the shop's knowledge", target_fixture="start_in")
+def _a_directory_inside_a_started_one(env, shop, known_before):
+    _started_and_noted(env, shop, known_before)
+    # Names kb/schema, a directory kb made, because no shop-knol command names one (CLAUDE.md, Step definitions).
+    return shop / "kb" / "schema"
+
+
+@then("starting the knowledge base is rejected because that directory already holds a knowledge base")
+def _rejected_already_started(result):
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert "already has a store" in result.stderr
+
+
+@then("starting the knowledge base is rejected because that directory is inside a knowledge base")
+def _rejected_inside_one(result):
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert "stores do not nest" in result.stderr
+
+
+@then("everything the shop already knows is still there, unchanged")
+def _still_there(env, known_before):
+    assert knol(env, "journal").stdout == known_before["journal"]
