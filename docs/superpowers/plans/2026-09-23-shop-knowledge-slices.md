@@ -573,7 +573,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user whose check finds faults sees them, one line each, and in the same run sees which artifacts are behind their type, the command still reporting failure (adrs/0046).
 - Unknown: whether a refusal can carry the check's answer on stdout while its faults still reach the user only through the one printer, one line each, exit 1
 - Needs: none
-- Status: in progress (handed back 2026-09-27)
+- Status: green
 
 ## Slice 50.14: Markdown stays well-formed whatever a value holds, an empty list shown as nothing
 
@@ -1361,3 +1361,9 @@ slices 2 onward, never ahead of them.
   Green in this slice: The user is told what is behind its type even when the check finds faults. Red: The user checks a knowledge base holding a file the shop cannot read (previously green, slice 1.28).
 - 2026-09-27 RE-SLICE after the HAND-BACK of slice 50.13: no row of the hand-back table applies, since no Given, When or Then line reads differently, no scenario is added or removed, and no feature file is touched. The Then "the user is shown that fault in plain words, never a traceback" says that the fault is on stderr in plain words and that there is no traceback. Its step body's "nothing on stdout" was the step definition's own addition, right for every refusal until adrs/0046 let one refusal, a check that finds faults, carry its answer on stdout. Ruling: the shared body keeps "nothing on stdout" for every refusal except a check's answer. stdout is empty, or it is exactly the check's answer document with `sound: false`. So the read-back and record refusals are held as strictly as before, and slice 1.28's check shows its answer as the spec says. Slice 50.13 stays in progress, with no reorder.
 
+- 2026-09-27 slice 50.13 green after the ruling. Someone can now: check the shop's knowledge and, when the check finds faults, see them one line each on stderr and, in the same run, `sound: false` and what is behind its type on stdout, exit 1.
+  Way chosen to show and refuse: `cli._validate` shows `answers.checked` on stdout, then refuses through `_answered`. `Refused` and `main`'s one printer are unchanged, so rule 4 holds with no second printer and no second way to refuse. `answers.checked` answers `sound` from the check's faults and violations.
+  After the ruling: `_shown_in_plain_words` (`tests/conftest.py`) holds stdout empty, or exactly a failing check's answer (a mapping of `sound: false` and `behind`), told apart by stdout's content. Red runs and probes: as in the HAND-BACK entry above.
+  Checks: `-m "slice-1.28 or slice-44 or slice-42.2 or slice-50.13"` → `5 passed`. The record and read-back modules fail only in their four scenarios of slices 50.17 to 50.22.
+  Suite: `.venv/bin/python -m pytest -q` → `16 failed, 71 passed`. Size check lists nothing. `git diff --stat -- features` empty.
+  Surprised by: the shared refusal Then's "nothing on stdout" also held slice 1.28's check (handed back, ruled above). Open questions: none. Next: slice 50.14.

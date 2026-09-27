@@ -52,10 +52,16 @@ def _no_role(env):
 
 @then("the user is shown that fault in plain words, never a traceback")
 def _shown_in_plain_words(result):
-    """Something said on stderr, no traceback anywhere, nothing on stdout."""
+    """Something said on stderr, no traceback anywhere, and nothing on stdout but, for a check that found faults, its
+    answer (adrs/0046): exactly `sound: false` and what is behind its type. Told apart by what stdout holds, since the
+    step does not know which command ran."""
     assert result.stderr.strip(), "nothing was said"
     assert "Traceback" not in result.stderr + result.stdout, result.stderr
-    assert result.stdout == ""
+    assert result.stdout == "" or _a_failing_checks_answer(loads(result.stdout)), result.stdout
+
+
+def _a_failing_checks_answer(document) -> bool:
+    return isinstance(document, dict) and document.keys() == {"sound", "behind"} and document["sound"] is False
 
 
 @then("the user is shown the refusal in plain words, never a traceback")
