@@ -267,7 +267,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, a user working as the shopkeeper on a named piece of work records one and the change is attributed to both; and a user records a decision whose title is already used and is shown a name of its own for it, the taken name with a number added, while the earlier decision still reads back by its name.
 - Unknown: none
 - Needs: none
-- Status: in progress: two of three green; the pipe scenario waits on slice 28.1 and finishes after it
+- Status: green
 
 ## Slice 28.1: The command line's arguments sit apart from its handlers
 
@@ -750,3 +750,13 @@ slices 2 onward, never ahead of them.
   Check: failing scenarios diff against before: same; `make test`: 31 failed, 31 passed; arguments snapshot before and 28.1: no diff; shape check `2 1 1 0`, no module over 250, no renderer listed; `wc -l < cli.py`: 208; `grep -c "arguments.py" CLAUDE.md`: 1; `grep -cE "print|Request|connect|_pb2|handler" arguments.py`: 2, both the word "prints" in the help texts of create and apply, which the snapshot holds byte for byte (with `print\(` in place of `print` it is 0).
   Surprised by: the check's `print` matches two help strings; and `_HANDLERS` cannot sit beside `_MUTATING` because it names functions defined below, so it is the last thing in the module.
   Next: slice 28, its pipe scenario.
+- 2026-09-27 slice 28 green. Someone can now: pipe a decision from another command into `shop-knol create decision --from - -m <why>` and have the shop hold it as if it had come from a file.
+  Check: `-m slice-28`: 3 passed; `make test`: 30 failed, 32 passed; GREEN plus slice 28: 32 passed; shape check `2 1 1 0`, no module over 250, no renderer listed; `grep -n stdin cli.py`: line 105, inside `_document`; `wc -l < cli.py`: 210; arguments snapshot 28 against 28.1: no diff.
+  Red first: the undefined Given; then `-: No such file or directory` (exit 1) once the steps and `knol`'s `input` existed; then, with `_document` reading the pipe, a Then asserting a wrong title failed on the title; then the true Then passed.
+  Evidence: `create decision --from -` with the decision piped answered `id: decision/prices-are-reviewed-monthly`, `revision: 1`; `read decision/prices-are-reviewed-monthly --whole` gave the title, the Purpose section ("Keep prices current.") and the Rationale section ("Monthly was enough once."), revision 1. `printf 'title: x\nsections: 3\n' | shop-knol create decision --from - -m why` printed on stderr `decision/x at sections: 3 is not of type 'array'` and exited 1 (the shape check names the artifact by the type and title, so `standard input` shows only in a fault with no such name, e.g. on `apply`: `standard input at changes/0: ... is not valid under any of the given schemas`).
+  Surprised by: nothing.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 1): an empty batch still ends in a traceback. Run after this task: `printf 'changes: []\n' > b.yaml; shop-knol apply --from b.yaml -m why` printed a traceback ending `subprocess.CalledProcessError: Command '[git, ... commit, -q, -m, why, --]' returned non-zero exit status 1`, exit 1. The same through the pipe (`printf 'changes: []\n' | shop-knol apply --from - -m why`) gives the same traceback. Rule 4 is broken by kb v0.2.0; either a pin bump once kb refuses an empty Apply, or `minItems: 1` on the batch shape. A user would expect one plain line saying the batch holds no change.
+  - QUESTION FOR THE SPEC (Review Focus 5): `apply` takes a pipe the spec's table does not give it. Run after this task: `printf 'changes: []\n' | shop-knol apply --from - -m why` is read from standard input and reaches kb (traceback as above); a valid batch piped in (`changes: [{create: decision, content: {...}}]`) is applied and answers `id: decision/second`, `revision: 1`. A user would expect either every `--from` to take `-` or `apply` to refuse it plainly.
+  - Piped text is read to its end with no limit and an empty pipe is text like any other; no scenario says otherwise.
+  Next: slice 30.

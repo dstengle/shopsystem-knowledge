@@ -7,11 +7,12 @@ from pathlib import Path
 from kb.content import dumps, loads
 
 
-def knol(env, *args, cwd=None):
-    """Run one shop-knol command, from `cwd` when the user works somewhere other than where the suite runs."""
+def knol(env, *args, cwd=None, input=None):
+    """Run one shop-knol command, from `cwd` when the user works somewhere other than where the suite runs,
+    with `input` on its standard input when another command's output is piped in."""
     return subprocess.run(
         [sys.executable, "-m", "shop_knowledge", *args],
-        env=env, capture_output=True, text=True, cwd=cwd,
+        env=env, capture_output=True, text=True, cwd=cwd, input=input,
     )
 
 

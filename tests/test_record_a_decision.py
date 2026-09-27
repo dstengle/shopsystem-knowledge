@@ -225,3 +225,27 @@ def _earlier_still_reads_back(env):
     assert shown["title"] == OLDER["title"]
     assert shown["revision"] == 1
     assert "Monthly was enough once." in read.stdout
+
+
+@given("a decision produced by another command", target_fixture="piped_decision")
+def _decision_from_another_command():
+    """What another command printed, as text: the suite pipes it in rather than naming a file."""
+    return dumps(OLDER)
+
+
+@when("the user records it by piping it in, saying who they are and why", target_fixture="result")
+def _record_by_piping(env, piped_decision):
+    return knol(env, "create", "decision", "--from", "-", "-m", "Record the monthly review", input=piped_decision)
+
+
+@then("the shop holds the decision just as if it had come from a file")
+def _holds_the_piped_decision(env, result):
+    assert result.returncode == 0, result.stderr
+    read = knol(env, "read", loads(result.stdout)["id"], "--whole")
+    assert read.returncode == 0, read.stderr
+    shown = loads(read.stdout)
+    assert shown["title"] == OLDER["title"]
+    assert [(section["title"], section["body"]) for section in shown["sections"]] == [
+        (section["title"], section["body"]) for section in OLDER["sections"]
+    ]
+    assert shown["revision"] == 1
