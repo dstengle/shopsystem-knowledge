@@ -1,13 +1,14 @@
 """The steps of publish-what-the-shop-knows.feature about a markdown page staying well-formed whatever a value holds:
 the Givens that give a process step or the role a value that could break the page, each giving the outline's `page`
 fixture, and the Thens that check the page's tables, its lines' ends and its values. The feature's test module
-star-imports this and no other does (adrs/0035). It reuses the markdown steps' helpers from `publish_as_markdown`."""
+star-imports this and no other does (adrs/0035). The pages it builds come from `markdown_pages`, which no step module
+star-imports."""
 import re
 
 from pytest_bdd import given, parsers, then
 
 from driver import whole
-from publish_as_markdown import _process_page, _role_page, _step_holding, _write_over
+from markdown_pages import _process_page, _role_page, _step_holding, _write_over, pages
 
 # A backslash and the character after it, which a markdown reader takes as that character, never as a cell's end.
 _ESCAPED = re.compile(r"\\.")
@@ -100,4 +101,4 @@ def _no_trailing_space(target):
 @then(parsers.parse("every value the {thing} holds is shown on the page"))
 def _every_value_shown(target, page):
     """Each value the Given wrote, where the page the Given gave lays it out: the page, line by line."""
-    assert {path.name: path.read_text().splitlines() for path in target.iterdir()} == page
+    assert pages(target) == page

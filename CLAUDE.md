@@ -70,6 +70,9 @@ own it.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).
+- What more than one of a feature's step modules need, that is not itself a step, goes to a helper module of its own,
+  imported plainly, as `tests/driver.py` is: a sibling step module is star-imported by its feature's test module
+  alone (adrs/0035), so no step module imports another.
 - A When that runs shop-knol gives what it ran as the fixture `result`, so the shared Thens that say how a command
   ended, such as "the command reports failure to whatever ran it", read it under one name in every feature.
 - `tests/clock/` is put on shop-knol's `PYTHONPATH`, with `TEST_NOW` set, only through `driver.at`, when a scenario

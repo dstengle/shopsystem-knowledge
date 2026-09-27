@@ -645,7 +645,7 @@ slices 2 onward, never ahead of them.
 - Observable: A reader finds the expected markdown pages built in one place, with no step module importing another (adrs/0035).
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.16.6: The batch 11 review's minor findings are tidied
 
@@ -1537,3 +1537,9 @@ slices 2 onward, never ahead of them.
   Checks: `git diff --stat -- features src` empty; size check lists nothing (record module 201, `record_refused_files.py` 80); a grep of the tests for kb's message fragments finds only feature step text.
   Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`, `failing-after-t4.txt` identical to `failing-before-t4.txt` and `failing-before.txt`.
   Surprised by: `make dev` does not restore an edited installed kb by itself. Open questions: the named-once Then spells the place `sections/0/body` itself, since kb v0.2.1 publishes no `NotCanonical` to read its `path` from (slice 50.23). Next: slice 50.16.5.
+- 2026-09-27 Slice 50.16.5 green (enabling). A reader finds the expected markdown pages built in one place, with no step module importing another (adrs/0035).
+  New helper module `tests/markdown_pages.py` (74 lines, no step, imported plainly as `driver.py` is): holds `_write_over`, `_role_page`, `_row`, `_STEP_ROWS`, `_process_page`, `_step_holding` (moved from `publish_as_markdown.py`, unchanged but for `_step_holding`), plus one page reader, `pages(target)`, the dict `_a_page_of` and `_every_value_shown` (`markdown_well_formed.py`) both now assert with instead of each spelling out `target.iterdir()` its own way. `markdown_well_formed.py` no longer imports from its sibling `publish_as_markdown`; both import `markdown_pages` plainly. `_steps_as_a_table` (`publish_as_markdown.py`) now compares `pages(target)` with `_process_page([], {})` rather than a spelled-out table. `_step_holding` raises `ValueError` for an id no step holds, rather than passing `steps` through unchanged. CLAUDE.md's Step definitions section gained a bullet naming this pattern (a helper more than one step module needs, imported plainly, not star-imported).
+  Throwaway: `_step_holding(steps, "no-such-step", x=1)` against `[{"id": "a"}, {"id": "b"}]` raised `ValueError: no step holds the id 'no-such-step'` (logged here, not kept as a test).
+  Checks: `grep -n "from publish_as_markdown" tests/*.py` -> one line, `test_publish_what_the_shop_knows.py`'s own `from publish_as_markdown import *`, the feature's test module star-importing its sibling step module as adrs/0035 requires; no sibling step module imports another. `grep -c "@given\|@when\|@then" tests/markdown_pages.py` -> `0`. `grep -c '"| check-it' tests/publish_as_markdown.py` -> `0`. Size check lists nothing (`markdown_pages.py` 74, `publish_as_markdown.py` 157, `markdown_well_formed.py` 104). `git diff --stat -- features src` empty. `-m "slice-20 or slice-50.6 or slice-50.11 or slice-50.14 or slice-50.18.2"` -> `6 failed, 13 passed`, the six being 50.18.2's own, unchanged from before the move.
+  Suite: `.venv/bin/python -m pytest -q` -> `21 failed, 80 passed`; `failing-after-t5.txt` identical to `failing-before-t5.txt`.
+  Surprised by: nothing. Next: slice 50.16.6.
