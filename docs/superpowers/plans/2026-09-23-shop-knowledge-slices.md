@@ -600,6 +600,69 @@ slices 2 onward, never ahead of them.
 - Observable: Anyone can read whether the removed working directory, the yes/no/empty spelling, the tidy, the check's answer beside its faults, the well-formed page and the renderers' type check kept the code in the shape CLAUDE.md sets.
 - Unknown: none
 - Needs: none
+- Status: green
+
+## Slice 50.16.1: The steps know kb only through what kb publishes, with a stand-in for kb where the contract cannot reach
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`, the same 21 as before the slice; `grep -rn "kb import canonical\|kb\.canonical\|kb\.journal\|kb\.store\|kb\.values\|store.yaml\|/ \"schema\"\|\"schema\")\|read_bytes\|_everything_under" tests` -> nothing; `grep -rn '/ "kb" /' tests` -> nothing; `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `git diff --stat -- features src` -> empty; CLAUDE.md's Step definitions section says what adrs/0047 says (no step reads or writes a knowledge base's files; a stand-in at the contract boundary for a state no contract call can produce), and its rule 1 names `tests/` alongside `src/`
+- Observable: A reader finds no step touching a knowledge base's files or any kb module kb does not publish: the damaged, unfit and dangling artifacts the check and read-back scenarios need, and the history on a given day the review scenarios need, come from a stand-in for kb that answers with kb's contract messages, while every other scenario runs against the real kb.
+- Unknown: whether a stand-in for kb can be put in front of shop-knol's own process at the contract boundary, from `tests/` alone, with nothing under `src/` knowing it is there
+- Needs: none
+- Status: planned
+
+## Slice 50.16.2: No test reaches a knowledge base outside its own temporary directory
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`, the same 21; a throwaway `kb/store.yaml` made in the checkout's parent directory makes the suite refuse to start, saying why (logged, then removed); every shop-knol run the driver makes has a working directory under the test's temporary directory, and a throwaway call of the driver with no working directory is refused (logged, reverted)
+- Observable: A developer running the suite in a directory whose parents hold the shop's real knowledge base finds the suite refusing to run rather than reading or writing it.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.16.3: The steps hold kb only to a fault order kb states
+
+- Kind: enabling
+- Check: the 50.16 review's R4 check: `grep -n "splitlines()\[0\]\|splitlines()\[1:\]\|lines\[0\]\|lines\[1\]" tests/test_check_the_shops_knowledge_is_sound.py` -> nothing; the batch Then of `tests/test_make_several_changes_at_once.py` compares fault lines as a set; a throwaway reversal of the printer's loop in `cli._refuse` leaves those scenarios green (logged, reverted); the suite -> `80 passed, 21 failed`
+- Observable: A reader finds no Then that fails if kb returns the same faults in another order.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.16.4: The steps never spell kb's fault wording
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `80 passed, 21 failed`; each Then the 50.16 review's coupling point 17 names checks what the shop's spec owns (one line, the artifact and the place, printed as kb returned it), comparing with the fault kb's in-process client (`kb.client.connect`) returns for the same state, or with what the stand-in gave, never a message fragment written in the step; a throwaway rewording of one kb fault message in `.venv` leaves those scenarios green (logged, reverted with `make dev`)
+- Observable: A reader finds kb free to reword its faults without a shop scenario going red, since the shop holds kb only to its `rule` names and to printing what kb returns (kb adrs/0018).
+- Unknown: whether every Then that reads kb's words today can get the same words from kb itself for the same state
+- Needs: none
+- Status: planned
+
+## Slice 50.16.5: The markdown pages the publish steps expect are built in one module that holds no step
+
+- Kind: enabling
+- Check: the 50.16 review's R1 check (`grep -n "from publish_as_markdown" tests/*.py` -> nothing; the new helper module holds no step; one page reader; `_steps_as_a_table` compares with the built page; `_step_holding` refuses an id it does not find); the suite -> `80 passed, 21 failed`
+- Observable: A reader finds the expected markdown pages built in one place, with no step module importing another (adrs/0035).
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.16.6: The batch 11 review's minor findings are tidied
+
+- Kind: enabling
+- Check: the 50.16 review's R2 check (`_not_a_fault` matches the artifact exactly; `_a_failing_checks_answer` has a docstring; `_after_the_colon` renamed; the type-refusal Then spells its three lines; `renderers/source.py`'s docstring says `refusal` decides; `_role_page`'s docstring plain); the suite -> `80 passed, 21 failed`
+- Observable: A reader finds the batch 11 minors gone.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.16.7: Eighth architecture review
+
+- Kind: enabling
+- Check: an Opus review of the code and the step definitions against `CLAUDE.md` and adrs/0047, after the six enabling slices 50.16.1 to 50.16.6, is in this plan's log, and every refactor it calls for is a slice of its own with a check -> the log entry and those slices
+- Observable: Anyone can read whether the stand-in, the test isolation and the tidies left the suite knowing kb only through what kb publishes.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Slice 50.17: A name given empty is refused, starting a knowledge base first
@@ -617,6 +680,33 @@ slices 2 onward, never ahead of them.
 - Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green)
 - Observable: A user starting a knowledge base from a directory that has since been removed is told, in plain words, that the directory they are working in is gone.
 - Unknown: whether shop-knol can tell a working directory that is gone from the operating system's other refusals, before kb is called
+- Needs: none
+- Status: planned
+
+## Slice 50.18.1: Prose the shop cannot keep is refused in plain words
+
+- Kind: capability
+- Scenarios: shop-knowledge / record-a-decision / A decision whose prose the shop cannot keep is refused; shop-knowledge / revise-what-the-shop-knows / A revision whose prose the shop cannot keep is refused (both rows); shop-knowledge / add-a-step-to-a-process / A step whose prose the shop cannot keep is refused; shop-knowledge / make-several-changes-at-once / A batch whose prose the shop cannot keep leaves the shop untouched
+- Observable: A user recording, revising, adding a step or applying a batch from a file whose prose has a line ending in a space before its last is refused in plain words naming the place, and the shop is unchanged, where today the command ends in a traceback.
+- Unknown: whether text kb cannot keep is found where a user's file is read and checked, once, for every command that sends content
+- Needs: none
+- Status: planned
+
+## Slice 50.18.2: Markdown's remaining well-formed cases
+
+- Kind: capability
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown stays well-formed whatever a value holds (all ten rows; its six rows added in b0b535f are red: a title ending in a space; a section title ending in a space; a list of lists with an empty last item; a list holding a mapping with an empty last value; a field group's list of mappings with an empty last value; a column name holding the cell separator; the outline moves from `@slice-50.14` to `@slice-50.18.2`, its first four rows credited to slice 50.14)
+- Observable: A user publishing as markdown finds no heading or item line ending in a space and every table's heading row with one cell per column, whatever the artifact holds.
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 50.18.3: A check with no knowledge base to check shows no answer
+
+- Kind: capability
+- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / Checking where the shop's knowledge cannot be found is refused (all three rows)
+- Observable: A user checking where no single knowledge base can be found is refused as every command is, and shown no check's answer; the behaviour 0c7d199 restored, now held by the suite.
+- Unknown: none
 - Needs: none
 - Status: planned
 
@@ -655,6 +745,15 @@ slices 2 onward, never ahead of them.
 - Unknown: none here; kb finds the store
 - Needs: kb's store finding treats a working directory that no longer exists as inside no store (the kb pin-bump request logged 2026-09-27)
 - Status: blocked: awaiting a kb release carrying the pin-bump request
+
+## Slice 50.23: shop-knowledge imports nothing of kb but what kb publishes
+
+- Kind: enabling
+- Check: `grep -rhoE "^from kb[a-z_.]* import|^import kb[a-z_.]*" src tests | sort -u` -> only `kb.client`, `kb.content` and `kb.contract`; `pyproject.toml` pins the kb release carrying kb's slice 100; `.venv/bin/python -m pytest -q` -> every scenario passes; CLAUDE.md's rule 1 names only what kb publishes (kb adrs/0018)
+- Observable: A reader finds `NotCanonical` taken from `kb.content`, where kb publishes it, and nothing else of kb's internals anywhere in the repository.
+- Unknown: none
+- Needs: the kb release carrying kb slice 100 (`NotCanonical` re-exported from `kb.content`), pinned
+- Status: blocked: awaiting a kb release carrying kb slice 100
 
 ## Satisfied by existing behaviour
 
@@ -1398,4 +1497,7 @@ slices 2 onward, never ahead of them.
   Deferred to slice 50.16's review, as the final review triaged: `_not_a_fault`'s prefix match; `_a_failing_checks_answer`'s docstring; `_every_value_shown` repeating `_a_page_of`; `_after_the_colon`'s name; the type-refusal Then's recomputed wording; `renderers/source.py`'s module docstring.
   Declined as out of scope: trailing spaces in the agent's body; the skill not type-checking the steps a process uses; markdown syntax inside field names; `validate` taking no `--json`. To check the escape, the reviewer rendered a synthetic table through GitHub's markdown API (`gh api markdown`); no project content was sent.
   Next: push. Then slice 50.16, the seventh architecture review, before 50.17 to 50.21 and the routed cases are formulated and planned.
+- 2026-09-27 Slice 50.16, seventh architecture review (Opus), report kept at `.superpowers/batch12/arch-review-50.16.md` and summarised here. Suite `80 passed, 7 failed` (the seven slices 50.17 to 50.22's); size check clean. Every CLAUDE.md rule and module-map row met in full, but for: `tests/markdown_well_formed.py` importing from its sibling step module (adrs/0035); `_defines_nothing` reading `kb/schema` where `list --type schema --ids` now shows it (CLAUDE.md Step definitions); the batch 10 and 11 deferred minors. Refactors called for: R1 (markdown pages in one module with no step), R2 (the batch 11 minors), R3 (the steps observe through shop-knol and name kb's storage in one place), R4 (no Then relies on kb's fault order). Not called for, with reasons: `preexec_fn`'s thread-safety (no threads or workers); `cli._init`'s root on `connect` (the bootstrap Creates go to it; kb's Init ignores it). Coupling to kb beyond its contract: eighteen points, nine in `src/` and nine in `tests/`, eleven of which would break if kb changed behind its contract: `kb.content` and `kb.canonical.NotCanonical` in `src/`; content kb cannot keep refused outside `cli._document` (already a traceback, slice 50.18.1); `kb.content` and `kb.canonical` in the steps; hand-edits of stored files; `kb/store.yaml` and `kb/schema` observed; every byte under `kb/` compared; `kb.journal.now` replaced; kb's fault wording spelled; kb's fault order relied on. Three open questions, answered by the user on 2026-09-27: kb publishes `kb.content`, with `NotCanonical`, as part of its versioned contract; shop-knowledge knows nothing of kb's internals in any code, tests included, a stand-in for kb at the contract boundary giving the states the contract cannot produce, and no test ever reaching live data; kb's fault `rule` names are contract and its wording is not, the shop checking that what it prints is kb's (adrs/0047, kb adrs/0018; both specs amended in e23a0c3 and kb 00710a6).
+- 2026-09-27 Re-slice after slice 50.16. R3 becomes 50.16.1 under adrs/0047, widened from confining kb's storage to removing it: a stand-in for kb at the contract boundary replaces every hand-edit, `kb.canonical`, the clock patch, the byte snapshot and the storage names. The test isolation the user asked for is 50.16.2. R4 is 50.16.3; the fault wording (question 3) is 50.16.4, with the unknown; R1 is 50.16.5; R2 is 50.16.6. They run first, the stand-in's unknown the largest, and the eighth review (50.16.7) follows the six. The routed scenarios of b0b535f are 50.18.1 (prose kb cannot keep, its unknown), 50.18.2 (markdown's six rows; the outline moves to `@slice-50.18.2`, its first four rows credited to 50.14) and 50.18.3 (the check with no store). 50.23 swaps `NotCanonical`'s import for kb's published one once kb's slice 100 is released and pinned. The batch 11 final review's note that 50.13's scenario should pin `sound: false` is dropped: the formulator found its Thens already say the shop is unsound through "the command reports failure to whatever ran it", as the feature does throughout.
+- 2026-09-27 KB REQUEST: kb slice 99 (a call from a removed working directory) is green in kb at e1ce2cf, reviewed clean; with kb slices 100 (publishing `kb.content`'s `NotCanonical`) and 101 (kb's own test isolation), it waits for a kb release, the user's decision (adrs/0006).
 

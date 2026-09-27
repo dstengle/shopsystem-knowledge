@@ -44,6 +44,7 @@ So that the shop can trust what it has recorded, the user can check its knowledg
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-50.18.3
   Scenario Outline: Checking where the shop's knowledge cannot be found is refused
     Pins that a check with no single knowledge base to check is refused rather than answered, so a failure to find the shop's knowledge never reads as a shop with nothing wrong.
     Given the user is working <where>

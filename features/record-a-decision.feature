@@ -85,6 +85,7 @@ So that a choice the shop has made is written down where the whole shop can find
     And the user is shown that fault in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-50.18.1
   Scenario: A decision whose prose the shop cannot keep is refused
     Pins that text the shop cannot keep as written is refused in plain words, naming where it is, rather than altered quietly or ended in a traceback.
     Given a decision in a file whose prose has a line ending in a space before its last line

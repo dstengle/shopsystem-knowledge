@@ -18,6 +18,7 @@ So that what the shop knows stays true as the shop learns, the user can revise w
     Then only the rationale changes
     And the rest of the decision reads as before
 
+  @slice-50.18.1
   Scenario Outline: A revision whose prose the shop cannot keep is refused
     Pins that a revision is held to the same rule as a new record: text the shop cannot keep as written is refused in plain words, and what was recorded stays as it was.
     Given a file whose prose has a line ending in a space before its last line

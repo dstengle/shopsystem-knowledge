@@ -59,7 +59,7 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a field holding an empty list                                        |
       | process | steps that each say more than one thing, one of them an empty list   |
 
-  @slice-50.14
+  @slice-50.18.2
   Scenario Outline: Markdown stays well-formed whatever a value holds
     Pins that nothing a value holds can break the page it is shown on: tables keep their columns and no line trails a space, so the page reads the same in any markdown reader.
     Given the <thing> holds <holding>

@@ -20,6 +20,7 @@ So that a process can be built up a step at a time, the user can add a step to a
     And "check the stock" itself is unchanged
     And another process using it is unaffected
 
+  @slice-50.18.1
   Scenario: A step whose prose the shop cannot keep is refused
     Pins that adding to a process is held to the same rule as recording and revising: text the shop cannot keep as written is refused in plain words, and the process is left as it was.
     Given a step written in a file whose prose has a line ending in a space before its last line

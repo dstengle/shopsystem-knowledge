@@ -21,6 +21,7 @@ So that a set of changes that only makes sense together lands together, the user
     And none of the changes are in the shop
     And the user is told every fault in the batch, not only the first
 
+  @slice-50.18.1
   Scenario: A batch whose prose the shop cannot keep leaves the shop untouched
     Pins that a batch is held to the same rule as a single change: text the shop cannot keep as written is refused in plain words, naming where it is, and nothing in the batch lands.
     Given a batch that records a decision and points the work item at it, the decision's prose having a line ending in a space before its last line
