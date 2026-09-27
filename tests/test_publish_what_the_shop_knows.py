@@ -2,7 +2,7 @@ import re
 
 import pytest
 from kb.content import loads
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
 from driver import knol, record, start
 from markdown_well_formed import *  # noqa: F403  pytest-bdd registers steps only through a star import
@@ -198,3 +198,27 @@ def _rejected_agent_for_the_limits(result):
         "publishes; this one is -shop:steward",
     ]
     assert result.returncode != 0
+
+
+_MADE_FROM = {"agent": "role", "skill": "process", "diagram": "process"}
+
+
+def _a(word):
+    return f"an {word}" if word[0] in "aeiou" else f"a {word}"
+
+
+@when(
+    parsers.re(r"the user publishes the (?P<thing>process|role) as (?P<kind>agent|skill|diagram) into a directory"),
+    target_fixture="result",
+)
+def _publish_as_a_kind_it_cannot_become(env, thing, kind, process_name, role_name, target):
+    """The process by the Background's `process_name`, or its role by `role_name`, with the renderer the kind names."""
+    name = process_name if thing == "process" else role_name
+    return knol(env, "render", kind, name, "--to", str(target))
+
+
+@then(parsers.parse("the {kind} is rejected because it is not made from a {thing}, naming the type {named}"))
+def _rejected_for_its_type(result, kind, thing, named, process_name, role_name):
+    """One line on the artifact published from: the type the kind is made from, then the type this one is."""
+    name = process_name if thing == "process" else role_name
+    assert result.stderr.splitlines() == [f"{name}: {_a(kind)} is made from {_a(_MADE_FROM[kind])}; this one is {_a(named)}"]

@@ -9,10 +9,11 @@ from shop_knowledge.renderers.rendered import Rendered, refused
 
 def render(client, name: str) -> Rendered:
     """The diagram's file by path, the process's name without its kind, or the faults of the read that could not be
-    made."""
+    made, or of an artifact that is not a process."""
     process = source.whole(client, name)
-    if process.faults:
-        return refused(process.faults)
+    faults = source.refusal(process, "diagram", "process")
+    if faults:
+        return refused(faults)
     slug = source.slug(process.id)
     return Rendered({f"{slug}.mmd": _flowchart(loads(process.content).get("steps", []))}, [])
 

@@ -7,10 +7,12 @@ from shop_knowledge.renderers.rendered import Rendered, refused
 
 
 def render(client, name: str) -> Rendered:
-    """The agent's file by path, the role's name without its kind, or the faults of the read that could not be made."""
+    """The agent's file by path, the role's name without its kind, or the faults of the read that could not be made, or
+    of an artifact that is not a role."""
     role = source.whole(client, name)
-    if role.faults:
-        return refused(role.faults)
+    faults = source.refusal(role, "agent", "role")
+    if faults:
+        return refused(faults)
     content = loads(role.content)
     harness = content.get("harness", {})
     body = "\n\n".join(sections.laid_out(content.get("sections", []), 1))

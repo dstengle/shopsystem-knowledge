@@ -9,10 +9,12 @@ from shop_knowledge.renderers.rendered import Rendered, refused
 
 
 def render(client, name: str) -> Rendered:
-    """The skill's files by path, or the faults of the reads that could not be made."""
+    """The skill's files by path, or the faults of the reads that could not be made, or of an artifact that is not a
+    process."""
     process = source.whole(client, name)
-    if process.faults:
-        return refused(process.faults)
+    faults = source.refusal(process, "skill", "process")
+    if faults:
+        return refused(faults)
     steps = loads(process.content).get("steps", [])
     shared = {used: source.whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
     faults = [fault for response in shared.values() for fault in response.faults]
