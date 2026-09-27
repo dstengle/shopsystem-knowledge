@@ -1,0 +1,14 @@
+type: object
+required: [changes]
+properties:
+  changes:
+    type: array
+    items:
+      type: object
+      properties:
+        create: {type: string}
+        write: {type: string}
+        content: {type: object}
+      oneOf:
+        - required: [create, content]
+        - required: [write, content]

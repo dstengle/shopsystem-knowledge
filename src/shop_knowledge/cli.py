@@ -12,7 +12,7 @@ from kb import canonical, client as kb_client
 from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
-from shop_knowledge import batch, bootstrap
+from shop_knowledge import batch, bootstrap, shape
 from shop_knowledge.renderers import RENDERERS
 
 
@@ -27,9 +27,17 @@ class Refused(Exception):
 def main(argv=None) -> int:
     args = _parser().parse_args(argv)
     try:
-        return args.handler(args)
+        return _run(args)
     except Refused as refusal:
         return _refuse(refusal.faults)
+
+
+def _run(args) -> int:
+    """The command's handler, with the operating system's refusal of a path made a fault that names it."""
+    try:
+        return args.handler(args)
+    except OSError as error:
+        raise Refused([kb_pb2.Fault(artifact=str(error.filename or ""), message=error.strerror or str(error))]) from error
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -88,8 +96,9 @@ def _show(document: dict) -> None:
 
 def _plain(fault: kb_pb2.Fault) -> str:
     """One fault as a line a person reads: where, then what is wrong."""
+    message = " ".join(line.strip() for line in fault.message.splitlines())
     where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
-    return f"{where}: {fault.message}"
+    return f"{where}: {message}" if where else message
 
 
 def _refuse(faults) -> int:
@@ -113,16 +122,22 @@ def _init(args) -> int:
     return 0
 
 
-def _document(source: str) -> dict:
-    """A file the user gave, read the way kb reads content, or refused with the place kb could not read it at."""
+def _document(source: str, shape_name: str) -> dict:
+    """A file the user gave, read the way kb reads content and checked against its shape, or refused as a fault on it."""
     try:
-        return loads(Path(source).read_text())
+        document = loads(Path(source).read_text())
+    except UnicodeDecodeError as fault:
+        message = f"it is not text that can be read: {fault}"
+        raise Refused([kb_pb2.Fault(artifact=source, rule="content", message=message)])
     except canonical.NotCanonical as fault:
         raise Refused([kb_pb2.Fault(artifact=source, path=fault.path, rule="content", message=str(fault))])
+    if faults := shape.violations(document, shape_name, source):
+        raise Refused(faults)
+    return document
 
 
 def _create(args) -> int:
-    content = _document(args.source)
+    content = _document(args.source, "content")
     title = text(content.pop("title", None))
     response = _answered(_client().Create(kb_pb2.CreateRequest(
         type=args.type, title=title, content=dumps(content), actor=_actor(), message=args.message,
@@ -164,7 +179,7 @@ def _validate(args) -> int:
 
 
 def _apply(args) -> int:
-    operations = batch.operations(_document(args.source))
+    operations = batch.operations(_document(args.source, "batch"))
     response = _answered(_client().Apply(kb_pb2.ApplyRequest(
         operations=operations, actor=_actor(), message=args.message,
     )))

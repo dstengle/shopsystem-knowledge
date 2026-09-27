@@ -222,7 +222,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user who names a file or a directory shop-knol cannot use, or gives a file of the wrong shape, is told so in one plain line naming it, never a traceback, for every command that takes one, so CLAUDE.md's rule 4 holds by construction rather than scenario by scenario.
 - Unknown: Can the shape of every file a user gives be checked where it is read, in the words kb uses for a violation, with the shapes held as data as the shop's types are?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 20.2: What the user is shown is shaped apart from the command line
 
@@ -673,3 +673,21 @@ slices 2 onward, never ahead of them.
     Worse than the plan predicted: a list of mappings is not a nested list but Python's own repr on one line. A user would expect the table the scenario's title promises, and a page of readable steps.
   - The scenario is silent on the file's name (`<name>.md` chosen), on depth (0 chosen), and on a list of mappings, a field group inside a list, or a section with no body.
   Next: slice 20.1.
+- 2026-09-27 slice 20.1 green. Every file a user gives is checked where `_document` reads it against a JSON Schema shape held as data in `shapes/` (by `shape.py`), a file that is not text is refused as a fault on it, `main` turns an `OSError` into a fault naming the path, and the printer joins a multi-line message and leaves out an empty artifact.
+  Assumption "the shape of every file a user gives can be checked where it is read, in kb's words, with the shapes held as data": held. Evidence, the eleven stderr lines of Step 1's cases, verbatim (each exit 1, stdout 0, one line, 0 tracebacks):
+    nocontent.yaml at changes/0: {'delete': 'tag/pricing'} is not valid under any of the given schemas
+    nochanges.yaml: 'changes' is a required property
+    notalist.yaml at changes: 3 is not of type 'array'
+    list.yaml: ['a'] is not of type 'object'
+    list.yaml: ['a'] is not of type 'object'
+    nope.yaml: No such file or directory
+    adir: Is a directory
+    nottext.yaml: it is not text that can be read: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+    afile/say-hello: Not a directory
+    afile: File exists
+    a kind must name a type the store holds; the store holds no type called 'nosuch'
+  Check: same 48, 48 failed, 14 passed.
+  Surprised by: nothing in the shapes; the render cases name the file the write reached (`afile/say-hello`), not the directory given. Decision in adrs/0016.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 1): argparse still refuses in its own way, so rule 4 holds for files and paths but not for arguments. Reproduction, `shop-knol nosuch`: argparse's usage on stderr, exit 2. A user would expect one plain line and exit 1. No scenario pins any argument error.
+  Next: slice 20.2.

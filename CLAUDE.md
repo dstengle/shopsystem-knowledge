@@ -12,11 +12,13 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 |---|---|---|
 | `cli.py` | `shop-knol`: its arguments, one handler per command making the kb calls that command maps to, the actor and the client from the environment, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
+| `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
 | `renderers/` | one module per renderer, each reading an artifact through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
 | `renderers/source.py` | reading the artifact a renderer publishes, and its name without its kind | rendering, writing |
 | `renderers/limits.py` | the limits the harness publishes, each checked against a renderer's output before anything is written, with where it was published | rendering, files |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts | the types themselves |
 | `types/*.yaml` | the shop's types, one file each, as schema artifacts in kb's schema language | code |
+| `shapes/*.yaml` | the shape of each file a user gives, as JSON Schema | code |
 | `__main__.py` | `python -m shop_knowledge` | anything else |
 
 A new concern gets a new module and a row here. Nothing is added "beside" existing code in a module that does not
@@ -27,7 +29,7 @@ own it.
 1. **kb only through its contract.** Code under `src/` calls kb through `kb.client.connect` with
    `kb.contract.kb_pb2` messages. From the rest of kb it imports only `kb.content`, content as YAML 1.2 text, and
    `kb.canonical`, for `NotCanonical` alone, the exception `kb.content` raises. It never reads or writes a file inside a
-   knowledge base and never runs git.
+   knowledge base and never runs git. `jsonschema` is imported by `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
@@ -45,7 +47,7 @@ own it.
 - No module over 250 lines. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
-- A file a user gives is read in one place, `cli._document`, and a kb answer's faults are refused in one way,
+- A file a user gives is read, and checked against its shape, in one place, `cli._document`, and a kb answer's faults are refused in one way,
   `cli._answered`. Two places differ: Validate's answer is raised as `Refused` over its faults and violations together,
   and a renderer turns a kb answer's faults into the `Rendered` faults it gives back, which `_render` refuses through
   `_answered`.

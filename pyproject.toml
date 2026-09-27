@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "The shop's interface to its knowledge base: types, seed content, renderers, and the shop-knol command line"
 requires-python = ">=3.11"
 dependencies = [
+  "jsonschema",
   "shopsystem-kb @ git+https://github.com/dstengle/shopsystem-kb.git@v0.2.0",
 ]
 
@@ -25,6 +26,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "shop_knowledge.types" = ["*.yaml"]
+"shop_knowledge.shapes" = ["*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
