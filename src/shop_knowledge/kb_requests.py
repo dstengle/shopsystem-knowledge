@@ -76,3 +76,9 @@ def refs_request(args) -> kb_pb2.RefsRequest:
 def search_request(args) -> kb_pb2.SearchRequest:
     scope = getattr(kb_pb2.SearchRequest, args.scope.upper())
     return kb_pb2.SearchRequest(text=args.text, type=args.type or "", scope=scope)
+
+
+def snapshot_request(args) -> kb_pb2.SnapshotRequest:
+    """The piece of work is `--execution`, which replaces any execution KB_ACTOR names (adrs/0025)."""
+    actor = kb_pb2.Actor(role=args.by["actor"].role, execution=args.execution)
+    return kb_pb2.SnapshotRequest(actor=actor, artifacts=args.names, message=args.by["message"])

@@ -366,7 +366,7 @@ slices 2 onward, never ahead of them.
 - Observable: An agent records, for its piece of work, the decision and process it read, and the shop's history holds one entry naming each with the version read.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 40: Add a step to a process
 
@@ -882,3 +882,8 @@ slices 2 onward, never ahead of them.
   Check: diff of the FAILED lines against `failing-36.3.txt`: `same` (17); `.venv/bin/python -m pytest -q`: `17 failed, 45 passed`; the four greps: `0`, `0`, `0`, and the `inspect` assertion succeeds; help snapshot `36.3` against `36.3-before`: no diff; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 209 lines.
   Surprised by: nothing.
   Next: slice 38.
+- 2026-09-27 slice 38 green. Someone can now: record, for a piece of work, the decision and the process it read with `shop-knol snapshot --execution ID NAME... -m WHY`, and see in `journal` one entry naming each with the revision read.
+  Evidence: `KB_ACTOR=agent shop-knol snapshot --execution restock-the-shelves decision/prices process/close-up -m ...` answers `entry: <name>`; `journal --execution restock-the-shelves` shows one change, `op: snapshot`, `read: [{artifact: decision/prices-are-reviewed-monthly, revision: 1}, {artifact: process/close-up, revision: 1}]`. Seen red first on the Background (no step), then on the missing command, then on the Then (`KeyError: 'read'`) once the command existed. Check: `-m slice-38` 1 passed; `.venv/bin/python -m pytest -q` 16 failed, 46 passed (the failing set is the earlier 17 less slice 38's); GREEN plus slices 32, 34, 36, 38: 46 passed; help snapshot 38 against 38-before: only `snapshot` added; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 216 lines.
+  Surprised by: nothing.
+  Open questions: QUESTION FOR THE SPEC (Review Focus 3): `snapshot`'s `--execution` and `KB_ACTOR`'s execution can disagree. Reproduction, run after this task: `KB_ACTOR=agent:one shop-knol snapshot --execution two decision/prices -m read`, then `journal --execution one` answers `changes: []` and `journal --execution two` answers the one snapshot entry, actor `agent`, execution `two`, read `decision/prices` at revision 1. The entry is made under `two` (adrs/0025); a user would expect one source for the piece of work, or a refusal when they differ.
+  Next: slice 40.

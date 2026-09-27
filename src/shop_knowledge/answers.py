@@ -61,8 +61,9 @@ def history(response: kb_pb2.JournalResponse) -> dict:
 
 
 def change(entry: kb_pb2.Entry) -> dict:
-    """One entry of the history as the user is shown it: when, who and for what piece of work, what it did, and why."""
-    return {
+    """One entry of the history as the user is shown it: when, who and for what piece of work, what it did, and why;
+    and, when it recorded what a piece of work read, each artifact read with the revision read."""
+    shown = {
         "at": entry.at,
         "actor": {"role": entry.actor.role, "execution": entry.actor.execution},
         "op": entry.op,
@@ -70,6 +71,14 @@ def change(entry: kb_pb2.Entry) -> dict:
         "revision": entry.revision,
         "message": entry.message,
     }
+    if entry.read:
+        shown["read"] = [{"artifact": read.artifact, "revision": read.revision} for read in entry.read]
+    return shown
+
+
+def recorded(response: kb_pb2.SnapshotResponse) -> dict:
+    """What a snapshot gives back: the name of the history entry kb made."""
+    return {"entry": response.entry}
 
 
 def listed(response: kb_pb2.ListResponse) -> list:

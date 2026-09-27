@@ -94,4 +94,9 @@ def command_parser() -> argparse.ArgumentParser:
     render.add_argument("renderer", choices=sorted(RENDERERS))
     render.add_argument("locator")
     render.add_argument("--to", required=True, metavar="DIR")
+
+    snapshot = commands.add_parser("snapshot", help="record what a piece of work read, with the version of each")
+    snapshot.add_argument("--execution", required=True, metavar="ID", help="the piece of work that read them")
+    snapshot.add_argument("names", nargs="+", help="the artifacts it read")
+    snapshot.add_argument("-m", dest="message", help="why")
     return parser

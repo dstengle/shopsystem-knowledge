@@ -48,7 +48,7 @@ def _run(args) -> int:
         raise Refused([kb_pb2.Fault(artifact=str(error.filename or ""), message=error.strerror or str(error))]) from error
 
 
-_MUTATING = ("init", "create", "write", "apply")
+_MUTATING = ("init", "create", "write", "apply", "snapshot")
 _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
 _NO_MESSAGE = "every change must carry a message, given with -m"
 
@@ -179,6 +179,12 @@ def _search(args) -> int:
     return 0
 
 
+def _snapshot(args) -> int:
+    response = _answered(_client().Snapshot(kb_requests.snapshot_request(args)))
+    _show(answers.recorded(response))
+    return 0
+
+
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
     _write(rendered.files, Path(args.to))
@@ -205,5 +211,6 @@ _HANDLERS = {
     "list": _list,
     "refs": _refs,
     "search": _search,
+    "snapshot": _snapshot,
     "render": _render,
 }
