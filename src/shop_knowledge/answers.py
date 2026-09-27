@@ -77,6 +77,19 @@ def listed(response: kb_pb2.ListResponse) -> list:
     return [{"id": stub.id, "type": stub.type, "title": stub.title, **loads(stub.fields)} for stub in response.stubs]
 
 
+def reached(response: kb_pb2.RefsResponse) -> list:
+    """What following the links gives back, nearest first: each artifact reached, the link of its last step, its
+    stub's fields, and the route taken to it."""
+    return [
+        {
+            "id": found.stub.id, "type": found.stub.type, "title": found.stub.title, "via": found.stub.field,
+            **loads(found.stub.fields),
+            "route": [{"field": hop.field, "id": hop.id} for hop in found.route],
+        }
+        for found in response.reached
+    ]
+
+
 def names(response: kb_pb2.ListResponse) -> list:
     """What a list asking for names alone gives back: the names, and nothing else."""
     return list(response.ids)

@@ -191,6 +191,16 @@ def _list(args) -> int:
     return 0
 
 
+def _refs(args) -> int:
+    direction = kb_pb2.RefsRequest.IN if args.inbound else kb_pb2.RefsRequest.OUT
+    response = _answered(_client().Refs(kb_pb2.RefsRequest(
+        locator=_locator(args.locator), depth=1 if args.depth is None else args.depth, direction=direction,
+        via=args.via or "", type=args.type or "",
+    )))
+    _show(answers.reached(response))
+    return 0
+
+
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
     _write(rendered.files, Path(args.to))
@@ -215,5 +225,6 @@ _HANDLERS = {
     "apply": _apply,
     "journal": _journal,
     "list": _list,
+    "refs": _refs,
     "render": _render,
 }

@@ -303,7 +303,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user follows the links out of a decision and sees the older decision, in and sees both work items, narrowed to one link and one kind and sees both work items and nothing else, or two steps out and sees the older decision and the tag each with the route taken.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 32.1: What a command showed is read by one fixture every feature shares
 
@@ -841,3 +841,11 @@ slices 2 onward, never ahead of them.
   Placed, by risk among the slices not yet begun and never ahead of all of them: 32.1 after 32; 36.1 before 38, which needs the room; 36.2 after 36.1, since it adds lines to `main`; 36.3 after 36.2. No scenario is added or moved, so no feature file and no `@slice` tag changes. Slice 42.1, the fourth review, stays where it is and now follows ten implemented slices; its check says which.
   Next: writing-plans over slices 32, 32.1, 34, 36, 36.1, 36.2, 36.3, 38, 40 and 42, one task per slice in that order, to `2026-09-27-shop-knowledge-batch6-implementation.md`.
 - 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch6-implementation.md`, ten tasks for slices 32, 32.1, 34, 36, 36.1, 36.2, 36.3, 38, 40 and 42 in slice order. Written under adrs/0011: no code, nothing built or replayed. Each task says why its scenarios or check are red today, found by running them in this checkout (every red scenario stops at an undefined step) and by probing kb v0.2.0 in `.superpowers/batch6/`. Expected counts are taken from the tags (failed/passed): 27/35 before, then 23/39, 23/39, 20/42, 17/45, 17/45, 17/45, 17/45, 16/46, 14/48 and 12/50, the 12 left exactly those tagged 44 or later. Decisions in adrs/0022 to 0026. No request to bump the pin beyond kb slice 97's. No feature file touched. Its Review Focus holds five questions for the spec: a role's review showing the store's start, the narrowed links showing nothing narrowed away, `snapshot`'s two sources for the piece of work, a step added with a title already used, and `--json` on `read` alone. Next: slice 32.
+- 2026-09-27 slice 32 green. Someone can now: follow the links out of a decision and see the older decision, follow them in and see both work items, narrow them to one link and one kind and see the same two and nothing else, and go two steps out to see the older decision and the tag, each with the route taken.
+  Surprised by: nothing.
+  Evidence (`shop-knol refs <decision> ...`, ids abbreviated by nothing; script `.superpowers/batch6/s32.py`):
+  `--outbound`: `[{id: decision/prices-are-reviewed-monthly, type: decision, title: Prices are reviewed monthly, via: supersedes, tags: [tag/pricing], route: [{field: supersedes, id: decision/prices-are-reviewed-monthly}]}]`.
+  `--inbound`: two entries, `work-item/move-the-review-to-mondays` then `work-item/tell-the-pricing-team`, each `via: decisions`, `decisions: [decision/price-reviews-happen-weekly]`, route one hop `{field: decisions, id: <itself>}`.
+  `--inbound --via decisions --type work-item`: the same two entries, byte for byte.
+  `--outbound --depth 2`: the older decision as above, then `{id: tag/pricing, type: tag, title: pricing, via: tags, route: [{field: supersedes, id: decision/prices-are-reviewed-monthly}, {field: tags, id: tag/pricing}]}`.
+  Open questions: Review Focus 2, the narrowed links show nothing narrowed away. Reproduction: run `refs <decision> --inbound` and `refs <decision> --inbound --via decisions --type work-item` in the Background's shop; the two answers are identical, since the only things pointing at the decision are the two work items through `decisions`, so scenario 3 would pass with the narrowing flags ignored. Next: slice 32.1.

@@ -51,6 +51,15 @@ def command_parser() -> argparse.ArgumentParser:
     )
     listing.add_argument("--ids", action="store_true", help="the names alone")
 
+    refs = commands.add_parser("refs", help="follow the links out of an artifact or into it, nearest first, each with its route")
+    refs.add_argument("locator")
+    direction = refs.add_mutually_exclusive_group(required=True)
+    direction.add_argument("--outbound", action="store_true", help="what the artifact points at")
+    direction.add_argument("--inbound", action="store_true", help="what points at the artifact")
+    refs.add_argument("--via", metavar="FIELD", help="only through this link")
+    refs.add_argument("--type", help="only the artifacts of this type")
+    refs.add_argument("--depth", type=int, help="how many steps to follow (one when not said)")
+
     render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
     render.add_argument("renderer", choices=sorted(RENDERERS))
     render.add_argument("locator")
