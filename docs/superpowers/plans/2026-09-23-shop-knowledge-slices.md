@@ -276,7 +276,7 @@ slices 2 onward, never ahead of them.
 - Observable: The command line has room again: slice 28's pipe and slice 30's list each add a few lines to the module holding the handlers without it reaching CLAUDE.md's 250-line limit, because the arguments every command takes are declared in a module of their own.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 30: List what the shop has recorded
 
@@ -746,3 +746,7 @@ slices 2 onward, never ahead of them.
   Green in this slice: "The user records a decision as part of a piece of work", "A decision whose title is already used is given a name of its own" (both met by existing behaviour once their steps existed; each first went red on a wrong Then, the execution `restock-the-shelvesx` and the name `-3`). Red: "The user pipes a decision in instead of naming a file" (its steps are not in the tree; the attempt is in `.superpowers/batch4/s28-scenario1-attempt.diff`).
 - 2026-09-27 Suite: 31 passed, 31 failed
 - 2026-09-27 RE-SLICE after the HAND-BACK of slice 28 (first row of the table: split the remaining work; no Given, When or Then changes, no scenario is added, no feature file is touched). Cut slice 28.1, an enabling refactor with a check, that moves the arguments out of `cli.py` so the handlers and the parser no longer share one module (adrs/0021). Slice 28 keeps its number, tag and two green scenarios; it is in progress, and its pipe scenario finishes after 28.1, the only work it needs first. Slice 30 follows unchanged. Order: 28.1, then slice 28's pipe scenario, then 30, then the 30.1 review, which now counts ten slices.
+- 2026-09-27 slice 28.1 green. Moved `cli._parser` whole to the new `src/shop_knowledge/arguments.py` (50 lines, public `command_parser()`, no handler bound); `cli.py` builds it from there and looks the handler up by `args.command` in `_HANDLERS`, a table at the end of the module (after the handlers it names); the CLAUDE.md map has the `arguments.py` row and `cli.py` no longer owns "its arguments". `cli.py` is 208 lines.
+  Check: failing scenarios diff against before: same; `make test`: 31 failed, 31 passed; arguments snapshot before and 28.1: no diff; shape check `2 1 1 0`, no module over 250, no renderer listed; `wc -l < cli.py`: 208; `grep -c "arguments.py" CLAUDE.md`: 1; `grep -cE "print|Request|connect|_pb2|handler" arguments.py`: 2, both the word "prints" in the help texts of create and apply, which the snapshot holds byte for byte (with `print\(` in place of `print` it is 0).
+  Surprised by: the check's `print` matches two help strings; and `_HANDLERS` cannot sit beside `_MUTATING` because it names functions defined below, so it is the last thing in the module.
+  Next: slice 28, its pipe scenario.

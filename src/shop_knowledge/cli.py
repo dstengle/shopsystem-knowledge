@@ -3,7 +3,6 @@
 Every file it reads and everything it prints is YAML 1.2, read and written by kb's own reading and writing of content.
 A refusal, kb's or its own, is printed in plain words on stderr, one fault a line, with a non-zero exit; never a traceback.
 """
-import argparse
 import json
 import os
 import sys
@@ -13,7 +12,7 @@ from kb import canonical, client as kb_client
 from kb.content import dumps, loads, text
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, batch, bootstrap, shape
+from shop_knowledge import answers, arguments, batch, bootstrap, shape
 from shop_knowledge.renderers import RENDERERS
 
 
@@ -26,7 +25,7 @@ class Refused(Exception):
 
 
 def main(argv=None) -> int:
-    args = _parser().parse_args(argv)
+    args = arguments.command_parser().parse_args(argv)
     try:
         return _run(args)
     except Refused as refusal:
@@ -37,7 +36,7 @@ def _run(args) -> int:
     """The command's handler, with the operating system's refusal of a path made a fault that names it."""
     try:
         args.by = _by(args) if args.command in _MUTATING else {}
-        return args.handler(args)
+        return _HANDLERS[args.command](args)
     except OSError as error:
         raise Refused([kb_pb2.Fault(artifact=str(error.filename or ""), message=error.strerror or str(error))]) from error
 
@@ -45,59 +44,6 @@ def _run(args) -> int:
 _MUTATING = ("init", "create", "write", "apply")
 _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
 _NO_MESSAGE = "every change must carry a message, given with -m"
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="shop-knol")
-    commands = parser.add_subparsers(dest="command", required=True)
-
-    init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
-    init.add_argument("root")
-    init.set_defaults(handler=_init)
-
-    create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
-    create.add_argument("type")
-    create.add_argument("--from", dest="source", required=True, metavar="FILE")
-    create.add_argument("-m", dest="message", help="why")
-    create.set_defaults(handler=_create)
-
-    read = commands.add_parser("read", help="read an artifact at a glance")
-    read.add_argument("locator")
-    read.add_argument("--json", action="store_true", help="the same answer written as JSON")
-    read.add_argument("--section", metavar="TITLE", help="only the section with this title")
-    read.add_argument("--whole", action="store_true", help="every field and section, links as names")
-    read.add_argument(
-        "--resolve", nargs="?", const=1, type=int, metavar="DEPTH",
-        help="a whole read with links filled in, DEPTH steps (one when not said)",
-    )
-    read.set_defaults(handler=_read)
-
-    write = commands.add_parser("write", help="replace an artifact, or a part of it as <name>#<place>, from a YAML file")
-    write.add_argument("locator")
-    write.add_argument("--from", dest="source", required=True, metavar="FILE")
-    write.add_argument("-m", dest="message", help="why")
-    write.set_defaults(handler=_write_artifact)
-
-    validate = commands.add_parser(
-        "validate", help="check everything the shop knows; lists every fault, exits non-zero if any",
-    )
-    validate.set_defaults(handler=_validate)
-
-    apply = commands.add_parser("apply", help="make every change in a batch file as one change; prints the set's name")
-    apply.add_argument("--from", dest="source", required=True, metavar="FILE")
-    apply.add_argument("-m", dest="message", help="why")
-    apply.set_defaults(handler=_apply)
-
-    journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
-    journal.add_argument("--artifact", default="", help="only the changes to this one")
-    journal.set_defaults(handler=_journal)
-
-    render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
-    render.add_argument("renderer", choices=sorted(RENDERERS))
-    render.add_argument("locator")
-    render.add_argument("--to", required=True, metavar="DIR")
-    render.set_defaults(handler=_render)
-    return parser
 
 
 def _by(args) -> dict:
@@ -248,3 +194,15 @@ def _write(files: dict[str, str], directory: Path) -> None:
         path = directory / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
+
+
+_HANDLERS = {
+    "init": _init,
+    "create": _create,
+    "read": _read,
+    "write": _write_artifact,
+    "validate": _validate,
+    "apply": _apply,
+    "journal": _journal,
+    "render": _render,
+}
