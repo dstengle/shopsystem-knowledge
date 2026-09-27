@@ -42,6 +42,7 @@ So that the harness and people outside the command line can use what the shop kn
       | process | steps that each say more than one thing | its steps | a table with one column for each thing a step says |
       | role    | more than one tag                       | its tags  | a bullet list                                      |
 
+  @slice-50.11
   Scenario Outline: Markdown never shows a yes, a no or an empty value the way a program prints it
     Pins that the simplest values are held to the same rule as lists and mappings, wherever they sit on the page, so a person reading it never meets a program's spelling of true, false or nothing.
     Given the <thing> holds <holding>

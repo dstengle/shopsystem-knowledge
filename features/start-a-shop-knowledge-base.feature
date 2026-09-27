@@ -51,6 +51,7 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
+  @slice-50.10
   Scenario: Starting a knowledge base from a directory that has been removed ends in a plain refusal
     Pins that even the first command, with nowhere to put what it would make, stops in words the user can read and never in a traceback.
     Given the user is working in a directory that has since been removed

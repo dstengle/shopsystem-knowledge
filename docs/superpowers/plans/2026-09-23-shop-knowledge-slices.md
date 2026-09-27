@@ -541,21 +541,29 @@ slices 2 onward, never ahead of them.
 
 ## Slice 50.10: shop-knol refuses, never tracebacks, when the working directory no longer exists
 
-- Kind: enabling
-- Check: from a working directory that has been removed, `shop-knol init`, `shop-knol init <dir>` and `shop-knol read decision/x` each write exactly one line to stderr, no `Traceback`, exit 1; `.venv/bin/python -m pytest -q` -> `66 passed`; `.venv/bin/python -m shop_knowledge init -h` still shows `root` as optional, the working directory its default; the size check lists nothing; `git diff --stat -- features` -> empty
-- Observable: A user whose shell sits in a directory that has since been removed is refused shop-knol's own way, not shown a Python traceback, for any command, `init` included.
-- Unknown: none
-- Needs: `arguments.py` still declares `root`'s meaning once (adrs/0032); the fix does not move that declaration, it only stops `command_parser()` from evaluating `Path.cwd()` where a removed directory raises unguarded
+- Kind: capability
+- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal; shop-knowledge / read-back-what-the-shop-knows / Reading from a directory that has been removed ends in a plain refusal
+- Observable: A user whose shell sits in a directory that has since been removed is refused in one plain line, not shown a traceback, whether they start a knowledge base or read from one.
+- Unknown: whether shop-knol can meet a working directory that no longer exists with its own refusal before it has taken any argument, with the working directory still `init`'s default and that default still declared once (adrs/0032, 0037)
+- Needs: a way for the steps to run shop-knol from a directory removed after the user's shell entered it
 - Status: planned
 
-## Slice 50.11: markdown never shows a boolean or a null the way Python spells it
+## Slice 50.11: Markdown spells a yes, a no and an empty value in words
 
 - Kind: capability
-- Scenarios: none yet; needs a scenario before it is implemented, since CLAUDE.md's step definitions "never add behaviour no scenario asks for" and no current shop type declares a boolean or null field. Whether that scenario needs formulating-features' approval or is settled by adrs/0038 alone under adrs/0039 ("a scenario the spec settles needs no approval") is for whoever plans it to read against the spec's Renderers passage.
-- Check (once scenario-driven): a page holding a `true`/`false`/`null` value shows no `True`, `False` or `None`, in the field list or inside a table cell; `.venv/bin/python -m pytest -q` -> unchanged pass count plus the new scenario; the size check lists nothing
-- Observable: A user publishing an artifact whose value is a boolean or null finds it spelled the way YAML 1.2 (or the page) spells it, not the way Python's `str()` spells it.
-- Unknown: how to spell it (YAML's `true`/`false`/`null`, or something else the spec settles) — the only open part, since adrs/0038 ("A Python repr on a page is a defect") already settles that Python's spelling is wrong
-- Needs: `renderers/markdown.py`'s `_inline` (`markdown.py:80`, `" ".join(str(value).splitlines())`) needs a `bool`/`None` branch ahead of the plain-value fallback
+- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown never shows a yes, a no or an empty value the way a program prints it (all four rows: a role's yes and no, a role's empty value, a process step's yes and no, a process step's empty value)
+- Observable: A user publishing a role or a process as markdown finds a yes as `yes`, a no as `no` and an empty value as nothing, in the field list and in a table cell alike, and never `True`, `False`, `None`, `true`, `false` or `null` (adrs/0043).
+- Unknown: whether a value the user wrote as a yes, a no or an empty value still reaches the page as one after kb has checked and stored it, and is told apart there from text that reads `yes`
+- Needs: the Then that no value on the page is a programming language's representation also looks for the spellings adrs/0043 rules out (batch 9 final review, minor 7); slice 50.6's scenarios run under that Then unchanged
+- Status: planned
+
+## Slice 50.12: The batch 9 review's minor findings are tidied
+
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> `72 passed`, the same as after slice 50.11; `grep -rn "Task [0-9]" src tests --include="*.py"` -> nothing; `grep -c "role/stock-keeper" tests/publish_as_markdown.py` -> 0; `grep -c "Fault(" src/shop_knowledge/renderers/limits.py` -> 1; in the publish feature's test module every fixture is defined before the first step; a reader of the markdown renderer's table test and field layout, and of the publish feature's markdown steps module, finds each docstring naming everything its code holds and does; the size check lists nothing; `git diff --stat -- features src/shop_knowledge/types` -> empty
+- Observable: A reader finds the markdown steps publishing whichever role a Given names, every fixture of the publish feature in one place, the harness limits' faults built one way, no docstring pointing at a task of a batch plan, and the docstrings the review found short or awkward saying what their code does.
+- Unknown: none
+- Needs: none
 - Status: planned
 
 ## Satisfied by existing behaviour
@@ -1193,3 +1201,6 @@ slices 2 onward, never ahead of them.
 
   Seven Minor findings (a sibling module's docstring undercounting what it holds; a step reading a fixture defined out of its usual place; `_publish_as_markdown` hardcoding a role name a future outline row could silently mis-target; a docstring pointing at this plan instead of an ADR; a repeated `Fault(...)`-building shape across `skill` and `agent` in `limits.py`; an awkward docstring sentence in `_is_table`; the repr-detection Then not covering the item-3 gap) are logged here, not fixed: the reviewer confirms none breaks a CLAUDE.md rule. Left for a future enabling tidy-up slice, alongside 50.10 and 50.11.
   Next: push. Every slice in this plan (50.5-50.9) is green; 50.10 and 50.11 wait for their own plan.
+- 2026-09-27 Suite: 66 passed, 6 failed. The six failing are the scenarios commit 6e205f7 added, each on `StepDefinitionNotFoundError`: the two removed-working-directory scenarios (feature-formulator, marked settled on "shop-knol never shows a traceback") and the four rows of the markdown yes/no/empty outline. The formulator marked the outline settled; it was raised to deciding here, since its step must say whether YAML's own `true`/`false`/`null` count as a program's representation. The user chose `yes`, `no` and nothing (adrs/0043, spec amended in 57a1305), which settles it.
+- 2026-09-27 Re-slice: slice 50.10 turns capability, pinned by the two new scenarios as the batch 9 final review asked, rather than a manual check that would not catch the regression returning. Slice 50.11 takes the outline, its spelling no longer open. Slice 50.12 cut, enabling: the batch 9 final review's minor findings 1 to 6 (minor 7, the repr Then, rides with 50.11) and the 50.9 review's `_items` docstring. The three are independent of each other in behaviour, ordered by unknown, the tidy last so it tidies what 50.11 leaves. Tags: `@slice-50.10` selects 2, `@slice-50.11` selects 4. Three implemented slices since the sixth review, so no review is due.
+- 2026-09-27 Answered by this re-slice: the QUESTION FOR THE SPEC on a boolean or null's spelling (adrs/0043). Still open, from the formulator: what reason a refusal from a removed working directory gives (the scenarios ask only for one plain line); whether `KB_ROOT` still serves a user whose working directory was removed; whether `init <absolute path>` works from one.

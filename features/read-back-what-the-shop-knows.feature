@@ -84,6 +84,7 @@ So that anyone in the shop can look up what has been recorded, the user can read
     Then the command is rejected because KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at
     And the command reports failure to whatever ran it
 
+  @slice-50.10
   Scenario: Reading from a directory that has been removed ends in a plain refusal
     Pins that losing the place the user was working in is refused like any other failure to find the shop's knowledge: in plain words, never a traceback.
     Given the user is working in a directory that has since been removed, and nothing names a knowledge base
