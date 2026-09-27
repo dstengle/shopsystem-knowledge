@@ -18,29 +18,6 @@ ROLE = {
 }
 
 
-@given(
-    "a shop knowledge base holding a process whose steps include a branch and a reused shared step, and a role",
-    target_fixture="process_name",
-)
-def _shop_with_a_process_and_a_role(env, shop, tmp_path):
-    start(env, shop)
-    record(env, tmp_path, "step", CHECK_THE_STOCK, "Share the stock check")
-    record(env, tmp_path, "role", ROLE, "Describe the stock keeper")
-    return record(env, tmp_path, "process", {
-        "title": "Restock a shelf",
-        "steps": [
-            {"title": "Check it", "uses": "step/check-the-stock", "with": [{"name": "shelf", "value": "dairy"}]},
-            {
-                "title": "Decide",
-                "does": "Decide whether the shelf is short.\n",
-                "branches": [{"when": "the shelf is short", "go_to": "order-more"}, {"when": "it is not", "go_to": "stop"}],
-            },
-            {"title": "Order more", "does": "Order enough to fill the shelf.\n"},
-            {"title": "Stop", "does": "Leave the shelf as it is.\n"},
-        ],
-    }, "Describe restocking a shelf")
-
-
 def _everything_under(directory):
     # Reads the knowledge base's files directly, to observe that no shop-knol command changed them (CLAUDE.md, Step definitions).
     return {path.relative_to(directory): path.read_bytes() for path in sorted(directory.rglob("*")) if path.is_file()}
@@ -71,6 +48,29 @@ def before(shop):
 def role_name():
     """The role the user publishes as an agent, or as markdown: the Background's, unless a Given names another."""
     return "role/stock-keeper"
+
+
+@given(
+    "a shop knowledge base holding a process whose steps include a branch and a reused shared step, and a role",
+    target_fixture="process_name",
+)
+def _shop_with_a_process_and_a_role(env, shop, tmp_path):
+    start(env, shop)
+    record(env, tmp_path, "step", CHECK_THE_STOCK, "Share the stock check")
+    record(env, tmp_path, "role", ROLE, "Describe the stock keeper")
+    return record(env, tmp_path, "process", {
+        "title": "Restock a shelf",
+        "steps": [
+            {"title": "Check it", "uses": "step/check-the-stock", "with": [{"name": "shelf", "value": "dairy"}]},
+            {
+                "title": "Decide",
+                "does": "Decide whether the shelf is short.\n",
+                "branches": [{"when": "the shelf is short", "go_to": "order-more"}, {"when": "it is not", "go_to": "stop"}],
+            },
+            {"title": "Order more", "does": "Order enough to fill the shelf.\n"},
+            {"title": "Stop", "does": "Leave the shelf as it is.\n"},
+        ],
+    }, "Describe restocking a shelf")
 
 
 @when("the user publishes the process as a skill into a directory", target_fixture="result")

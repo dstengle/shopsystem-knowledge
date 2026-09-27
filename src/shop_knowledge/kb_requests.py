@@ -8,7 +8,9 @@ from shop_knowledge import batch
 
 
 def init_request(args) -> kb_pb2.InitRequest:
-    return kb_pb2.InitRequest(root=str(args.root), actor=args.by["actor"])
+    """The root sent to kb absolute, so a refusal it raises quotes a path that names the place, not the working
+    directory's own name for it."""
+    return kb_pb2.InitRequest(root=str(args.root.resolve()), actor=args.by["actor"])
 
 
 def create_request(args, document: dict) -> kb_pb2.CreateRequest:

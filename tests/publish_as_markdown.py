@@ -1,8 +1,9 @@
 """The steps of publish-what-the-shop-knows.feature about publishing as markdown: the When that renders the role or
 the process as markdown; the Givens that give the process steps saying more than one thing, or that add a yes and a
 no or an empty value to one of them, and the Givens that give the role more than one tag, or a yes and a no, or an
-empty value; and the Thens that say what the page holds, the outline's `page` fixture among them. The feature's test
-module star-imports this and no other does."""
+empty value, the yes/no/empty Givens among them giving the outline's `page` fixture that the Then `_a_page_of`
+consumes; and the Thens that say what the page holds. The feature's test module star-imports this and no other
+does."""
 import re
 
 from kb.content import dumps
