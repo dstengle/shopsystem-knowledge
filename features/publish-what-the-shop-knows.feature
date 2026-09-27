@@ -42,6 +42,20 @@ So that the harness and people outside the command line can use what the shop kn
       | process | steps that each say more than one thing | its steps | a table with one column for each thing a step says |
       | role    | more than one tag                       | its tags  | a bullet list                                      |
 
+  Scenario Outline: Markdown never shows a yes, a no or an empty value the way a program prints it
+    Pins that the simplest values are held to the same rule as lists and mappings, wherever they sit on the page, so a person reading it never meets a program's spelling of true, false or nothing.
+    Given the <thing> holds <holding>
+    When the user publishes the <thing> as markdown into a directory
+    Then that directory holds a page of the <thing>
+    And nothing on the page is a programming language's representation of a value
+
+    Examples:
+      | thing   | holding                                                              |
+      | role    | a field that is a yes and a field that is a no                       |
+      | role    | a field with no value                                                |
+      | process | steps that each say more than one thing, one of them a yes and a no  |
+      | process | steps that each say more than one thing, one of them with no value   |
+
   @slice-18
   Scenario: A skill the harness would reject is not published
     Pins that publishing checks its own output against the harness's limits and refuses outright, rather than leaving a file that fails later.

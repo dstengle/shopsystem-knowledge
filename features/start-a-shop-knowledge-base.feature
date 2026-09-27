@@ -51,6 +51,13 @@ So that the shop has one place that holds everything it knows, the user can star
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
+  Scenario: Starting a knowledge base from a directory that has been removed ends in a plain refusal
+    Pins that even the first command, with nowhere to put what it would make, stops in words the user can read and never in a traceback.
+    Given the user is working in a directory that has since been removed
+    When the user starts a shop knowledge base there without naming a directory, saying who they are
+    Then the user is shown the refusal in plain words, never a traceback
+    And the command reports failure to whatever ran it
+
   @slice-50.8
   Scenario: The user starts a knowledge base somewhere else on purpose by naming the place
     Pins that naming a place is the only way to start the shop's knowledge away from where the user works, so it lands elsewhere only when they mean it to.
