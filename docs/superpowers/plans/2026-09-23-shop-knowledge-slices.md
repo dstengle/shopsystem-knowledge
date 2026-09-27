@@ -621,3 +621,23 @@ slices 2 onward, never ahead of them.
   Still QUESTION FOR THE SPEC, since each needs a scenario to say what is shown and no rule does: `KB_ROOT` unset (slice 22 owns it), `KB_ACTOR` unset (slices 26 and 47), `KB_ACTOR=` empty or `-m ""` ending in kb's git failure and a missing `-m` giving usage with exit 2 (slice 26); a non-process published as a skill or a diagram, a process with no steps, a branch to no step, a `"` in a title or condition in a diagram, a skill name holding a reserved word, the 500 lines published "for optimal performance", and `<name>.mmd` against the spec's `<id>.mmd`.
   Placed, by risk among the slices not yet begun and never ahead of all of them: 19.2 before 20, which needs it; 20.1 after 20, since slice 20's unknown, a page from the type alone, is the larger; 20.2 after 20.1 and before 22, which needs the room; 42.2 before 44, which needs it. No scenario is added or moved, so no feature file and no `@slice` tag changes. Slice 30.1, the third review, stays where it is, as 19.1 stayed after 1.30 to 1.32 were cut: it now follows nine implemented slices, 19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30, and its check says nine.
   Next: writing-plans over slices 19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30, one task per slice in that order, to `2026-09-27-shop-knowledge-batch4-implementation.md`.
+- 2026-09-27 writing-plans done: `2026-09-27-shop-knowledge-batch4-implementation.md`, nine tasks for slices 19.2, 20, 20.1, 20.2, 22, 24, 26, 28 and 30 in slice order. Written under adrs/0011: the plan carries no code, and nothing was built or replayed. Each task says why its scenarios or check are red today, found by running them in this checkout and probing shop-knol and kb v0.2.0 by hand in `.superpowers/`. Expected counts are taken from the tags (failed/passed): 49/13 before, then 49/13, 48/14, 48/14, 48/14, 38/24, 36/26, 33/29, 30/32 and 27/35. The 27 left are exactly the scenarios tagged 32 or later.
+  Decisions it makes for the implementer:
+  - the renderers read through one module, `renderers/source.py`;
+  - the markdown page is laid out from kb's content model, `sections` apart from fields, with no schema read; parts are not coded, since the role the scenario publishes holds none;
+  - a user's file is checked where `_document` reads it, against JSON Schema shapes held as data in `shapes/`, with kb's own validator class. A throwaway spike showed the batch shape gives one violation line for each bad batch the 20.1 check lists;
+  - `main` turns an `OSError` into a fault naming the path;
+  - the printer prints one line per fault and leaves out the place when a fault names none;
+  - answers are shaped in `answers.py`;
+  - the store is found by `kb.client.connect()` with no root, and kb's three refusals pass through;
+  - `read` takes `--section`, `--whole`, `--resolve [N]` and `--json`, with JSON written by the standard library (CLAUDE.md rule 3 amended);
+  - `write <name>#<place>` uses kb's link notation for a part;
+  - one function refuses a missing actor or message before any file is read or any kb call is made;
+  - `--from -` reads standard input in `_document`;
+  - `list` answers a sequence.
+
+  Found while probing, and set down in the plan's tasks:
+  - slice 26's type-mismatch scenario, and slice 28's piece-of-work and title-used scenarios, already pass on existing behaviour once their steps exist;
+  - slice 22's one-step resolve Then is vacuous over the Background.
+
+  No request to bump the pin. No feature file touched. Nothing implemented. Its Review Focus holds five questions for the spec: argparse's usage errors bypass rule 4; `--json` is on `read` alone; `list --ids` is YAML, not bare lines; "superseded" is a status the user writes, not the link; parts as tables are unpinned. Next: slice 19.2.
