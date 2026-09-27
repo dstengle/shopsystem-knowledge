@@ -43,6 +43,14 @@ def command_parser() -> argparse.ArgumentParser:
     journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
     journal.add_argument("--artifact", default="", help="only the changes to this one")
 
+    listing = commands.add_parser("list", help="list what the shop has recorded of one type, each with its name and title")
+    listing.add_argument("--type", required=True, help="the type to list")
+    listing.add_argument(
+        "--where", action="append", default=[], metavar="FIELD=VALUE",
+        help="only those whose field has this value; repeat to narrow further",
+    )
+    listing.add_argument("--ids", action="store_true", help="the names alone")
+
     render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
     render.add_argument("renderer", choices=sorted(RENDERERS))
     render.add_argument("locator")

@@ -285,7 +285,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user lists the decisions and sees all three with name and title, narrows to the superseded one by a field, or asks for names only and sees three names fit to feed another command.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 30.1: Third architecture review
 
@@ -760,3 +760,14 @@ slices 2 onward, never ahead of them.
   - QUESTION FOR THE SPEC (Review Focus 5): `apply` takes a pipe the spec's table does not give it. Run after this task: `printf 'changes: []\n' | shop-knol apply --from - -m why` is read from standard input and reaches kb (traceback as above); a valid batch piped in (`changes: [{create: decision, content: {...}}]`) is applied and answers `id: decision/second`, `revision: 1`. A user would expect either every `--from` to take `-` or `apply` to refuse it plainly.
   - Piped text is read to its end with no limit and an empty pipe is text like any other; no scenario says otherwise.
   Next: slice 30.
+- 2026-09-27 slice 30 green. Someone can now: list the decisions with `shop-knol list --type decision`, see each with its name and title, narrow them with `--where FIELD=VALUE`, or take the names alone with `--ids`.
+  Check: `-m slice-30`: 3 passed; `make test`: 27 failed, 35 passed; GREEN plus slices 28 and 30: 35 passed; 27 FAILED lines, and the later-slices expression collects 27; shape check `2 1 1 0`, no module over 250, no renderer listed; `wc -l < cli.py`: 219; arguments snapshot 30 against 28 (with `list` in the loop): only `list` in the top-level usage and choices, in the command list, in the `nosuch` choices, and the new `list -h` block.
+  Red first: the undefined Background Given for all three (then the undefined When); scenario 1 then failed on argparse `invalid choice: 'list'` (exit 2); scenario 2 on `unrecognized arguments: --where status=superseded`; scenario 3 on `unrecognized arguments: --ids`. Each Then passed on first run once its When worked, so no Then was seen red on its own assertion.
+  Evidence: `list --type decision` gave three entries in the store's order (by name): `decision/price-reviews-happen-weekly` (title "Price reviews happen weekly", `supersedes: decision/prices-are-reviewed-monthly`), `decision/prices-are-reviewed-monthly` ("Prices are reviewed monthly"), `decision/the-shop-opens-at-nine` ("The shop opens at nine"). `--where status=superseded` gave only `decision/prices-are-reviewed-monthly`. `--ids` gave the three names as a sequence, `- decision/price-reviews-happen-weekly` and so on.
+  Surprised by: the sequence is printed indented two spaces (kb.content's output); the Thens load it, so no scenario minds.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 2): `list --ids` is YAML, not bare lines. Run after this task: `shop-knol list --type decision --ids | xargs -n1 shop-knol read` first ran `read -` and printed `-: a name is a kind and a plain name of lower-case letters, digits and single hyphens, never a path; '-' is not`, then read each name after it. A user would expect one name to a line, or a JSON array.
+  - QUESTION FOR THE SPEC (Review Focus 3): "superseded" is a status the user writes, not the link. Run after this task: two decisions, the second with `supersedes` pointing at the first and neither with a status; `list --type decision --where status=superseded` printed `[]` and exited 0. A user would expect the link to count.
+  - QUESTION FOR THE SPEC (Review Focus 4): argparse still refuses in its own way. Run after this task: `shop-knol list` printed usage and `shop-knol list: error: the following arguments are required: --type` on stderr, exit 2; `shop-knol list --type decision --json` printed usage and `unrecognized arguments: --json`, exit 2. Rule 4 says one plain line and exit 1.
+  - `--where status` (no `=`) is split as field `status` with the empty value; no scenario pins it and it is not refused. Run after this task: `shop-knol list --type decision --where status` printed `[]` and exited 0.
+  Next: slice 30.1, the third architecture review, which runs before the next plan (adrs/0011).

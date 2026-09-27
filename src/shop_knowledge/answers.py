@@ -72,6 +72,16 @@ def change(entry: kb_pb2.Entry) -> dict:
     }
 
 
+def listed(response: kb_pb2.ListResponse) -> list:
+    """What a list gives back: one entry for each artifact, its name, type and title, then the fields the type shows."""
+    return [{"id": stub.id, "type": stub.type, "title": stub.title, **loads(stub.fields)} for stub in response.stubs]
+
+
+def names(response: kb_pb2.ListResponse) -> list:
+    """What a list asking for names alone gives back: the names, and nothing else."""
+    return list(response.ids)
+
+
 def written(files) -> dict:
     """What a render gives back: the paths written, sorted."""
     return {"written": sorted(files)}

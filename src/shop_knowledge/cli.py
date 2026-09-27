@@ -183,6 +183,14 @@ def _journal(args) -> int:
     return 0
 
 
+def _list(args) -> int:
+    fields = dict(where.partition("=")[::2] for where in args.where)
+    form = kb_pb2.ListRequest.IDS if args.ids else kb_pb2.ListRequest.STUBS
+    response = _answered(_client().List(kb_pb2.ListRequest(type=args.type, fields=fields, form=form)))
+    _show((answers.names if args.ids else answers.listed)(response))
+    return 0
+
+
 def _render(args) -> int:
     rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
     _write(rendered.files, Path(args.to))
@@ -206,5 +214,6 @@ _HANDLERS = {
     "validate": _validate,
     "apply": _apply,
     "journal": _journal,
+    "list": _list,
     "render": _render,
 }
