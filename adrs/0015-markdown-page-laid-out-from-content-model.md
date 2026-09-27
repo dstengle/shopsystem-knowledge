@@ -1,0 +1,3 @@
+# 0015 The markdown page is laid out from kb's content model
+
+2026-09-27. `shop-knol render markdown <name>` writes `<name>.md`, the artifact's name without its kind, as the diagram is `<name>.mmd`. The page is `# <title>` (the title from the read's answer), a field list in the order kb gives them (`- **<field>**: <value>`, a field group's fields nested two spaces in, a list of plain values joined with `, `, a link as its name), then each section as a heading one level below its holder, its body trailing whitespace stripped. Only `sections` is told apart from fields, so no schema is read and no type is named. It reads at depth 0. Parts as tables are not coded: no scenario asserts one.

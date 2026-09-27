@@ -213,7 +213,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user publishes a role into a directory and finds a page with its identity as a heading, its fields as a list, its sections at their levels, and its parts as tables.
 - Unknown: Can the page be laid out from the type alone, so the renderer knows nothing about any one type?
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 20.1: No file or directory a user names ends in a traceback
 
@@ -644,3 +644,32 @@ slices 2 onward, never ahead of them.
 - 2026-09-27 slice 19.2 green. New `renderers/source.py` holds `whole` (read whole, depth 0 by default) and `slug` (name without kind); skill and diagram call it, `body` and `flowchart` are private, CLAUDE.md has the row. Check: `same 49`, `49 failed, 13 passed`, defs grep gives only the two `render` lines, WHOLE grep gives `renderers/source.py`, split grep gives `src/shop_knowledge/renderers/source.py:1`; GREEN expression `13 passed`; shape check 2, 1, 1, no long module, no renderer listed.
   Surprised by: nothing. Decision recorded in adrs/0014 (module name `source`).
   Next: slice 20.
+- 2026-09-27 slice 20 green. A user can now publish a role into a directory and find `stock-keeper.md`: its title as a heading, its fields as a list (a field group nested, a list of plain values joined), and its section as a heading one level down.
+  Assumption "the page can be laid out from the type alone": held. Evidence, the page the scenario publishes, complete:
+  ```
+  # Stock keeper
+
+  - **harness**
+    - **name**: stock-keeper
+    - **description**: Keeps the shelves stocked.
+    - **tools**: Read
+  - **shop**
+    - **responsible_for**: What is on the shelves
+
+  ## How it works
+
+  Counts, then orders.
+  ```
+  It rests on kb's content model: the whole read's own order, and `sections` told apart from fields. No schema is read and no type is named (`grep -nE "harness|shop|role" renderers/markdown.py` finds only the `shop_knowledge` import paths).
+  Surprised by: the title is on the read's answer (`ReadResponse.title`), never in the content, so the page takes its heading from there. Decision recorded in adrs/0015 (the file is `<name>.md`, the page's shape, read at depth 0, parts not coded).
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 5): parts as tables are not pinned. The role holds no part collection, so the scenario checks none. Reproduction, `.superpowers/batch4/repro5.py`, publishing `process/restock-a-shelf` (three steps) as markdown, real output:
+    ```
+    0
+    # Restock a shelf
+
+    - **steps**: {'id': 'check-it', 'title': 'Check it', 'uses': 'step/check-the-stock', 'with': [{'name': 'shelf', 'value': 'dairy'}]}, {'id': 'decide', 'title': 'Decide', 'does': 'Decide.\n', 'branches': [{'when': 'short', 'go_to': 'order-more'}]}, {'id': 'order-more', 'title': 'Order more', 'does': 'Order.\n'}
+    ```
+    Worse than the plan predicted: a list of mappings is not a nested list but Python's own repr on one line. A user would expect the table the scenario's title promises, and a page of readable steps.
+  - The scenario is silent on the file's name (`<name>.md` chosen), on depth (0 chosen), and on a list of mappings, a field group inside a list, or a section with no body.
+  Next: slice 20.1.
