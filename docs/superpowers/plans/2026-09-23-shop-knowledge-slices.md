@@ -240,7 +240,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user reads a decision whole with what it points at shown by name, or only its rationale, or whole with what it points at filled in one step when they do not say how far, or two steps so the tag inside the older decision is filled in too, and can take any of those answers as JSON instead of the default; and the user reads from a folder deep inside the shop's knowledge and is answered from the knowledge base found above them, or from elsewhere with KB_ROOT naming the shop's, and is refused with the command reporting failure where none can be found, where KB_ROOT names a directory holding no knowledge base, or where they work inside one knowledge base while KB_ROOT names another.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 24: Revise a recorded decision, whole or in part
 
@@ -696,3 +696,18 @@ slices 2 onward, never ahead of them.
   Check: red first, the grep gave 2 and `cli.py` was 223 lines. Green: diff against `failing-20.1.txt` same 48; `make test` 48 failed, 14 passed; the grep gives 0; `wc -l` gives 190; `grep -cE "print|Request|connect" answers.py` gives 0; shape check 2, 1, 1, no module over 250, no renderer listed.
   Surprised by: nothing.
   Open questions: none. Next: slice 22.
+- 2026-09-27 slice 22 green. A user can now read a decision whole with its links as names, or one section, or whole with its links filled in one step or two, and take any of those as JSON; and the store is found above where they work or through `KB_ROOT`, with the three ways of not finding one refused.
+  Evidence, the stderr of scenarios 8, 9 and 10, verbatim (each exit 1, stdout empty):
+    no store was found, neither above /tmp nor named outright
+    KB_ROOT names a directory that holds no store: /tmp/../tmp
+    KB_ROOT names a store other than the one <cwd>/a/b is working in: KB_ROOT is <cwd>/other, the working directory is inside <cwd>/a; neither is guessed at
+  (the last, real run from `.superpowers/batch4/s22`, has `<cwd>` for /home/vscode/shopsystem-knowledge/.superpowers/batch4/s22.) With `_client` put back to reading `KB_ROOT`, 6, 8, 9 and 10 fail (KeyError traceback, and `the store holds nothing by the name ...` for 9 and 10); 7 passes, since `KB_ROOT` is set there.
+  Check: `-m slice-22` 10 passed; `make test` 38 failed, 24 passed; GREEN plus slices 20 and 22 24 passed; shape check 2, 1, 1, no module over 250, no renderer listed; `cli.py` 219 lines.
+  Surprised by: nothing in kb; scenarios 5 and 7 to 10 needed no code beyond what the scenarios before them wrote (`--resolve N`, and `_client` connecting with no root), so each was red only on its undefined steps. Decision in adrs/0018.
+  Open questions:
+  - QUESTION FOR THE SPEC (Review Focus 2): `--json` is on `read` alone, though the spec says output is "YAML by default and `--json` for the same structure". Reproduction, `shop-knol journal --json`: argparse's usage, `unrecognized arguments: --json`. A user would expect JSON from every command that answers.
+  - QUESTION FOR THE SPEC (Review Focus 1): argparse still refuses in its own way. Reproduction, `shop-knol read decision/weekly --resolve two`: usage on stderr, `argument --resolve: invalid int value: 'two'`, exit 2. A user would expect one plain line and exit 1.
+  - QUESTION FOR THE SPEC: `--section` given with `--whole` or `--resolve` is not refused; the section read is made and the other flag is ignored. Reproduction, `shop-knol read decision/weekly --section Rationale --whole` shows only `title: Rationale` and `body`, exit 0.
+  - QUESTION FOR THE SPEC: the scenarios say "no knowledge base"; kb says "no store", and shop-knol passes kb's words through ("errors are printed as returned by kb"). Whether that meets the bet passed-through-errors-are-actionable, or the user's word should be used, is the spec's.
+  - QUESTION FOR THE SPEC: scenario 3's "what that older decision points at is shown by name only" is vacuous over the Background, whose older decision points at nothing. The step asserts every link inside the filled-in decision is a string, and the Background cannot tell depth 1 from depth 2 there.
+  Next: slice 24.

@@ -10,7 +10,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 
 | module | owns | never holds |
 |---|---|---|
-| `cli.py` | `shop-knol`: its arguments, one handler per command making the kb calls that command maps to, the actor and the client from the environment, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
+| `cli.py` | `shop-knol`: its arguments, one handler per command making the kb calls that command maps to, the actor from the environment and the client, whose store kb finds upward from the working directory or through `KB_ROOT`, and printing: answers as YAML on stdout, refusals as plain words on stderr | the shop's types, rendering, reading a batch |
 | `answers.py` | each kb answer as the document the user is shown: plain dicts from kb's response messages or plain values, one public function per answer (`glance`, `change`, `history`, `created`, `applied`, `written`) | printing, kb calls, arguments |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
@@ -34,7 +34,8 @@ own it.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
-   No other YAML library is imported.
+   No other YAML library is imported. JSON, the one other output, is the same document written by the standard
+   library's `json`.
 4. **One way to refuse.** Every refusal, kb's or shop-knol's own, is a `Fault` printed by the one printer in
    `cli.py`, one line each, with exit 1. shop-knol never shows a traceback. Code that refuses raises `cli.Refused`
    with its faults and `main` alone prints them, so no handler prints a refusal of its own.

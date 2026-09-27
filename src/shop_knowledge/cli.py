@@ -4,6 +4,7 @@ Every file it reads and everything it prints is YAML 1.2, read and written by kb
 A refusal, kb's or its own, is printed in plain words on stderr, one fault a line, with a non-zero exit; never a traceback.
 """
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -56,6 +57,13 @@ def _parser() -> argparse.ArgumentParser:
 
     read = commands.add_parser("read", help="read an artifact at a glance")
     read.add_argument("locator")
+    read.add_argument("--json", action="store_true", help="the same answer written as JSON")
+    read.add_argument("--section", metavar="TITLE", help="only the section with this title")
+    read.add_argument("--whole", action="store_true", help="every field and section, links as names")
+    read.add_argument(
+        "--resolve", nargs="?", const=1, type=int, metavar="DEPTH",
+        help="a whole read with links filled in, DEPTH steps (one when not said)",
+    )
     read.set_defaults(handler=_read)
 
     validate = commands.add_parser(
@@ -87,11 +95,16 @@ def _actor() -> kb_pb2.Actor:
 
 
 def _client():
-    return kb_client.connect(Path(os.environ["KB_ROOT"]))
+    """kb finds the store: upward from the working directory, or through KB_ROOT."""
+    return kb_client.connect()
 
 
-def _show(document: dict) -> None:
-    print(dumps(document), end="")
+def _show(document: dict, as_json: bool = False) -> None:
+    """An answer as YAML, or as the same document in JSON when asked."""
+    if as_json:
+        print(json.dumps(document, indent=2, ensure_ascii=False))
+    else:
+        print(dumps(document), end="")
 
 
 def _plain(fault: kb_pb2.Fault) -> str:
@@ -146,9 +159,25 @@ def _create(args) -> int:
     return 0
 
 
+def _is_whole(args) -> bool:
+    """--resolve implies a whole read, since kb fills links in only on a whole read."""
+    return args.whole or args.resolve is not None
+
+
+def _read_request(args) -> kb_pb2.ReadRequest:
+    """The level and depth a read asks for: a section, or a whole (filled in when --resolve), or the summary."""
+    locator = kb_pb2.Locator(id=args.locator)
+    if args.section:
+        return kb_pb2.ReadRequest(locator=locator, level=kb_pb2.ReadRequest.SECTION, section=args.section)
+    if _is_whole(args):
+        return kb_pb2.ReadRequest(locator=locator, level=kb_pb2.ReadRequest.WHOLE, depth=args.resolve or 0)
+    return kb_pb2.ReadRequest(locator=locator)
+
+
 def _read(args) -> int:
-    response = _answered(_client().Read(kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=args.locator))))
-    _show(answers.glance(response))
+    response = _answered(_client().Read(_read_request(args)))
+    shape = answers.section if args.section else answers.whole if _is_whole(args) else answers.glance
+    _show(shape(response), args.json)
     return 0
 
 

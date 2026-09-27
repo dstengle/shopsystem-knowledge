@@ -3,6 +3,16 @@ from kb.content import loads
 from kb.contract import kb_pb2
 
 
+def _identity(response: kb_pb2.ReadResponse) -> dict:
+    return {
+        "id": response.id,
+        "type": response.type,
+        "schema_version": response.schema_version,
+        "revision": response.revision,
+        "title": response.title,
+    }
+
+
 def created(response: kb_pb2.CreateResponse) -> dict:
     """What a create gives back: the id kb chose and the revision it made."""
     return {"id": response.id, "revision": response.revision}
@@ -11,11 +21,7 @@ def created(response: kb_pb2.CreateResponse) -> dict:
 def glance(response: kb_pb2.ReadResponse) -> dict:
     """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
     return {
-        "id": response.id,
-        "type": response.type,
-        "schema_version": response.schema_version,
-        "revision": response.revision,
-        "title": response.title,
+        **_identity(response),
         **loads(response.content),
         "references": [
             {"field": stub.field, "id": stub.id, "type": stub.type, "title": stub.title, **loads(stub.fields)}
@@ -24,6 +30,16 @@ def glance(response: kb_pb2.ReadResponse) -> dict:
         "parts": [{"collection": stub.collection, "id": stub.id, "title": stub.title} for stub in response.parts],
         "inbound": [{"type": count.type, "field": count.field, "count": count.count} for count in response.inbound],
     }
+
+
+def whole(response: kb_pb2.ReadResponse) -> dict:
+    """A whole read as the user is shown it: the identity, then the content as kb gives it."""
+    return {**_identity(response), **loads(response.content)}
+
+
+def section(response: kb_pb2.ReadResponse) -> dict:
+    """A section read as the user is shown it: the section as kb gives it, and nothing else."""
+    return loads(response.content)
 
 
 def applied(response: kb_pb2.ApplyResponse) -> dict:
