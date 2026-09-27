@@ -52,13 +52,6 @@ def _read_the_decision(env, decision_id, workdir):
     return knol(env, "read", decision_id, cwd=workdir)
 
 
-@pytest.fixture
-def shown(result):
-    """What the user is shown, for the steps that expect the read to succeed."""
-    assert result.returncode == 0, result.stderr
-    return loads(result.stdout)
-
-
 @then("the user sees its name, its title and the few fields the shop shows for a decision")
 def _name_title_and_fields(shown):
     assert shown["id"] == DECISION

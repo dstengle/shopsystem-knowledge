@@ -1,5 +1,3 @@
-import pytest
-from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
@@ -30,13 +28,6 @@ def _three_decisions(env, shop, tmp_path):
     opening = _decision("The shop opens at nine")
     ids[opening["title"]] = record(env, tmp_path, "decision", opening, "Record the opening hour")
     return {"ids": ids, "superseded": ids["Prices are reviewed monthly"]}
-
-
-@pytest.fixture
-def shown(result):
-    """What the user is shown, for the steps that expect the list to succeed."""
-    assert result.returncode == 0, result.stderr
-    return loads(result.stdout)
 
 
 @when("the user lists the decisions", target_fixture="result")

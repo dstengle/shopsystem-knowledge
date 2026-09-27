@@ -1,5 +1,3 @@
-import pytest
-from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
@@ -43,13 +41,6 @@ def _two_work_items_point_at_it(env, tmp_path, decision_id):
 @given('the older decision is tagged "pricing"')
 def _older_decision_is_tagged():
     """Already so: the shop's first decision is recorded tagged pricing."""
-
-
-@pytest.fixture
-def shown(result):
-    """What the user is shown, for the steps that expect the command to succeed."""
-    assert result.returncode == 0, result.stderr
-    return loads(result.stdout)
 
 
 @when("the user follows the links out of the decision", target_fixture="result")

@@ -312,7 +312,7 @@ slices 2 onward, never ahead of them.
 - Observable: The search, history, snapshot, append and retire steps that read what shop-knol showed find one fixture for it in the shared conftest, as CLAUDE.md says of a fixture more than one feature uses, instead of copying a fourth, fifth and sixth one.
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 34: Search what the shop knows
 
@@ -849,3 +849,7 @@ slices 2 onward, never ahead of them.
   `--inbound --via decisions --type work-item`: the same two entries, byte for byte.
   `--outbound --depth 2`: the older decision as above, then `{id: tag/pricing, type: tag, title: pricing, via: tags, route: [{field: supersedes, id: decision/prices-are-reviewed-monthly}, {field: tags, id: tag/pricing}]}`.
   Open questions: Review Focus 2, the narrowed links show nothing narrowed away. Reproduction: run `refs <decision> --inbound` and `refs <decision> --inbound --via decisions --type work-item` in the Background's shop; the two answers are identical, since the only things pointing at the decision are the two work items through `decisions`, so scenario 3 would pass with the narrowing flags ignored. Next: slice 32.1.
+- 2026-09-27 slice 32.1 green.
+  Check: diff of the FAILED lines against `failing-32.1.txt`: `same` (23); `make test`: `23 failed, 39 passed`; `grep -c "def shown" tests/*.py | grep -v ":0"`: `tests/conftest.py:1`; shape check `2 1 1 0`, no module over 250, no renderer listed, `cli.py` 230 lines, unchanged from slice 32.
+  Surprised by: nothing.
+  Next: slice 34.

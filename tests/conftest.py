@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 import pytest
+from kb.content import loads
 from pytest_bdd import given, then
 
 from driver import start
@@ -29,6 +30,13 @@ def shop(tmp_path):
 @pytest.fixture
 def env(shop):
     return {**os.environ, "KB_ROOT": str(shop), "KB_ACTOR": "shopkeeper"}
+
+
+@pytest.fixture
+def shown(result):
+    """What the user is shown, for every Then that expects the command to have succeeded."""
+    assert result.returncode == 0, result.stderr
+    return loads(result.stdout)
 
 
 @given("a shop knowledge base holding the shop's types")
