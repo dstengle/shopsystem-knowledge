@@ -33,11 +33,10 @@ own it.
 ## Rules that make whole classes of defect unreachable
 
 1. **kb only through its contract.** Code under `src/` and `tests/` knows kb only through what kb publishes
-   (adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, and from the rest of kb
-   imports only `kb.content`, content as YAML 1.2 text. Until slice 50.23 two exceptions stand: `src/` takes
-   `NotCanonical`, the exception `kb.content` raises, from `kb.canonical`, and `tests/clock/` replaces kb's clock. Neither
-   ever reads or writes a file inside a knowledge base, names kb's storage or runs git. `jsonschema` is imported by
-   `shape.py` alone.
+   (kb adrs/0018, adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, gives kb a
+   clock only as the `clock` that call takes, and from the rest of kb imports only `kb.content`: content as YAML 1.2
+   text, and `NotCanonical`, its refusal of text kb cannot keep. It never reads or writes a file inside a
+   knowledge base, names kb's storage or runs git. `jsonschema` is imported by `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.

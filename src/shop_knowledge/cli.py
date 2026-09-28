@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-from kb import client as kb_client
+from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
@@ -58,7 +58,7 @@ def _by(args) -> dict:
 
 def _client():
     """kb finds the store: upward from the working directory, or through KB_ROOT."""
-    return kb_client.connect()
+    return connect()
 
 
 def _show(document: dict | list, as_json: bool = False) -> None:
@@ -95,7 +95,7 @@ _GONE = "the directory you are working in is gone"
 
 def _init(args) -> int:
     args.root = _absolute(args.root)
-    client = kb_client.connect(args.root)
+    client = connect(args.root)
     _answered(client.Init(kb_requests.init_request(args)))
     for answer in bootstrap.load(client, args.by["actor"]):
         _answered(answer)

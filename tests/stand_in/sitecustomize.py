@@ -70,8 +70,9 @@ class _StandIn:
         return answered
 
 
-def connect(root=None):
-    return _StandIn(_real_connect(root), _described())
+def connect(root=None, *, clock=None):
+    """kb's own client, given the clock the caller gives (kb adrs/0018), behind the stand-in."""
+    return _StandIn(_real_connect(root, clock=clock), _described())
 
 
 kb.client.connect = connect

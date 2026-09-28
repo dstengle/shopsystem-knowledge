@@ -4,7 +4,7 @@ Then here compares what the user is shown with kb's own refusal of the same thin
 adrs/0018). The feature's test module star-imports this and no other does."""
 import json
 
-from kb.content import dumps, loads
+from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
@@ -71,17 +71,18 @@ def _decision_in_a_file_naming_an_entry_twice(tmp_path):
 def _rejected_for_an_entry_named_twice(result, decision_file):
     """One line naming the file and the place in it the step wrote twice, in the words kb's published reading of
     content (`kb.content.loads`) refuses the same text with (kb adrs/0018)."""
-    assert result.stderr.splitlines() == [f"{decision_file} at sections/0/body: {_kb_refuses_to_read(decision_file)}"]
+    fault = _kb_refuses_to_read(decision_file)
+    assert fault.path, f"kb names no place in {decision_file}"
+    assert result.stderr.splitlines() == [printed(fault)], result.stderr
 
 
-def _kb_refuses_to_read(path) -> str:
-    """kb's own refusal of the file's text, read the way kb reads content. kb v0.2.1 publishes no exception to name
-    for it, so this catches `ValueError`, what the refusal is; slice 50.23 changes it to catch `kb.content.NotCanonical`
-    and take the place from its `path`."""
+def _kb_refuses_to_read(path) -> kb_pb2.Fault:
+    """kb's own refusal of the file's text, read the way kb reads content (`kb.content.NotCanonical`, kb adrs/0018),
+    as the fault on the file it names: the place is the refusal's own `path`, never spelled here."""
     try:
         loads(path.read_text())
-    except ValueError as refusal:
-        return str(refusal)
+    except NotCanonical as refusal:
+        return kb_pb2.Fault(artifact=str(path), path=refusal.path, message=str(refusal))
     raise AssertionError(f"kb reads {path} plainly")
 
 

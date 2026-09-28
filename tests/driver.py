@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from kb.client import connect
-from kb.content import dumps, loads
+from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
 
 
@@ -162,13 +162,14 @@ scalar, since kb's own writing of content refuses it."""
 
 def refused_as_unkept(result, path: Path, place: str) -> None:
     """The one line shop-knol prints for prose in the file at `path` that kb cannot keep, at `place` in that file:
-    kb's own refusal to write the same file's content (`kb.content.dumps`, kb adrs/0018), never spelled here. kb v0.2.1
-    publishes no exception to name for it, so this catches `ValueError`, what the refusal is (slice 50.23 swaps it)."""
+    kb's own refusal to write the same file's content (`kb.content.dumps`, kb adrs/0018), never spelled here, as the
+    fault `printed` shows the user."""
     try:
         dumps(loads(path.read_text()))
-    except ValueError as refusal:
+    except NotCanonical as refusal:
         assert result.returncode == 1
-        assert result.stderr.splitlines() == [f"{path} at {place}: {refusal}"], result.stderr
+        fault = kb_pb2.Fault(artifact=str(path), path=place, message=str(refusal))
+        assert result.stderr.splitlines() == [printed(fault)], result.stderr
         return
     raise AssertionError(f"kb keeps {path} as written")
 
@@ -189,9 +190,9 @@ def _on_path(env, directory: Path) -> dict:
 
 
 def _refuse_if_combined(env, other: Path, this_name: str, other_name: str) -> None:
-    """`at` and `answering` are both loaded as `sitecustomize`, so a process puts only the first of them a caller
-    combines on its PYTHONPATH; the other never loads, silently. Refused until slice 50.23 removes the clock's own
-    sitecustomize, so no scenario can carry both without knowing it."""
+    """`at` and `answering` are both loaded as `sitecustomize`, so a process loads only the first of them a caller
+    combines on its PYTHONPATH; the other never loads, silently. Refused while both are `sitecustomize`, so no
+    scenario can carry both without knowing it."""
     if str(other) in env.get("PYTHONPATH", "").split(os.pathsep):
         raise RuntimeError(f"driver.{this_name} refuses: driver.{other_name} is already on this environment's PYTHONPATH")
 
