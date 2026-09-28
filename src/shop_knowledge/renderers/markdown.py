@@ -31,7 +31,7 @@ def _page(title: str, content: dict) -> str:
     fields = {key: value for key, value in content.items() if key != "sections"}
     tables = {key: value for key, value in fields.items() if _is_table(value)}
     fields = {key: value for key, value in fields.items() if key not in tables}
-    blocks = [f"# {title}"]
+    blocks = [sections.heading(1, title)]
     if fields:
         blocks.append("\n".join(_items(fields, 0)))
     blocks += [_table(key, value) for key, value in tables.items()]
@@ -73,29 +73,29 @@ def _table(key: str, items: list[dict]) -> str:
     """The field's name in bold, then a table with one column per key, in the order the keys first appear across the
     items, one row an item, an empty cell where an item lacks the key (adrs/0041)."""
     columns = list(dict.fromkeys(column for item in items for column in item))
-    rows = [[_cell(item[column]) if column in item else "" for column in columns] for item in items]
+    rows = [[_inline(item[column]) if column in item else "" for column in columns] for item in items]
     lines = [_row(columns), _row(["---"] * len(columns))] + [_row(row) for row in rows]
     return f"**{key}**\n\n" + "\n".join(lines)
 
 
-def _cell(value) -> str:
-    """A value laid out inline in a table cell, the character that separates cells escaped as `\\|`, and any
-    backslash the text holds right before it doubled, so a markdown reader shows the text as written and the row keeps
-    one cell per column (the spec's markdown bullet)."""
-    return _SEPARATOR.sub(lambda found: found[1] * 2 + "\\|", _inline(value))
-
-
 def _row(cells: list[str]) -> str:
-    """One table row, its cells between pipes."""
-    return "| " + " | ".join(cells) + " |"
+    """One table row, its cells between pipes, a column's name as much as a value: in each, the character that
+    separates cells escaped as `\\|`, and any backslash the text holds right before it doubled, so a markdown reader
+    shows the text as written and the row keeps one cell per column (the spec's markdown bullet)."""
+    return "| " + " | ".join(_SEPARATOR.sub(lambda found: found[1] * 2 + "\\|", cell) for cell in cells) + " |"
 
 
 def _inline(value) -> str:
-    """A value where a block cannot sit: a mapping's `key: value` pairs joined by `, `, a list's items joined by
-    `; `, each laid out inline in turn, a yes as `yes`, a no as `no`, nothing as nothing, and any other plain value's
-    lines joined by a space, its trailing newline and any space it ends in dropped, so no line ends in a space
-    (adrs/0038, adrs/0041, adrs/0043). A yes, a no and nothing are told by what kind of value each is, so text that
-    reads `True` stays as written."""
+    """A value where a block cannot sit, laid out inline, any space it ends in dropped, whatever its last part holds,
+    so no line ends in a space (the spec's markdown bullet)."""
+    return _spelled_inline(value).rstrip(" ")
+
+
+def _spelled_inline(value) -> str:
+    """A mapping's `key: value` pairs joined by `, `, a list's items joined by `; `, each laid out inline in turn, a
+    yes as `yes`, a no as `no`, nothing as nothing, and any other plain value's lines joined by a space, its trailing
+    newline dropped (adrs/0038, adrs/0041, adrs/0043). A yes, a no and nothing are told by what kind of value each
+    is, so text that reads `True` stays as written."""
     if isinstance(value, dict):
         return ", ".join(f"{field}: {_inline(each)}" for field, each in value.items())
     if isinstance(value, list):
@@ -104,5 +104,4 @@ def _inline(value) -> str:
         return "yes" if value else "no"
     if value is None:
         return ""
-    return " ".join(str(value).splitlines()).rstrip(" ")
-
+    return " ".join(str(value).splitlines())

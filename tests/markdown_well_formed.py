@@ -7,7 +7,7 @@ import re
 
 from pytest_bdd import given, parsers, then
 
-from driver import whole
+from driver import knol, record, whole
 from markdown_pages import process_page, role_page, step_holding, write_over, pages
 
 # A backslash and the character after it, which a markdown reader takes as that character, never as a cell's end.
@@ -56,6 +56,78 @@ def _role_text_ends_in_a_space(env, tmp_path, role_content, role_name):
     content = {key: value for key, value in role_content.items() if key != "title"}
     write_over(env, tmp_path, role_name, {**content, "motto": "Full shelves "}, "A motto for the stock keeper")
     return role_page(["- **motto**: Full shelves"])
+
+
+@given("the role holds a title whose text ends in a space", target_fixture="page")
+def _role_title_ends_in_a_space(env, tmp_path, role_content, role_name):
+    """The Background role retired and recorded again under the same name, its title ending in a space, since a title
+    is given only when a thing is first recorded; gives the page it publishes as, the heading ending where the title's
+    words end (the trailing space not shown, as the user chose on 2026-09-27)."""
+    result = knol(env, "delete", role_name, "-m", "Recorded again below")
+    assert result.returncode == 0, result.stderr
+    assert record(env, tmp_path, "role", {**role_content, "title": "Stock keeper "}, "Stock keeper again") == role_name
+    return role_page()
+
+
+@given("the role holds a section whose title ends in a space", target_fixture="page")
+def _role_section_title_ends_in_a_space(env, tmp_path, role_content, role_name):
+    """The Background role, `ROLE` without its title, its one section's title ended in a space; gives the page it
+    publishes as, the section's heading ending where its words end."""
+    content = {key: value for key, value in role_content.items() if key != "title"}
+    sections = [{**section, "title": f"{section['title']} "} for section in content["sections"]]
+    write_over(env, tmp_path, role_name, {**content, "sections": sections}, "A heading with a space after it")
+    return role_page()
+
+
+@given("the role holds a list of lists, one inner list's last item an empty value", target_fixture="page")
+def _role_inner_list_ends_empty(env, tmp_path, role_content, role_name):
+    """The Background role, `ROLE` without its title, plus a list of lists whose second inner list the user ended with
+    an empty item; gives the page it publishes as, each inner list a bullet of its items joined by `; `, nothing after
+    the last separator (adrs/0041, adrs/0043)."""
+    content = {key: value for key, value in role_content.items() if key != "title"}
+    rotas = [["dairy", "bakery"], ["frozen", None]]
+    write_over(env, tmp_path, role_name, {**content, "rotas": rotas}, "Aisles by week")
+    return role_page(["- **rotas**", "  - dairy; bakery", "  - frozen;"])
+
+
+@given("the role holds a list holding a mapping whose last value is an empty value", target_fixture="page")
+def _role_list_mapping_ends_empty(env, tmp_path, role_content, role_name):
+    """The Background role, `ROLE` without its title, plus a list holding a plain value and a mapping whose last value
+    the user left empty, so the list stays a bullet list, not a table; gives the page it publishes as, the mapping a
+    bullet of its `key: value` pairs joined by `, `, nothing after the last colon (adrs/0041, adrs/0043)."""
+    content = {key: value for key, value in role_content.items() if key != "title"}
+    suppliers = ["the dairy", {"name": "Bakers", "phone": None}]
+    write_over(env, tmp_path, role_name, {**content, "suppliers": suppliers}, "Who supplies the shelves")
+    return role_page(["- **suppliers**", "  - the dairy", "  - name: Bakers, phone:"])
+
+
+@given(
+    "the role holds a field group holding a list of mappings, one mapping's last value an empty value",
+    target_fixture="page",
+)
+def _role_group_mapping_ends_empty(env, tmp_path, role_content, role_name):
+    """The Background role, `ROLE` without its title, plus a field group holding a list of mappings, the second
+    mapping's last value left empty; gives the page it publishes as, each mapping a bullet nested under the group's
+    field of its `key: value` pairs joined by `, `, nothing after the last colon (adrs/0041, adrs/0043)."""
+    content = {key: value for key, value in role_content.items() if key != "title"}
+    suppliers = [{"name": "Dairy", "phone": "0101"}, {"name": "Bakers", "phone": None}]
+    write_over(env, tmp_path, role_name, {**content, "orders": {"suppliers": suppliers}}, "Who to order from")
+    return role_page([
+        "- **orders**", "  - **suppliers**", "    - name: Dairy, phone: 0101", "    - name: Bakers, phone:",
+    ])
+
+
+@given(
+    "the process holds steps that each say more than one thing, the name of one of those things holding the character "
+    "that separates table cells",
+    target_fixture="page",
+)
+def _process_step_name_holds_the_separator(env, tmp_path, process_name):
+    """The Background process's steps, the order-more step also saying a thing whose name has the character between
+    its words; gives the page it publishes as, that character escaped in its column's heading as in a cell."""
+    steps = step_holding(whole(env, process_name)["steps"], "order-more", **{"milk | cream": "two crates"})
+    write_over(env, tmp_path, process_name, {"steps": steps}, "Say how much to order")
+    return process_page([r"milk \| cream"], {"order-more": ["two crates"]})
 
 
 def _the_page(target) -> list[str]:

@@ -7,6 +7,11 @@ def laid_out(sections: list[dict], level: int) -> list[str]:
     caller to join."""
     blocks = []
     for section in sections:
-        blocks += [f"{'#' * level} {section['title']}", section.get("body", "").rstrip()]
+        blocks += [heading(level, section["title"]), section.get("body", "").rstrip()]
         blocks += laid_out(section.get("sections", []), level + 1)
     return blocks
+
+
+def heading(level: int, title: str) -> str:
+    """A heading at `level`, the title's trailing space not shown, so the line ends where its words end."""
+    return f"{'#' * level} {title.rstrip(' ')}"
