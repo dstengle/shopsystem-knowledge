@@ -4,8 +4,7 @@ since removed among them, and the Thens that say what came of it. The store-refu
 feature's scenarios also use live in store_not_found.py, which conftest.py star-imports, instead. The feature's test module star-imports this and no other does."""
 from pytest_bdd import given, then
 
-from driver import removed
-from store_not_found import refused_as_kb_refuses
+from driver import refused_as_kb_refuses, removed
 
 
 @given(

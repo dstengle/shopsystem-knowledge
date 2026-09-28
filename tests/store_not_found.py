@@ -4,7 +4,7 @@ scenario's own When made (`called`), the three "working …" Givens, and the The
 import pytest
 from pytest_bdd import given, then
 
-from driver import NO_STORE, kb_answer, printed, start
+from driver import refused_as_kb_refuses, start
 
 
 @pytest.fixture
@@ -48,15 +48,6 @@ def _kb_root_names_another_store(env, started_shop, tmp_path):
     start(env, other)
     env["KB_ROOT"] = str(other)
     return started_shop
-
-
-def refused_as_kb_refuses(env, result, workdir, called):
-    """kb's own answer to the call the scenario's own When made, from the same directory and KB_ROOT, refuses the
-    store rule it publishes (kb adrs/0018); the user is shown that one fault, in kb's words, and nothing else."""
-    faults = kb_answer(env, called["call"], called["request"], cwd=workdir).faults
-    assert [fault.rule for fault in faults] == [NO_STORE], faults
-    assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
-    assert result.stdout == ""
 
 
 @then("the command is rejected because no knowledge base was found, neither above where they are working nor named outright")

@@ -46,14 +46,33 @@ def runs() -> int:
     return _runs
 
 
+def _isolated(directory, env: dict) -> None:
+    """Refuses, with a clear error, when `directory` - or `env`'s own KB_ROOT, if it names one - lies outside the
+    test's own temporary directory: `_default_cwd`'s root, once a test has set it (adrs/0047). Makes isolation an
+    assertion, where it was until now only ever a matter of construction. Skipped before any test sets
+    `_default_cwd`: the session guard's own throwaway probes are deliberately pointed outside it, first."""
+    if _default_cwd is None:
+        return
+    root = Path(os.fspath(_default_cwd)).resolve()
+    named = {"the working directory": os.fspath(directory), "KB_ROOT": env.get("KB_ROOT")}
+    for what, given in named.items():
+        if given is None:
+            continue
+        outside = Path(given).resolve()
+        if outside != root and root not in outside.parents:
+            raise RuntimeError(f"{what} {outside} lies outside the test's own temporary directory {root}")
+
+
 def knol(env, *args, cwd=None, piped=None):
     """Run one shop-knol command, from `cwd` when the user works somewhere other than the suite's default for this
     test, with `piped` on its standard input when another command's output is piped in; a `Removed` cwd is gone by
-    the time shop-knol starts. Refused if no `cwd` is given and the suite has set no default."""
+    the time shop-knol starts. Refused with no `cwd` and no default set, or either outside the test's own directory
+    (`_isolated`)."""
     global _runs
     directory = cwd if cwd is not None else _default_cwd
     if directory is None:
         raise RuntimeError("shop-knol was run with no working directory, and the suite set no default")
+    _isolated(directory, env)
     _runs += 1
     return subprocess.run(
         [sys.executable, "-m", "shop_knowledge", *args],
@@ -102,12 +121,14 @@ def kb_answer(env, call, request, cwd=None):
     no step spells kb's wording, which is kb's to change. Always the real kb, never the stand-in (which loads only in
     shop-knol's own process): a Then over an answer the stand-in gave compares with what the stand-in gave, never
     with this (Review Focus 4). Asked after shop-knol's own call was refused, so of the same state; a refused call
-    changes nothing. Refused, as `knol` is, with no `cwd` and no default set. The suite's own directory and
-    environment are restored after. From a `Removed` directory, which this process cannot enter, kb is asked the way
-    shop-knol was run instead: `_kb_answer_from_gone`."""
+    changes nothing. Refused, as `knol` is, with no `cwd` and no default set, or either outside the test's own
+    directory (`_isolated`). The suite's own directory and environment are restored after. From a `Removed`
+    directory, which this process cannot enter, kb is asked the way shop-knol was run instead:
+    `_kb_answer_from_gone`."""
     directory = cwd if cwd is not None else _default_cwd
     if directory is None:
         raise RuntimeError("kb was asked with no working directory, and the suite set no default")
+    _isolated(directory, env)
     if isinstance(directory, Removed):
         return _kb_answer_from_gone(env, call, request, directory)
     here, kept = Path.cwd(), dict(os.environ)
@@ -136,7 +157,8 @@ contract's messages serialized."""
 def _kb_answer_from_gone(env, call, request, gone: Removed):
     """kb's own answer to `request` from a working directory that no longer exists: `gone` made again, entered by a
     subprocess under exactly `env`, and removed before kb is asked, as `knol` runs shop-knol there. The answer's
-    message is the one the contract's service publishes for `call`."""
+    message is the one the contract's service publishes for `call`. `_isolated` is asserted again, of `gone.path`."""
+    _isolated(gone.path, env)
     gone.path.mkdir()
     asked = subprocess.run(
         [sys.executable, "-c", _ASK_KB, call, type(request).__name__],
@@ -153,6 +175,17 @@ def printed(fault) -> str:
     message = " ".join(line.strip() for line in fault.message.splitlines())
     where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
     return f"{where}: {message}" if where else message
+
+
+def refused_as_kb_refuses(env, result, workdir, called):
+    """kb's own answer to the call the scenario's own When made, from the same directory and KB_ROOT, refuses the
+    store rule it publishes (kb adrs/0018); the user is shown that one fault, in kb's words, and nothing else. Shared
+    by store_not_found.py and read_back_from_elsewhere.py, each importing it plainly, never one from the other
+    (no step module imports another)."""
+    faults = kb_answer(env, called["call"], called["request"], cwd=workdir).faults
+    assert [fault.rule for fault in faults] == [NO_STORE], faults
+    assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
+    assert result.stdout == ""
 
 
 UNKEPT = "Keep prices in step with costs. \nAnd with what the shelves hold.\n"

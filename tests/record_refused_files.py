@@ -70,9 +70,11 @@ def _decision_in_a_file_naming_an_entry_twice(tmp_path):
 @then("the decision is rejected because an entry is named once and only once, naming the place in the file")
 def _rejected_for_an_entry_named_twice(result, decision_file):
     """One line naming the file and the place in it the step wrote twice, in the words kb's published reading of
-    content (`kb.content.loads`) refuses the same text with (kb adrs/0018)."""
+    content (`kb.content.loads`) refuses the same text with (kb adrs/0018). The place is pinned to the step's own
+    knowledge of its own file, in the contract's Fault.path form, beside the comparison with kb's own refusal: a
+    regression in where kb reports the place would otherwise pass unnoticed."""
     fault = _kb_refuses_to_read(decision_file)
-    assert fault.path, f"kb names no place in {decision_file}"
+    assert fault.path == "sections/0/body", fault.path
     assert result.stderr.splitlines() == [printed(fault)], result.stderr
 
 

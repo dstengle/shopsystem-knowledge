@@ -16,7 +16,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `answers.py` | each kb answer as the document the user is shown: plain dicts and lists from kb's response messages or plain values, one public function per answer (`glance`, `whole`, `section`, `change`, `history`, `created`, `written_over`, `appended`, `applied`, `recorded`, `listed`, `names`, `written`, `reached`, `matched`, `deleted`, `checked`) | printing, kb calls, arguments |
 | `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
-| `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape, or refused as a `Fault` on it | kb calls, printing, arguments |
+| `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape and against whether kb can keep it (`kb.content`'s own refusal), or refused as a `Fault` on it | kb calls, printing, arguments |
 | `refusal.py` | the one exception every refusal travels in, `Refused`, before `cli`'s one printer shows it | kb calls, printing |
 | `renderers/` | one module per renderer, each reading an artifact through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
 | `renderers/source.py` | reading the artifact a renderer publishes, what stops it being published (the read's faults, then a type other than the one the renderer is made from), and its name without its kind | rendering, writing |
@@ -55,9 +55,10 @@ own it.
 - No module over 250 lines, under `src/` or `tests/`. When a change would cross the limit, split first.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
-- A file a user gives is read, and checked against its shape, in one place, `document.read`, and a kb answer's faults are refused in one way,
-  `cli._answered`. One place differs: a renderer turns a kb answer's faults into the `Rendered` faults it gives back,
-  which `_render` refuses through `_answered`.
+- A file a user gives is read, checked against its shape, and checked against whether kb can keep it (`kb.content`'s
+  own refusal), in one place, `document.read`, and a kb answer's faults are refused in one way, `cli._answered`. One
+  place differs: a renderer turns a kb answer's faults into the `Rendered` faults it gives back, which `_render`
+  refuses through `_answered`.
 
 ## Step definitions
 
