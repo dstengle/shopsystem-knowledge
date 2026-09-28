@@ -13,8 +13,9 @@ the seed content, the renderers, and the command line.
 ## Depends on
 
 kb's contract, pinned by version. shop-knowledge never touches kb's files
-or git. It calls the contract through the in-process client today and a
-network channel when a server exists, with no other change.
+or git. It calls the contract through kb's client, which reaches the store
+in-process or through the server hosting it, whichever kb's search finds;
+shop-knol does nothing different between the two.
 
 ## What use will tell us
 
@@ -59,7 +60,10 @@ should watch once the system runs.
 
 `shop-knol` is the working name. The store is found the way git finds a
 repository, upward from the working directory to a directory holding a
-knowledge base, or through `KB_ROOT` when set; none found, `KB_ROOT` naming no store, or
+knowledge base, or through `KB_ROOT` when set. A knowledge base is held
+there as kb defines it: the store itself, or the connection to the server
+hosting it, which kb's search looks for in the same place, so a user in a
+container without the store works as one beside it does; none found, `KB_ROOT` naming no store, or
 the working directory inside one store while `KB_ROOT` names another: the
 command refuses and says which. A working directory that no longer exists
 is inside no store: `KB_ROOT` still serves, and with none set the command
@@ -172,8 +176,11 @@ observable.
 
 Built with the shopsystem-bdd workflow. Feature files are formulated from
 this spec, from the perspective of a shopsystem user at the command line.
-kb is exercised through its in-process transport. shop-knowledge knows
+kb is exercised through its in-process transport, and through a real kb
+server where a scenario says the shop works with one, started inside the
+test's own temporary directory on a port of its own. shop-knowledge knows
 kb only through what kb publishes, in its tests as in its code; where a
 scenario needs kb in a state no contract call can produce, a stand-in for
 kb at the contract boundary answers with kb's contract messages. No test
-reaches a knowledge base outside its own temporary directory.
+reaches a knowledge base outside its own temporary directory, and none
+calls a server it did not start.
