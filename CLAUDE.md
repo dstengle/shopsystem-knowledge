@@ -72,6 +72,9 @@ own it.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).
+  When `conftest.py` itself would outgrow the limit, the shared steps of one concern move the same way, to a module
+  beside it that `conftest.py` alone star-imports; the session guard's hooks may move there too, since pytest sees
+  them through `conftest.py` (adrs/0048).
 - What more than one of a feature's step modules need, that is not itself a step, goes to a helper module of its own,
   imported plainly, as `tests/driver.py` is: a sibling step module is star-imported by its feature's test module
   alone (adrs/0035), so no step module imports another.

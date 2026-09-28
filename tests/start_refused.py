@@ -33,19 +33,19 @@ def _a_directory_inside_a_started_one(env, shop, known_before):
 
 @then("starting the knowledge base is rejected because that directory already holds a knowledge base")
 def _rejected_already_started(env, result, start_in):
-    _refused_as_kb_refuses(env, result, start_in)
+    _refused_as_kb_refuses_init(env, result, start_in)
 
 
 @then("starting the knowledge base is rejected because that directory is inside a knowledge base")
 def _rejected_inside_one(env, result, start_in):
-    _refused_as_kb_refuses(env, result, start_in)
+    _refused_as_kb_refuses_init(env, result, start_in)
 
 
 ROOT = "root"
 """The `rule` kb's contract publishes (kb adrs/0018) for a store refused where it was to be started."""
 
 
-def _refused_as_kb_refuses(env, result, start_in):
+def _refused_as_kb_refuses_init(env, result, start_in):
     """One line, printed as kb returned it: kb's own answer to the same Init, starting a store in the same directory,
     is a refusal of the directory given, and the user is shown that fault in kb's words. Which refusal, the Given
     decides; a refused Init changes nothing."""

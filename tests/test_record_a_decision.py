@@ -36,7 +36,8 @@ def _decision_in_a_file(env, tmp_path):
 
 
 @when("the user records that file as a decision, saying who they are and why", target_fixture="result")
-def _record_it(env, decision_file):
+def _record_it(env, decision_file, before):
+    """Asks for `before` so the knowledge base is taken as it was before the command runs."""
     return knol(env, "create", "decision", "--from", str(decision_file), "-m", SAYING_WHY)
 
 

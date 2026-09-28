@@ -26,9 +26,9 @@ def _described() -> list:
 
 
 def _asks(answer: dict, request) -> bool:
-    """Whether the request equals the answer's `asking`, field by top-level field: each named field of the request
-    must equal that field of `asking` exactly, so a nested message (`locator`, say) is compared whole, not itself
-    field by field."""
+    """Whether the request matches the answer's `asking`: each top-level field `asking` names must equal the
+    request's field of that name exactly, so a nested message (`locator`, say) is compared whole, not itself field
+    by field. A field `asking` does not name is not compared, and does not keep the answer from matching."""
     asked = json_format.MessageToDict(request, preserving_proto_field_name=True)
     return all(asked.get(field) == value for field, value in answer.get("asking", {}).items())
 

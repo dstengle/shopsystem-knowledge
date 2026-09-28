@@ -36,14 +36,25 @@ _default_cwd: Path | None = None
 that way is refused; set to the scenario's own temporary directory by conftest's `_working_directory`, for every
 test in the suite (adrs/0047 - no test reaches a knowledge base outside its own temporary directory)."""
 
+_runs = 0
+"""How many shop-knol runs `knol` has made in this process, so far: a Then over `before`, a snapshot meant to be
+taken ahead of the command under test, can tell it was really taken there and not, resolved lazily, after."""
+
+
+def runs() -> int:
+    """`_runs`, for a Then to compare against a count a `before` fixture took earlier."""
+    return _runs
+
 
 def knol(env, *args, cwd=None, piped=None):
     """Run one shop-knol command, from `cwd` when the user works somewhere other than the suite's default for this
     test, with `piped` on its standard input when another command's output is piped in; a `Removed` cwd is gone by
     the time shop-knol starts. Refused if no `cwd` is given and the suite has set no default."""
+    global _runs
     directory = cwd if cwd is not None else _default_cwd
     if directory is None:
         raise RuntimeError("shop-knol was run with no working directory, and the suite set no default")
+    _runs += 1
     return subprocess.run(
         [sys.executable, "-m", "shop_knowledge", *args],
         env=env, capture_output=True, text=True, cwd=directory, input=piped,
