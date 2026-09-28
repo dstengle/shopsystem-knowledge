@@ -24,7 +24,7 @@ Read CLAUDE.md, adrs/0035, 0044 and 0047, and kb's adrs/0018. The eighth archite
 
 **Change control**
 - Feature files are read-only, tag lines included.
-- kb is v0.2.1 and is never edited here.
+- kb is v0.2.1 until Task 5 pins v0.3.0, and is never edited here.
 - Every rule in CLAUDE.md holds.
 - shop-knowledge knows kb only through what kb publishes. The known exceptions until 50.23 are listed in CLAUDE.md rule 1.
 
@@ -38,7 +38,7 @@ Read CLAUDE.md, adrs/0035, 0044 and 0047, and kb's adrs/0018. The eighth archite
 - The implementer never pushes.
 
 **Counts**
-- The suite collects 101 scenarios and gives `80 passed, 21 failed` today.
+- The suite collects 101 scenarios (100 after the user removed the step scenario on 2026-09-28) and gives `80 passed, 21 failed` today.
 - The tags select 50.17: 4; 50.18: 1; 50.18.1: 5; 50.18.2: 10, of which 4 already pass; 50.18.3: 3; 50.22: 2.
 
 | after | failed | passed |
@@ -49,8 +49,8 @@ Read CLAUDE.md, adrs/0035, 0044 and 0047, and kb's adrs/0018. The eighth archite
 | 50.18.1 | 11 | 90 |
 | 50.18.2 | 5 | 96 |
 | 50.18.3 | 2 | 99 |
-| 50.22 | 0 | 101 |
-| 50.23 | 0 | 101 |
+| 50.22 | 0 | 100 |
+| 50.23 | 0 | 100 |
 
 **Checks**
 - Record the failing list at each slice's start with `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort`.

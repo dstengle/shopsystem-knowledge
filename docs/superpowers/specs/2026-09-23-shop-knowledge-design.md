@@ -58,8 +58,8 @@ should watch once the system runs.
 ## The CLI
 
 `shop-knol` is the working name. The store is found the way git finds a
-repository, upward from the working directory to a directory holding
-`kb/store.yaml`, or through `KB_ROOT` when set; none found, `KB_ROOT` naming no store, or
+repository, upward from the working directory to a directory holding a
+knowledge base, or through `KB_ROOT` when set; none found, `KB_ROOT` naming no store, or
 the working directory inside one store while `KB_ROOT` names another: the
 command refuses and says which. A working directory that no longer exists
 is inside no store: `KB_ROOT` still serves, and with none set the command
