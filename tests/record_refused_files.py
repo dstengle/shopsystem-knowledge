@@ -1,11 +1,12 @@
 """The steps of record-a-decision.feature about a file the shop refuses to record: one that does not fit the decision
-type, and one that names an entry twice. Each Then compares what the user is shown with kb's own refusal of the same
-thing, so no step spells kb's wording (kb adrs/0018). The feature's test module star-imports this and no other does."""
+type, one that names an entry twice, and one given an empty name. Each Then here compares what the user is shown with
+kb's own refusal of the same thing, so no step spells kb's wording (kb adrs/0018). The feature's test module
+star-imports this and no other does."""
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
-from pytest_bdd import given, then
+from pytest_bdd import given, then, when
 
-from driver import actor, kb_answer, printed
+from driver import actor, kb_answer, knol, printed
 
 SAYING_WHY = "Move price reviews to weekly"
 """The message the user records a file with when "saying who they are and why"."""
@@ -80,3 +81,9 @@ def _kb_refuses_to_read(path) -> str:
     except ValueError as refusal:
         return str(refusal)
     raise AssertionError(f"kb reads {path} plainly")
+
+
+@when("the user records a decision from a file whose name is given empty, saying who they are and why", target_fixture="result")
+def _record_from_an_empty_name(env, before):
+    """Asks for `before` so the knowledge base is taken as it was before the command runs."""
+    return knol(env, "create", "decision", "--from", "", "-m", SAYING_WHY)

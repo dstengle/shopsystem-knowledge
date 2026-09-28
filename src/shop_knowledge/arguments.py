@@ -24,6 +24,16 @@ class _Parser(argparse.ArgumentParser):
         raise ArgumentRefused(self.prog, message)
 
 
+def _named(kind: str, taken_as=str):
+    """The type of an argument that names a place: the name taken as `taken_as`, or, given empty, refused as naming
+    no place, which argparse raises through `_Parser.error` as the argument's own refusal."""
+    def named(text: str):
+        if not text:
+            raise argparse.ArgumentTypeError(f"a name given empty names no {kind}")
+        return taken_as(text)
+    return named
+
+
 def command_parser() -> argparse.ArgumentParser:
     """Every command's arguments and help, the renderer names from RENDERERS as the choices of render."""
     parser = _Parser(prog="shop-knol")
@@ -31,17 +41,17 @@ def command_parser() -> argparse.ArgumentParser:
 
     init = commands.add_parser("init", help="start a shop knowledge base at <root>/kb/ with the shop's types")
     init.add_argument(
-        "root", nargs="?", type=Path, default=Path("."),
+        "root", nargs="?", type=_named("directory", Path), default=Path("."),
         help="where to start it; the working directory unless one is named",
     )
 
     create = commands.add_parser("create", help="record an artifact from a YAML file; prints the id kb chose")
     create.add_argument("type")
-    create.add_argument("--from", dest="source", required=True, metavar="FILE")
+    create.add_argument("--from", dest="source", type=_named("file"), required=True, metavar="FILE")
     create.add_argument("-m", dest="message", help="why")
 
     read = commands.add_parser("read", help="read an artifact at a glance")
-    read.add_argument("locator")
+    read.add_argument("locator", type=_named("artifact"))
     read.add_argument("--json", action="store_true", help="the same answer written as JSON")
     read.add_argument("--section", metavar="TITLE", help="only the section with this title")
     read.add_argument("--whole", action="store_true", help="every field and section, links as names")
@@ -51,13 +61,13 @@ def command_parser() -> argparse.ArgumentParser:
     )
 
     write = commands.add_parser("write", help="replace an artifact, or a part of it as <name>#<place>, from a YAML file")
-    write.add_argument("locator")
-    write.add_argument("--from", dest="source", required=True, metavar="FILE")
+    write.add_argument("locator", type=_named("artifact"))
+    write.add_argument("--from", dest="source", type=_named("file"), required=True, metavar="FILE")
     write.add_argument("-m", dest="message", help="why")
 
     append = commands.add_parser("append", help="add an item last to a collection, as <name>#<collection>, from a YAML file")
-    append.add_argument("locator")
-    append.add_argument("--from", dest="source", required=True, metavar="FILE")
+    append.add_argument("locator", type=_named("artifact"))
+    append.add_argument("--from", dest="source", type=_named("file"), required=True, metavar="FILE")
     append.add_argument("-m", dest="message", help="why")
 
     commands.add_parser(
@@ -65,7 +75,7 @@ def command_parser() -> argparse.ArgumentParser:
     )
 
     apply = commands.add_parser("apply", help="make every change in a batch file as one change; prints the set's name")
-    apply.add_argument("--from", dest="source", required=True, metavar="FILE")
+    apply.add_argument("--from", dest="source", type=_named("file"), required=True, metavar="FILE")
     apply.add_argument("-m", dest="message", help="why")
 
     journal = commands.add_parser("journal", help="review who changed what: every change, oldest first")
@@ -83,7 +93,7 @@ def command_parser() -> argparse.ArgumentParser:
     listing.add_argument("--ids", action="store_true", help="the names alone")
 
     refs = commands.add_parser("refs", help="follow the links out of an artifact or into it, nearest first, each with its route")
-    refs.add_argument("locator")
+    refs.add_argument("locator", type=_named("artifact"))
     direction = refs.add_mutually_exclusive_group(required=True)
     direction.add_argument("--outbound", action="store_true", help="what the artifact points at")
     direction.add_argument("--inbound", action="store_true", help="what points at the artifact")
@@ -101,11 +111,11 @@ def command_parser() -> argparse.ArgumentParser:
 
     render = commands.add_parser("render", help="publish an artifact into a directory; the shop is only read")
     render.add_argument("renderer", choices=sorted(RENDERERS))
-    render.add_argument("locator")
-    render.add_argument("--to", type=Path, required=True, metavar="DIR")
+    render.add_argument("locator", type=_named("artifact"))
+    render.add_argument("--to", type=_named("directory", Path), required=True, metavar="DIR")
 
     delete = commands.add_parser("delete", help="retire an artifact nothing points at")
-    delete.add_argument("locator")
+    delete.add_argument("locator", type=_named("artifact"))
     delete.add_argument("-m", dest="message", help="why")
 
     snapshot = commands.add_parser("snapshot", help="record what a piece of work read, with the version of each")

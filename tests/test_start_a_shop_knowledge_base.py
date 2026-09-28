@@ -125,6 +125,14 @@ def _rejected_for_no_role(result):
     assert result.stderr.strip() == _NO_ROLE
 
 
+@when(
+    "the user starts a shop knowledge base in a directory whose name is given empty, saying who they are",
+    target_fixture="result",
+)
+def _start_in_an_empty_name(env, shop):
+    return knol(env, "init", "", cwd=shop)
+
+
 @then("that directory holds no knowledge base")
 @then("the directory they are working in holds no knowledge base")
 def _holds_none(shop):

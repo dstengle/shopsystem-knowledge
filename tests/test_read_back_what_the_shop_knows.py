@@ -47,6 +47,11 @@ def _read_the_decision(env, decision_id, workdir, called):
     return knol(env, "read", decision_id, cwd=workdir)
 
 
+@when("the user reads an artifact whose name is given empty", target_fixture="result")
+def _read_an_empty_name(env):
+    return knol(env, "read", "")
+
+
 @then("the user sees its name, its title and the few fields the shop shows for a decision")
 def _name_title_and_fields(shown):
     assert shown["id"] == DECISION

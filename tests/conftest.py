@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from kb.content import loads
-from pytest_bdd import given, then
+from pytest_bdd import given, parsers, then
 
 import driver
 from driver import knol, start
@@ -123,3 +123,26 @@ def _refusal_in_plain_words(result):
 @then("the command reports failure to whatever ran it")
 def _reports_failure(result):
     assert result.returncode != 0, result.stdout
+
+
+_EMPTY_NAMES = {
+    "starting the knowledge base": ("init", "root"),
+    "the decision": ("create", "--from"),
+    "the command": ("read", "locator"),
+    "publishing": ("render", "--to"),
+}
+"""The command each feature's "given an empty name" scenario runs, and the argument it gives empty, by how its Then
+names what was rejected."""
+
+
+@then(parsers.re(
+    r"(?P<rejected>starting the knowledge base|the decision|the command|publishing) is rejected because the "
+    r"(?P<kind>directory|file|artifact) it was given has an empty name, which names no place"
+))
+def _rejected_for_an_empty_name(result, rejected, kind):
+    """One line, the way every argument shop-knol cannot take is refused (adrs/0023): the command, the argument, and
+    that a name given empty names no place of the kind it was to name."""
+    command, argument = _EMPTY_NAMES[rejected]
+    assert result.stderr.splitlines() == [
+        f"shop-knol {command}: argument {argument}: a name given empty names no {kind}",
+    ], result.stderr

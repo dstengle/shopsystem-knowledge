@@ -1,6 +1,7 @@
 """The steps of publish-what-the-shop-knows.feature about a publish that is refused: a process or role past the
-limits the harness publishes, and the type-refusal outline (publishing a kind from the wrong type). The feature's
-test module star-imports this and no other does."""
+limits the harness publishes, the type-refusal outline (publishing a kind from the wrong type), and a target given an
+empty name. The feature's test module star-imports this and no other does."""
+import pytest
 from pytest_bdd import given, parsers, then, when
 
 from driver import knol, record
@@ -72,3 +73,21 @@ def _rejected_for_its_type(result, kind, process_name, role_name):
     and diagram, then `_REFUSAL`'s line for that kind."""
     name = process_name if kind == "agent" else role_name
     assert result.stderr.splitlines() == [f"{name}: {_REFUSAL[kind]}"]
+
+
+@pytest.fixture
+def working_in(tmp_path):
+    """The directory the user is working in when they publish, empty before they do."""
+    working_in = tmp_path / "working"
+    working_in.mkdir()
+    return working_in
+
+
+@when("the user publishes the role as markdown into a directory whose name is given empty", target_fixture="result")
+def _publish_into_an_empty_name(env, role_name, working_in):
+    return knol(env, "render", "markdown", role_name, "--to", "", cwd=working_in)
+
+
+@then("nothing is written to the directory they are working in")
+def _nothing_written_where_they_work(working_in):
+    assert list(working_in.iterdir()) == []
