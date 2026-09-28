@@ -169,3 +169,10 @@ def _not_a_fault(result, decisions):
     assert decisions["behind"] not in named, result.stderr
     if not result.stderr:
         assert result.returncode == 0
+
+
+@then("the user is shown no answer from a check, neither that nothing is wrong nor anything as behind its type")
+def _no_answer_shown(result):
+    """A check that never ran shows nothing on stdout: no `sound`, no `behind`, nothing a script could read as an
+    answer."""
+    assert result.stdout == "", result.stdout
