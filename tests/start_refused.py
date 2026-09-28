@@ -65,3 +65,15 @@ def _still_there(env, known_before):
 @given("the user is working in a directory that has since been removed", target_fixture="start_in")
 def _a_removed_directory(tmp_path):
     return removed(tmp_path)
+
+
+GONE = "the directory you are working in is gone"
+"""shop-knol's own words, not kb's, for a start from a working directory that no longer exists: kb is not called."""
+
+
+@then("starting the knowledge base is rejected because the directory they are working in is gone")
+def _rejected_as_gone(result):
+    """One plain line, naming no rule and no place, since the place is the one that is gone."""
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert result.stderr.splitlines() == [GONE], result.stderr

@@ -90,12 +90,25 @@ def _answered(response, also=()):
     return response
 
 
+_GONE = "the directory you are working in is gone"
+
+
 def _init(args) -> int:
+    args.root = _absolute(args.root)
     client = kb_client.connect(args.root)
     _answered(client.Init(kb_requests.init_request(args)))
     for answer in bootstrap.load(client, args.by["actor"]):
         _answered(answer)
     return 0
+
+
+def _absolute(root: Path) -> Path:
+    """The root to start in, a relative one taken from the working directory, which is refused in shop-knol's own
+    words if it is gone, before kb is called."""
+    try:
+        return root.absolute()
+    except FileNotFoundError as error:
+        raise Refused([kb_pb2.Fault(message=_GONE)]) from error
 
 
 def _create(args) -> int:
