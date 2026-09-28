@@ -127,6 +127,24 @@ def printed(fault) -> str:
     return f"{where}: {message}" if where else message
 
 
+UNKEPT = "Keep prices in step with costs. \nAnd with what the shelves hold.\n"
+"""Prose the shop cannot keep as written: a line before its last ends in a space. Written into a file as a quoted
+scalar, since kb's own writing of content refuses it."""
+
+
+def refused_as_unkept(result, path: Path, place: str) -> None:
+    """The one line shop-knol prints for prose in the file at `path` that kb cannot keep, at `place` in that file:
+    kb's own refusal to write the same file's content (`kb.content.dumps`, kb adrs/0018), never spelled here. kb v0.2.1
+    publishes no exception to name for it, so this catches `ValueError`, what the refusal is (slice 50.23 swaps it)."""
+    try:
+        dumps(loads(path.read_text()))
+    except ValueError as refusal:
+        assert result.returncode == 1
+        assert result.stderr.splitlines() == [f"{path} at {place}: {refusal}"], result.stderr
+        return
+    raise AssertionError(f"kb keeps {path} as written")
+
+
 def store_in(root: Path) -> Path:
     """Where kb keeps the store it starts in `root`: the subdirectory kb/, which kb's contract names (its Init row).
     The one place a step names it; what kb keeps inside it is kb's own."""

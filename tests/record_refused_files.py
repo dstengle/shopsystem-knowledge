@@ -1,12 +1,14 @@
 """The steps of record-a-decision.feature about a file the shop refuses to record: one that does not fit the decision
-type, one that names an entry twice, and one given an empty name. Each Then here compares what the user is shown with
-kb's own refusal of the same thing, so no step spells kb's wording (kb adrs/0018). The feature's test module
-star-imports this and no other does."""
+type, one that names an entry twice, one whose prose kb cannot keep as written, and one given an empty name. Each
+Then here compares what the user is shown with kb's own refusal of the same thing, so no step spells kb's wording (kb
+adrs/0018). The feature's test module star-imports this and no other does."""
+import json
+
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
-from driver import actor, kb_answer, knol, printed
+from driver import UNKEPT, actor, kb_answer, knol, printed, refused_as_unkept
 
 SAYING_WHY = "Move price reviews to weekly"
 """The message the user records a file with when "saying who they are and why"."""
@@ -87,3 +89,26 @@ def _kb_refuses_to_read(path) -> str:
 def _record_from_an_empty_name(env, before):
     """Asks for `before` so the knowledge base is taken as it was before the command runs."""
     return knol(env, "create", "decision", "--from", "", "-m", SAYING_WHY)
+
+
+@given("a decision in a file whose prose has a line ending in a space before its last line", target_fixture="decision_file")
+def _decision_in_a_file_with_unkept_prose(tmp_path):
+    """Its rationale's first line ends in a space, written as a quoted scalar the way a person might."""
+    path = tmp_path / "unkept.yaml"
+    path.write_text(
+        "title: Price reviews happen weekly\n"
+        "sections:\n"
+        "  - title: Purpose\n"
+        "    body: Keep prices in step with costs.\n"
+        "  - title: Rationale\n"
+        f"    body: {json.dumps(UNKEPT)}\n"
+    )
+    return path
+
+
+@then(
+    "the decision is rejected because the shop cannot keep prose in which a line before the last ends in a space, "
+    "naming the place in the file"
+)
+def _rejected_as_unkept(result, decision_file):
+    refused_as_unkept(result, decision_file, "sections/1/body")

@@ -1,8 +1,10 @@
+import json
+
 import pytest
 from kb.content import dumps
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import knol, record, start, whole
+from driver import UNKEPT, knol, record, refused_as_unkept, start, whole
 
 scenarios("revise-what-the-shop-knows.feature")
 
@@ -78,3 +80,43 @@ def _only_the_rationale_changes(env, decision_id, result, before):
 @then("the rest of the decision reads as before")
 def _the_rest_reads_as_before(env, decision_id, before):
     assert _without_the_rationale(whole(env, decision_id)) == _without_the_rationale(before)
+
+
+@given("a file whose prose has a line ending in a space before its last line", target_fixture="unkept")
+def _files_with_unkept_prose(tmp_path):
+    """For each part the user may replace, a file of that part whose rationale's first line ends in a space, written
+    as a quoted scalar, and the place in the file where it is. Which one the user gives is the When's to say."""
+    whole_file, section_file = tmp_path / "unkept-decision.yaml", tmp_path / "unkept-rationale.yaml"
+    whole_file.write_text(
+        "sections:\n"
+        "  - title: Purpose\n    body: Keep prices in step with what the shop pays.\n"
+        f"  - title: Rationale\n    body: {json.dumps(UNKEPT)}\n"
+    )
+    section_file.write_text(f"title: Rationale\nbody: {json.dumps(UNKEPT)}\n")
+    return {
+        "the decision": ("", whole_file, "sections/1/body"),
+        "the rationale of the decision": ("#sections/rationale", section_file, "body"),
+    }
+
+
+@when(parsers.parse("the user replaces {what} from that file, saying who they are and why"), target_fixture="result")
+def _replace_from_that_file(env, decision_id, unkept, what, before):
+    """Notes which file it gave as `unkept["given"]`, for the Then."""
+    unkept["given"] = unkept[what]
+    inside, path, _ = unkept[what]
+    return knol(env, "write", f"{decision_id}{inside}", "--from", str(path), "-m", "Costs now move daily")
+
+
+@then(
+    "the change is rejected because the shop cannot keep prose in which a line before the last ends in a space, "
+    "naming the place in the file"
+)
+def _rejected_as_unkept(result, unkept):
+    _, path, place = unkept["given"]
+    refused_as_unkept(result, path, place)
+
+
+@then("the decision reads as before, still at its first version")
+def _reads_as_before(env, decision_id, before):
+    assert before["revision"] == 1
+    assert whole(env, decision_id) == before
