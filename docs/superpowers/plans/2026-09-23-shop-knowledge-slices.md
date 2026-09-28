@@ -699,7 +699,7 @@ slices 2 onward, never ahead of them.
 - Observable: A user recording, revising or applying a batch from a file whose prose has a line ending in a space before its last is refused in plain words naming the place, and the shop is unchanged, where today the command ends in a traceback.
 - Unknown: whether text kb cannot keep is found where a user's file is read and checked, once, for every command that sends content
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 50.18.2: Markdown's remaining well-formed cases
 
@@ -1563,3 +1563,6 @@ slices 2 onward, never ahead of them.
   Surprised by: the store-refusal Thens `_refused_as_kb_refuses` already assert an empty stdout, so the new Then says again what the reason Then asserts.
   Open questions: whether `_refused_as_kb_refuses` should keep its stdout assertion now that this Then says it for the check; the read-back feature shares it and has no Then of its own saying so. Next: slice 50.22.
 - 2026-09-28 The RE-FORMULATE of slice 50.18.1's step scenario returned a question, not a scenario: no spec sentence decides it (a step keeps no prose as a block, so the rule has no case there; shop-knol refusing text kb keeps would contradict "Errors are printed as returned by kb"). The user decided (2026-09-28): remove "A step whose prose the shop cannot keep is refused" from add-a-step-to-a-process.feature. Removed; slice 50.18.1 is record, revise (two rows) and batch.
+- 2026-09-28 slice 50.18.1 green (Task 3 of the batch 13 implementation, after the ruling on its hand-back: the step scenario removed in bce1966). Someone can now: record, revise or apply a batch from a file whose prose kb cannot keep, a line before the last ending in a space, and be refused in one plain line naming the file and the place in it (`<file> at sections/1/body: …`, or `changes/0/content/sections/1/body` in a batch) with kb's own words, exit 1, the shop unchanged, never a traceback. The check is `document.read`'s `_kept`, after the shape check: `kb.content.dumps` of the whole document, and on its `NotCanonical`, which carries no place for this refusal, `_unkept_at` finds the place by asking `dumps` of each entry alone; every command that sends content reads through it, so the batch needed no code of its own. Each scenario was seen red on its Then with the check taken out (the `NotCanonical` traceback) and green with it; record's first, before the check existed. The Thens compare through `driver.refused_as_unkept` with kb's own refusal of the same file's content, never spelling it. The step's steps written before the hand-back are removed with its scenario. Suite `98 passed, 2 failed`, the two being 50.22's. Size check clean; `git diff --stat -- features` empty.
+  Surprised by: kb holds only `body` values to the rule, so a step's `does` is kept with its space (the hand-back); and kb gives no place for this refusal, so shop-knol finds it.
+  Open questions: none. Next: slice 50.22.

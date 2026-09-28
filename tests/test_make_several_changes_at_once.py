@@ -1,8 +1,10 @@
+import json
+
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import kb_answer, knol, record, start
+from driver import UNKEPT, kb_answer, knol, record, refused_as_unkept, start
 
 scenarios("make-several-changes-at-once.feature")
 
@@ -88,3 +90,36 @@ def _every_fault(result):
     lines = result.stderr.splitlines()
     pairs = sorted(tuple(line.split(" ")[1:3]) for line in lines)
     assert pairs == sorted([("at", "owner:"), ("at", "status:")]), result.stderr
+
+
+@given(
+    "a batch that records a decision and points the work item at it, the decision's prose having a line ending in a "
+    "space before its last line",
+    target_fixture="batch_file",
+)
+def _a_batch_with_unkept_prose(tmp_path):
+    """The decision's rationale, its first line ending in a space, written as a quoted scalar."""
+    path = tmp_path / "batch.yaml"
+    path.write_text(
+        "changes:\n"
+        "  - create: decision\n"
+        "    content:\n"
+        "      title: Price reviews happen weekly\n"
+        "      sections:\n"
+        "        - title: Purpose\n"
+        "          body: Keep prices in step with costs.\n"
+        "        - title: Rationale\n"
+        f"          body: {json.dumps(UNKEPT)}\n"
+        f"  - write: {WORK_ITEM}\n"
+        "    content:\n"
+        f"      decisions: [{WEEKLY}]\n"
+    )
+    return path
+
+
+@then(
+    "the batch is rejected because the shop cannot keep prose in which a line before the last ends in a space, "
+    "naming the place in the batch"
+)
+def _rejected_as_unkept(result, batch_file):
+    refused_as_unkept(result, batch_file, "changes/0/content/sections/1/body")

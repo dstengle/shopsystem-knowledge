@@ -1,10 +1,8 @@
-import json
-
 import pytest
 from kb.content import dumps
 from pytest_bdd import given, scenarios, then, when
 
-from driver import UNKEPT, knol, record, refused_as_unkept, start, whole
+from driver import knol, record, start, whole
 
 scenarios("add-a-step-to-a-process.feature")
 
@@ -84,29 +82,3 @@ def _shared_step_unchanged(env, shown, before):
 @then("another process using it is unaffected")
 def _other_process_unaffected(env, other_process_name, shown, before):
     assert whole(env, other_process_name) == before[other_process_name]
-
-
-@given("a step written in a file whose prose has a line ending in a space before its last line", target_fixture="step_file")
-def _a_step_with_unkept_prose(tmp_path):
-    """What the step does, its first line ending in a space, written as a quoted scalar."""
-    path = tmp_path / "unkept-step.yaml"
-    path.write_text(f"title: Tidy\ndoes: {json.dumps(UNKEPT)}\n")
-    return path
-
-
-@when("the user adds that step, saying who they are and why", target_fixture="result")
-def _add_that_step(env, process_name, step_file):
-    return knol(env, "append", f"{process_name}#steps", "--from", str(step_file), "-m", "Tidy before leaving")
-
-
-@then(
-    "the step is rejected because the shop cannot keep prose in which a line before the last ends in a space, "
-    "naming the place in the file"
-)
-def _rejected_as_unkept(result, step_file):
-    refused_as_unkept(result, step_file, "does")
-
-
-@then("the process still has its two steps")
-def _still_two_steps(env, process_name):
-    assert [step["title"] for step in whole(env, process_name)["steps"]] == ["Lock the till", "Turn off the lights"]
