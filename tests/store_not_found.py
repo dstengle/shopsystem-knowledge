@@ -50,7 +50,7 @@ def _kb_root_names_another_store(env, started_shop, tmp_path):
     return started_shop
 
 
-def _refused_as_kb_refuses(env, result, workdir, called):
+def refused_as_kb_refuses(env, result, workdir, called):
     """kb's own answer to the call the scenario's own When made, from the same directory and KB_ROOT, refuses the
     store rule it publishes (kb adrs/0018); the user is shown that one fault, in kb's words, and nothing else."""
     faults = kb_answer(env, called["call"], called["request"], cwd=workdir).faults
@@ -61,12 +61,12 @@ def _refused_as_kb_refuses(env, result, workdir, called):
 
 @then("the command is rejected because no knowledge base was found, neither above where they are working nor named outright")
 def _rejected_no_store(env, result, workdir, called):
-    _refused_as_kb_refuses(env, result, workdir, called)
+    refused_as_kb_refuses(env, result, workdir, called)
 
 
 @then("the command is rejected because KB_ROOT names a directory that holds no knowledge base")
 def _rejected_kb_root_holds_none(env, result, workdir, called):
-    _refused_as_kb_refuses(env, result, workdir, called)
+    refused_as_kb_refuses(env, result, workdir, called)
 
 
 @then(
@@ -74,4 +74,4 @@ def _rejected_kb_root_holds_none(env, result, workdir, called):
     "and neither of the two is guessed at"
 )
 def _rejected_two_stores(env, result, workdir, called):
-    _refused_as_kb_refuses(env, result, workdir, called)
+    refused_as_kb_refuses(env, result, workdir, called)

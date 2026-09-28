@@ -103,10 +103,13 @@ def kb_answer(env, call, request, cwd=None):
     shop-knol's own process): a Then over an answer the stand-in gave compares with what the stand-in gave, never
     with this (Review Focus 4). Asked after shop-knol's own call was refused, so of the same state; a refused call
     changes nothing. Refused, as `knol` is, with no `cwd` and no default set. The suite's own directory and
-    environment are restored after."""
+    environment are restored after. From a `Removed` directory, which this process cannot enter, kb is asked the way
+    shop-knol was run instead: `_kb_answer_from_gone`."""
     directory = cwd if cwd is not None else _default_cwd
     if directory is None:
         raise RuntimeError("kb was asked with no working directory, and the suite set no default")
+    if isinstance(directory, Removed):
+        return _kb_answer_from_gone(env, call, request, directory)
     here, kept = Path.cwd(), dict(os.environ)
     try:
         os.chdir(directory)
@@ -117,6 +120,31 @@ def kb_answer(env, call, request, cwd=None):
         os.chdir(here)
         os.environ.clear()
         os.environ.update(kept)
+
+
+_ASK_KB = (
+    "import sys\n"
+    "from kb.client import connect\n"
+    "from kb.contract import kb_pb2\n"
+    "asked = getattr(kb_pb2, sys.argv[2]).FromString(sys.stdin.buffer.read())\n"
+    "sys.stdout.buffer.write(getattr(connect(), sys.argv[1])(asked).SerializeToString())\n"
+)
+"""kb's published client asked one call, the request read from stdin and the answer written to stdout, both as the
+contract's messages serialized."""
+
+
+def _kb_answer_from_gone(env, call, request, gone: Removed):
+    """kb's own answer to `request` from a working directory that no longer exists: `gone` made again, entered by a
+    subprocess under exactly `env`, and removed before kb is asked, as `knol` runs shop-knol there. The answer's
+    message is the one the contract's service publishes for `call`."""
+    gone.path.mkdir()
+    asked = subprocess.run(
+        [sys.executable, "-c", _ASK_KB, call, type(request).__name__],
+        env=env, capture_output=True, cwd=gone, input=request.SerializeToString(), preexec_fn=gone.remove,
+    )
+    assert asked.returncode == 0, asked.stderr.decode()
+    answer = kb_pb2.DESCRIPTOR.services_by_name["Kb"].methods_by_name[call].output_type.name
+    return getattr(kb_pb2, answer).FromString(asked.stdout)
 
 
 def printed(fault) -> str:
