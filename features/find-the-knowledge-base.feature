@@ -58,3 +58,10 @@ Feature: Find the knowledge base
     Then the command is rejected because the directory they are working in is gone
     And the user is shown the refusal in plain words, never a traceback
     And the command reports failure to whatever ran it
+
+  Scenario: Reading where the knowledge base found is a connection to a server hosting the store
+    Pins that a knowledge base reached through a connection to its server serves exactly as the store found in place does, so where the store lives changes nothing the user sees.
+    Given the shop's knowledge base is hosted by a server
+    And the user is working in a folder deep inside a directory holding a connection to that server
+    When the user reads the decision
+    Then the user sees the decision, just as they would from the store itself

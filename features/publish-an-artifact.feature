@@ -82,6 +82,12 @@ Feature: Publish an artifact
       | role    | a field group holding a list of mappings, one mapping's last value an empty value |
       | process | steps that each say more than one thing, the name of one of those things holding the character that separates table cells |
 
+  Scenario: Markdown shows a field holding a mapping as a list nested under the field
+    Pins that a mapping keeps its shape on the page, each of its entries listed beneath the field that holds it, instead of being squeezed onto the field's own line.
+    Given the role holds a field holding a mapping
+    When the user publishes the role as markdown into a directory
+    Then that directory holds a page showing that field's mapping as a list nested under the field
+
   @slice-50.15
   Scenario Outline: Publishing something as a kind of file it cannot become is refused
     Pins that each publisher takes only the type it is made for and says which type it was given, so a role never becomes a half-made skill and a process never a half-made agent.
