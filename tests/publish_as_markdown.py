@@ -155,3 +155,25 @@ def _process_step_holds_an_empty_list(env, tmp_path, process_name):
     steps = step_holding(whole(env, process_name)["steps"], "stop", checks=[])
     write_over(env, tmp_path, process_name, {"steps": steps}, "Checks to list later")
     return process_page(["checks"], {})
+
+
+@given("the role holds a field holding a mapping")
+def _role_holds_a_field_holding_a_mapping(env, role_name):
+    """The Background role as it is: its `harness` field holds a mapping."""
+    assert isinstance(whole(env, role_name)["harness"], dict)
+
+
+@then("that directory holds a page showing that field's mapping as a list nested under the field")
+def _mapping_as_a_nested_list(result, target):
+    """The `harness` field's own line, then each entry of its mapping one level in, a list inside it one level more."""
+    assert result.returncode == 0, result.stderr
+    lines = pages(target)["stock-keeper.md"]
+    start = lines.index("- **harness**")
+    assert lines[start:start + 6] == [
+        "- **harness**",
+        "  - **name**: stock-keeper",
+        "  - **description**: Keeps the shelves stocked.",
+        "  - **tools**",
+        "    - Read",
+        "- **shop**",
+    ]

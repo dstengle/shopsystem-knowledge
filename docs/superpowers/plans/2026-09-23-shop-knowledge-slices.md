@@ -124,7 +124,7 @@ only.
 - Observable: a role's field holding a mapping reads on its page as a list under the field
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -210,3 +210,7 @@ only.
   - Review Focus 5: `nonesuch` is one line in kb's words, exit 1; `a/b` the same; `schema` and `shop-artifact` are shown whole, exit 0 (logged in the Backlog); an empty name is refused by the argument.
   - Suite `15 failed, 116 passed` before, `4 failed, 127 passed` after; only the slice's eleven scenarios left the failing list.
   Open questions: whether `types schema` and `types shop-artifact` should be refused as not among the seven. Next: slice 59.
+- 2026-10-05 slice 59 green. Someone can now: read a role's field holding a mapping on its markdown page as a list nested under the field.
+  Surprised by: the renderer already nested a field group (adrs/0041), so no production code changed; the scenario was red only on its undefined Given and Then, and the two steps (in `tests/publish_as_markdown.py`) are the whole change. The Given uses the Background role's `harness` group as it is.
+  Suite `4 failed, 127 passed` before, `3 failed, 128 passed` after; the three left are the kb-serve scenarios (slices 53, 55.1's server row, 55.2).
+  Open questions: none. Next: none (batch 14's last slice).
