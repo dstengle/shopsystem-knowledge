@@ -1,5 +1,7 @@
 # shop-knowledge Design
 
+Proposal, integrated into spec/ on 2026-10-05.
+
 Date: 2026-09-23
 Status: Draft for review
 

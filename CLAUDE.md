@@ -103,7 +103,7 @@ own it.
 
 - `make dev` once; `make test` runs the suite in this checkout's `.venv`. While scenarios are red its last line is
   make's own error; pytest's summary line above it is the answer.
-- Behaviour comes from `features/`; code is written red-green against a scenario, one at a time, and never adds
+- The spec is `spec/`: `index.md`, `decisions.md`, and one capability per `features/<name>.feature`. Behaviour comes from `features/`; code is written red-green against a scenario, one at a time, and never adds
   behaviour no scenario asks for.
 - A refactor is an enabling slice: its check is the suite giving the same answer and the structural target met.
 
