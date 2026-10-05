@@ -60,7 +60,7 @@ only.
 - Observable: a user whose directory holds only the connection to a kb server reads the shop's knowledge as if the store were beside them
 - Unknown: whether a kb server started by the test, inside its own temporary directory on a port of its own, serves shop-knol unchanged
 - Needs: starting and stopping a real kb server from a step, within the suite's isolation rules (needed by this scenario and by slice 55's server rows)
-- Status: planned
+- Status: blocked: awaiting a kb release that ships `kb serve` and a client that reaches a server through `kb/server.yaml` (kb v0.5.0 lists serving under Not yet)
 
 ## Slice 54: init furnishes an empty knowledge base it finds, and starts one only where none is found
 - Kind: capability
@@ -70,13 +70,21 @@ only.
 - Needs: none
 - Status: planned
 
-## Slice 55: init refuses a knowledge base it cannot furnish, and furnishes one through a server
+## Slice 55: init refuses a knowledge base it cannot furnish
 - Kind: capability
-- Scenarios: start-a-knowledge-base / With no directory named, starting where finding the knowledge base is refused is refused for finding's reason (both rows); start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused (all three rows); start-a-knowledge-base / Starting where the knowledge base to furnish holds something other than the shop's types is refused (both rows); start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types
-- Observable: init never furnishes twice, never furnishes a knowledge base already holding something else (saying what it holds), stops for the reason finding gives, and furnishes a served empty store as one in place
-- Unknown: how init tells, through the contract alone, an empty knowledge base from one holding the shop's types or something else
-- Needs: slice 53's server (for the server rows)
+- Scenarios: start-a-knowledge-base / With no directory named, starting where finding the knowledge base is refused is refused for finding's reason (both rows); start-a-knowledge-base / Starting where the knowledge base to furnish holds something other than the shop's types is refused (both rows)
+- Observable: init never furnishes a knowledge base already holding something else, saying what it holds, and stops for the reason finding gives
+- Unknown: how init tells, through the contract alone, an empty knowledge base from one holding something else
+- Needs: none
 - Status: planned
+
+## Slice 55.1: init never furnishes twice, and furnishes a served empty store
+- Kind: capability
+- Scenarios: start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused (all three rows); start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types
+- Observable: init refuses a knowledge base that already holds the shop's types, wherever it is found, and furnishes a served empty store as one in place
+- Unknown: none once a kb server exists (slice 53 settles the server; slice 55 how a found knowledge base is told apart)
+- Needs: slice 53's server (the server rows; the outline's three rows share one tag, so its two buildable rows wait with it)
+- Status: blocked: awaiting slice 53
 
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
 - Kind: capability
@@ -135,3 +143,4 @@ only.
   Evidence: `RuntimeError: kb serve exited 2: usage: kb [-h] {init,validate,export,import} ... kb: error: argument command: invalid choice: 'serve' (choose from 'init', 'validate', 'export', 'import')` (tests/driver.py `_answering`, from the Given's `server` fixture). kb v0.5.0 (e530e1f) has no `kb serve`, its `kb.client` is in-process only and reads no `kb/server.yaml`; its operate-a-store capability lists serving under "Not yet" ("Promoted when the served-store lines ... are formulated and built"). Neither kb's main nor batch23-storage has it either.
   Green in this slice: none. Red: "Reading where the knowledge base found is a connection to a server hosting the store".
   KB REQUEST: bump the pin to the kb release that ships reach-a-served-store and operate-a-store's `kb serve <root> --listen <host:port>` lines, with `kb.client.connect` reaching a server through `kb/server.yaml`. Slice 53 (and slice 55's server rows, and Review Focus 1 for Task 4) wait on it. Written and kept, red: the two Givens and the Then beside the find feature's steps (tests/read_back_from_elsewhere.py, a `server` fixture that stops the server at teardown), and in tests/driver.py `serve`, `stop` and `connection_in` (a real `kb serve` on 127.0.0.1 and a free port, from the shop's own directory, waited on until it takes connections); CLAUDE.md names the connection file in rule 1 and the step-definition rules. Nothing under src/ changed. Suite `38 failed, 93 passed` before and after, the same failing list.
+- 2026-10-05 RE-SLICE after the HAND-BACK of slice 53 (5443cd6): no row of the hand-back table changes a Given, When or Then, so this skill re-orders alone. kb v0.5.0 specifies `kb serve` and the served-store lines but lists serving under Not yet: its command line has no `serve` and its client never reads `kb/server.yaml` (checked: `git -C ../shopsystem-kb show v0.5.0:src/kb/cli.py`). Slice 53 is blocked on a kb release that ships it (KB REQUEST, logged in the hand-back). Slice 55's two scenarios that need a server, the server-furnish scenario and the already-holds outline (its three rows share one tag), move to slice 55.1, blocked on 53. Slice 55 keeps finding refused and not empty. Order: 54, 55, 56, 57, 58, 59; 53 and 55.1 wait. The red step code for 53 (5443cd6) stays committed, never run against a server.

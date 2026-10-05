@@ -43,13 +43,13 @@
 |---|---|---|
 | 51 | 37 | 94 |
 | 52 | 37 or 38 | 94 or 93 ("One bad change" may go red: its step builds a batch of mixed kinds) |
-| 53 | 36 or 37 | 95 or 94 |
-| 54 | 29 or 30 | 102 or 101 |
-| 55 | 21 or 22 | 110 or 109 |
-| 56 | 15 | 116 |
-| 57 | 12 | 119 |
-| 58 | 1 | 130 |
-| 59 | 0 | 131 |
+| 53 | blocked (re-sliced 2026-10-05) | |
+| 54 | 31 | 100 |
+| 55 | 27 | 104 |
+| 56 | 20 | 111 |
+| 57 | 17 | 114 |
+| 58 | 6 | 125 |
+| 59 | 5 | 126 (the 5 left: slice 53's 1 and slice 55.1's 4, waiting on kb serve) |
 
 **Checks**
 - Record the failing list at each slice's start with `.venv/bin/python -m pytest -q -rf | grep ^FAILED | sort`, and compare at its end: only the slice's own scenarios may leave it.
@@ -185,11 +185,11 @@ Review: per-task. Model: opus.
 
 Review: per-task. Model: opus.
 
-**Scenarios** (`@slice-55`, 8):
+**Re-sliced 2026-10-05 (after slice 53's hand-back):** kb v0.5.0 cannot serve a store, so the already-holds outline and the server-furnish scenario moved to slice 55.1, blocked on slice 53. This task builds slice 55 alone; the "Already holds the shop's types" decision and the server Givens below wait for 55.1.
+
+**Scenarios** (`@slice-55`, 4):
 - start-a-knowledge-base / With no directory named, starting where finding the knowledge base is refused is refused for finding's reason (both rows)
-- Starting where the knowledge base to furnish already holds the shop's types is refused (all three rows)
 - Starting where the knowledge base to furnish holds something other than the shop's types is refused (both rows)
-- With no directory named, an empty store kb reaches through a server is furnished with the shop's types
 
 **Why red today:** their Givens are undefined. Once they exist:
 - init has no refusal of its own for a found knowledge base holding the shop's types or something else;

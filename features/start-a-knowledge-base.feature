@@ -47,7 +47,7 @@ Feature: Start a knowledge base
       | upward         | the user is working in a folder inside a knowledge base kb's operator started empty, and nothing names one |
       | through KB_ROOT | the user is working outside any knowledge base, with KB_ROOT naming a knowledge base kb's operator started empty |
 
-  @slice-55
+  @slice-55.1
   Scenario: With no directory named, an empty store kb reaches through a server is furnished with the shop's types
     Pins that a knowledge base reached through a server is furnished just as one found in place is.
     Given the user is working where kb finds a connection to a server hosting a store kb's operator started empty
@@ -100,7 +100,7 @@ Feature: Start a knowledge base
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
-  @slice-55
+  @slice-55.1
   Scenario Outline: Starting where the knowledge base to furnish already holds the shop's types is refused
     Pins that furnishing never runs twice: a knowledge base that already has the shop's types is left exactly as it was, whether it was found or named.
     Given <situation>
