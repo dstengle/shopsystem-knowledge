@@ -1,11 +1,20 @@
 """The steps of start-a-knowledge-base.feature about a start that kb refuses: a directory already holding a
 knowledge base, or inside one, and a directory since removed. The feature's test module star-imports this and no
 other does."""
+from pathlib import Path
+
 import pytest
+from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
 from driver import knol, removed, start, store_in
-from kb_oracle import kb_refuses_to_start, printed
+from kb_oracle import kb_answer, kb_refuses_to_start, operator_started, printed
+
+
+@pytest.fixture
+def started_before():
+    """The directories a Given started a knowledge base in before the user ran init."""
+    return set()
 
 
 @pytest.fixture
@@ -89,3 +98,53 @@ def _rejected_as_gone(result):
     assert result.returncode == 1
     assert result.stdout == ""
     assert result.stderr.splitlines() == [GONE], result.stderr
+
+
+def _finding(env, start_in) -> list:
+    """kb's own refusal to find a knowledge base from where the user started one, asked with the call init finds it
+    by: the names of the types it holds."""
+    asked = kb_pb2.ListRequest(kind="schema", form=kb_pb2.ListRequest.IDS)
+    return kb_answer(env, "List", asked, cwd=start_in).refusal.faults
+
+
+def _refused_as_kb_refuses_finding(env, result, start_in):
+    """Every line printed is one of kb's own faults for finding no knowledge base from the same place, under the
+    same KB_ROOT, and nothing else is shown."""
+    faults = _finding(env, start_in)
+    assert faults, "kb finds a knowledge base from there"
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert set(result.stderr.splitlines()) == {printed(fault) for fault in faults}, result.stderr
+
+
+@then("starting the knowledge base is rejected because KB_ROOT names a directory that holds no knowledge base")
+def _rejected_kb_root_holds_none(env, result, start_in):
+    _refused_as_kb_refuses_finding(env, result, start_in)
+
+
+@then("no knowledge base is started")
+def _none_started(env, start_in, tmp_path, started_before):
+    """Neither where the user works, nor the test's own directory, nor KB_ROOT's directory, holds one now, unless a
+    Given started it there before the user ran init."""
+    for directory in {start_in, tmp_path, Path(env.get("KB_ROOT", tmp_path))} - started_before:
+        assert not store_in(directory).exists(), directory
+
+
+@given(
+    "the user is working inside a knowledge base kb's operator started empty, with KB_ROOT naming a different one",
+    target_fixture="start_in",
+)
+def _inside_one_kb_root_names_another(env, shop, tmp_path, started_before):
+    other = tmp_path / "other"
+    other.mkdir()
+    for root in (shop, other):
+        operator_started(env, root)
+    started_before.update({shop, other})
+    env["KB_ROOT"] = str(other)
+    # Works in the directory kb's contract says init made (`kb.init`), inside the knowledge base.
+    return store_in(shop)
+
+
+@then("starting the knowledge base is rejected because KB_ROOT names a knowledge base other than the one they are working in")
+def _rejected_two_stores(env, result, start_in):
+    _refused_as_kb_refuses_finding(env, result, start_in)

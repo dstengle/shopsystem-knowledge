@@ -80,9 +80,16 @@ def knol(env, *args, cwd=None, piped=None):
     )
 
 
+def unnamed(env) -> dict:
+    """`env` with no KB_ROOT: what a run is given where nothing is to name a knowledge base. The suite's `env` names the
+    shop's directory before any store is there, and init refuses a KB_ROOT naming a directory holding none."""
+    return {name: value for name, value in env.items() if name != "KB_ROOT"}
+
+
 def start(env, shop):
-    """Start a knowledge base the way the user now does: run init from the shop's directory, naming none."""
-    result = knol(env, "init", cwd=shop)
+    """Start a knowledge base the way the user now does: run init from the shop's directory, naming none, with nothing
+    naming a knowledge base, so it starts one there."""
+    result = knol(unnamed(env), "init", cwd=shop)
     assert result.returncode == 0, result.stderr
 
 

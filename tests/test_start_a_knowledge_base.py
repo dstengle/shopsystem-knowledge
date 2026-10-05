@@ -2,10 +2,11 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from driver import knol, record, store_in
+from driver import knol, record, store_in, unnamed
 from start_furnished import THE_SHOPS_TYPES
 from start_furnished import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from start_refused import *  # noqa: F403  pytest-bdd registers steps only through a star import
+from start_not_empty import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("start-a-knowledge-base.feature")
 
@@ -29,8 +30,9 @@ def _start_saying_who(env, start_in):
 
 
 def _init(env, directory):
-    """Run init from the directory the user works in, naming none: it starts the knowledge base there."""
-    return knol(env, "init", cwd=directory)
+    """Run init from the directory the user works in, naming none, and with nothing naming a knowledge base: it starts
+    the knowledge base there, unless kb finds one from there."""
+    return knol(unnamed(env), "init", cwd=directory)
 
 
 @then("the shop can hold decisions, features, work items, roles, processes, steps and tags")
@@ -100,8 +102,7 @@ def _is_started(env, shop, result):
 
 def _found_from(env, directory):
     """A shop-knol command run from `directory`, with no KB_ROOT to name a store, finds one there holding a history."""
-    unnamed = {name: value for name, value in env.items() if name != "KB_ROOT"}
-    found = knol(unnamed, "journal", cwd=directory)
+    found = knol(unnamed(env), "journal", cwd=directory)
     assert found.returncode == 0, found.stderr
     assert loads(found.stdout)["changes"], found.stdout
 

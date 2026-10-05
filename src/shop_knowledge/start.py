@@ -1,6 +1,7 @@
 """Starting the shop's knowledge base: finding one from where the user works, telling whether it is empty, furnishing
 it with the shop's types through bootstrap, or starting one with `kb.init`. Every refusal is raised as `Refused`;
 nothing here prints."""
+import os
 from pathlib import Path
 
 import kb
@@ -11,6 +12,7 @@ from shop_knowledge import bootstrap, kb_requests
 from shop_knowledge.refusal import Refused
 
 _GONE = "the directory you are working in is gone"
+_NOT_EMPTY = "it is not empty"
 
 
 def furnished(root: Path | None, signed: kb_pb2.Signature):
@@ -22,11 +24,28 @@ def furnished(root: Path | None, signed: kb_pb2.Signature):
 
 
 def _found(here: Path, signed: kb_pb2.Signature):
-    """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here."""
-    if _empty(client := connect()):
+    """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here. Where
+    KB_ROOT is set, kb's refusal to find one is refused as it gave it: only finding nothing, with nothing named, starts
+    a store."""
+    listed = (client := connect()).List(kb_requests.init_request())
+    if listed.WhichOneof("outcome") == "refusal" and os.environ.get("KB_ROOT"):
+        raise Refused(listed.refusal.faults)
+    if _empty(listed):
         return client
+    _refuse_unless_furnished(listed)
     _started(here, signed)
     return connect(here)
+
+
+def _refuse_unless_furnished(listed: kb_pb2.ListResponse) -> None:
+    """Refused, naming the knowledge base as KB_ROOT names it and the kinds of the types it holds besides kb's own,
+    where kb found one holding types but not all of the shop's."""
+    if listed.WhichOneof("outcome") != "result":
+        return
+    kinds = [held.removeprefix("schema/") for held in listed.result.ids if held != "schema/schema"]
+    if not set(bootstrap.TYPES) <= set(kinds):
+        said = f"{_NOT_EMPTY}: it holds the types {', '.join(sorted(kinds))}"
+        raise Refused([kb_pb2.Fault(artifact=os.environ.get("KB_ROOT", ""), message=said)])
 
 
 def _named(root: Path, signed: kb_pb2.Signature):
@@ -34,14 +53,13 @@ def _named(root: Path, signed: kb_pb2.Signature):
     try:
         _started(root, signed)
     except Refused:
-        if not _empty(connect(root)):
+        if not _empty(connect(root).List(kb_requests.init_request())):
             raise
     return connect(root)
 
 
-def _empty(client) -> bool:
-    """Whether the knowledge base the client reaches holds no type but kb's own."""
-    listed = client.List(kb_requests.init_request())
+def _empty(listed: kb_pb2.ListResponse) -> bool:
+    """Whether kb's answer to init's List names no type but kb's own."""
     return listed.WhichOneof("outcome") == "result" and list(listed.result.ids) == ["schema/schema"]
 
 

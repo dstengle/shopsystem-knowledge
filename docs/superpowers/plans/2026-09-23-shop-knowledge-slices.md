@@ -76,7 +76,7 @@ only.
 - Observable: init never furnishes a knowledge base already holding something else, saying what it holds, and stops for the reason finding gives
 - Unknown: how init tells, through the contract alone, an empty knowledge base from one holding something else
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 55.1: init never furnishes twice, and furnishes a served empty store
 - Kind: capability
@@ -126,6 +126,7 @@ only.
 
 - 2026-09-28 `read <id> --section ""` answers the summary and `journal --artifact ""` the whole history, where "a name given empty names no place" would refuse them; these arguments default to `""`, so telling "given empty" apart needs another default. No capability line names them yet (from batch 13's review, routed to formulation).
 - 2026-09-28 A relative `--from` or `--to` named from a removed working directory is refused in the operating system's words (`d.yaml: No such file or directory`), where the directory being gone is the cause. No line names it (from batch 13's review).
+- 2026-10-05 A knowledge base whose furnishing stopped at a refused Create cannot be finished by `init`: it keeps the shop's types created before the refusal, and a second `init` refuses it as not empty, naming them. Reproduction: an operator-started store named by KB_ROOT, `init` run with the stand-in (`driver.answering`) answering the Create titled `Decision` with a refusal, then `init` again without it: exit 1, `<KB_ROOT>: it is not empty: it holds the types decision, shop-artifact, tag` (decision is there because the stand-in asks the real kb first). No capability line says what a half-furnished knowledge base is (slice 55's Review Focus 2 probe, routed to formulation).
 
 ## Log
 
@@ -155,3 +156,10 @@ only.
   - Suite `38 failed, 93 passed` before, `31 failed, 100 passed` after; only the slice's seven scenarios left the failing list.
   - Review Focus 1 (an unreachable server) is deferred with slice 53.
   Open questions: for Task 5 (slice 55), every finding refusal still falls through to starting a store in the working directory, including those with KB_ROOT set. When slice 55 refuses those instead, `driver.start` and the init Whens of slices 4, 47 and 50.x will break, because the suite's `env` sets KB_ROOT to the shop's directory before any store exists. Next: slice 55.
+- 2026-10-05 slice 55 green. Someone can now: run `shop-knol init` with KB_ROOT naming a directory that holds no knowledge base, or a knowledge base other than the one they work in, and be refused in kb's own words with nothing started; and be refused, in plain words naming KB_ROOT and the types it holds, when the knowledge base to furnish already holds types that are not all the shop's.
+  Surprised by:
+  - Splitting `start._found` on the List's outcome broke previously green scenarios (16 on the two modules run: 12 of record-an-artifact, 4 of start-a-knowledge-base): `driver.start` and the feature's own init When ran init with the suite's KB_ROOT naming the shop's directory before any store existed. Both now run init with no KB_ROOT (`driver.unnamed`); no Given, When or Then changed.
+  - A knowledge base holding all of the shop's types still falls through to `kb.init` in the working directory, so slice 54's "already holds" and "inside one" keep kb's words; the KB_ROOT-elsewhere case of that is slice 55.1's.
+  - Suite `31 failed, 100 passed` before, `27 failed, 104 passed` after; only the slice's four scenarios left the failing list.
+  - Review Focus 2: a Create refused partway leaves the types created before it, and a second `init` refuses the knowledge base as not empty, naming them; logged in the Backlog.
+  Open questions: a knowledge base found upward (no KB_ROOT) holding types other than the shop's is refused with no name before its message, since no scenario says how to name it; `_absolute` still refuses a gone working directory before finding, even where KB_ROOT names a knowledge base. Next: slice 56.

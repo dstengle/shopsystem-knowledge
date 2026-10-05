@@ -74,6 +74,20 @@ def operator_started(env, root: Path) -> None:
         init(str(root), OPERATOR)
 
 
+def operator_created(env, root: Path, kind: str, title: str, content: dict) -> str:
+    """An artifact created in the store at `root` the way kb's operator records one, through kb's published client in
+    this process, from `root` under exactly `env`, signed by the operator's role: never by writing a file, and never
+    through shop-knol. Gives back the id kb named it with; refused, as `knol` is, outside the test's own directory."""
+    driver._isolated(root, env)
+    asked = kb_pb2.CreateRequest(
+        kind=kind, title=title, content=dumps(content), signature=kb_pb2.Signature(role=OPERATOR, message=f"Add {title}"),
+    )
+    with _as_run(root, env):
+        answer = connect(root).Create(asked)
+    assert answer.WhichOneof("outcome") == "result", answer
+    return answer.result.id
+
+
 @contextmanager
 def _as_run(directory, env):
     """In `directory`, under exactly `env`, as shop-knol was run; the suite's own directory and environment restored
