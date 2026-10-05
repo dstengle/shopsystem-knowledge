@@ -50,7 +50,7 @@ only.
 ## Slice 1: Record a decision and read it back
 
 - Kind: capability
-- Scenarios: kb / start-a-store / The client starts a store; kb / define-a-type / The client defines a type; kb / create-an-artifact / The client creates an artifact; kb / read-an-artifact / The client reads a summary; shop-knowledge / record-a-decision / The user records a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision at a glance
+- Scenarios: kb / start-a-store / The client starts a store; kb / define-a-type / The client defines a type; kb / create-an-artifact / The client creates an artifact; kb / read-an-artifact / The client reads a summary; shop-knowledge / record-an-artifact / The user records a decision; shop-knowledge / read-an-artifact / The user reads a decision at a glance
 - Observable: At a shell, a user starts a shop knowledge base, records a decision from a file saying who they are and why, is shown the name the decision was given without having chosen it, and reads it back by that name at a glance with stubs of what it points at and counts of what points at it, while the decision sits on disk as a file inside a commit.
 - Unknown: Does one round trip pass through every layer: the command line, the in-process client, the contract's messages, schema validation, canonical YAML on disk, and a git commit?
 - Needs: the contract's messages that starting a store, defining a type, creating, and reading a summary need (every scenario); the metaschema written when a store starts (the start scenario); writes landing as files and one commit in the store's git repository, which nothing here asserts on but without which the skeleton is not through every layer (the create and record scenarios); the shop's start command loading bootstrap types for decision, work item, and tag, flat or on a base as the implementer chooses since nothing here asserts on composition (the two shop-knowledge scenarios); the name of a new artifact made by kb from its title, since neither the client nor the user chooses one (the create and record scenarios); the role a store is started under, carried on the start request (the start scenario, rewritten 2026-09-24)
@@ -59,7 +59,7 @@ only.
 ## Slice 1.17: A title in a user's file reaches kb as the text the user wrote
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A title in a file that reads as a date is still a title; shop-knowledge / record-a-decision / A title in a file that reads as a yes is still a title
+- Scenarios: shop-knowledge / record-an-artifact / A title in a file that reads as a date is still a title; shop-knowledge / record-an-artifact / A title in a file that reads as a yes is still a title
 - Observable: A user records a decision from a file whose title is written 2026-09-24, or yes, and reads the title back as that text, with the name made from it.
 - Unknown: none
 - Needs: every file shop-knol reads, the shop's own type files included, and everything it prints, read and written the way kb reads content, in place of the YAML 1.1 reading and writing it does now (both scenarios, and slice 1's two shop scenarios, which must stay green)
@@ -68,7 +68,7 @@ only.
 ## Slice 1.24: shop-knol refuses a file it cannot read in plain words
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A file naming the same entry twice is refused
+- Scenarios: shop-knowledge / record-an-artifact / A file naming the same entry twice is refused
 - Observable: A user records a decision from a file that names the same entry twice and is told in plain words that an entry is named once and only once, with the place in the file, the command reporting failure and no traceback shown.
 - Unknown: How does shop-knol give every refusal, kb's and its own reading of the user's file alike, as plain words and a non-zero exit, so that no traceback reaches the user?
 - Needs: none
@@ -77,7 +77,7 @@ only.
 ## Slice 1.27: Reading a decision whose file the shop cannot read is refused in plain words
 
 - Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / Reading something whose file the shop cannot read is refused
+- Scenarios: shop-knowledge / read-an-artifact / Reading something whose file the shop cannot read is refused
 - Observable: A user reads a decision whose file was mangled by hand and is told in plain words that the file cannot be read, naming it, with the command reporting failure and no traceback shown.
 - Unknown: none
 - Needs: the shop's read reporting a refusal kb returns, where today it prints an empty artifact and succeeds (this scenario)
@@ -86,7 +86,7 @@ only.
 ## Slice 1.28: A check of the shop's knowledge lists a file it cannot read
 
 - Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a knowledge base holding a file the shop cannot read
+- Scenarios: shop-knowledge / check-the-knowledge-base / The user checks a knowledge base holding a file the shop cannot read
 - Observable: A user checks a knowledge base holding a decision file mangled by hand and sees that file listed as a fault naming it, in plain words, alongside the check of everything else, with the command reporting failure.
 - Unknown: none
 - Needs: the shop's check command, as far as listing what kb's check reports; slice 44 extends it (this scenario)
@@ -137,7 +137,7 @@ slices 2 onward, never ahead of them.
 ## Slice 4: The shop's seven types
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / The user starts a knowledge base and the shop's types are ready
+- Scenarios: shop-knowledge / start-a-knowledge-base / The user starts a knowledge base and the shop's types are ready
 - Observable: One command in an empty directory leaves a knowledge base that can hold decisions, features, work items, roles, processes, steps, and tags, and the user defines nothing of their own first.
 - Unknown: Can the process type, whose steps are each either written in place or a reuse of a shared step with bindings, and which carry branches, be said in kb's schema language?
 - Needs: the seven bootstrap types, the base they all build on, and whatever shared shapes the process and feature types refer to (this scenario)
@@ -164,7 +164,7 @@ slices 2 onward, never ahead of them.
 ## Slice 17: Publish a process as a skill
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a process as a skill
+- Scenarios: shop-knowledge / publish-an-artifact / The user publishes a process as a skill
 - Observable: A user publishes a process into a directory and finds a skill whose heading block is the process's identity and whose body is its steps with the reused step written out in full; the knowledge base is unchanged.
 - Unknown: Is a resolved whole read, with the stubs of its references and its type, enough for a renderer to write a reused step out in full?
 - Needs: none
@@ -173,7 +173,7 @@ slices 2 onward, never ahead of them.
 ## Slice 18: A skill the harness would reject is not published
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / A skill the harness would reject is not published
+- Scenarios: shop-knowledge / publish-an-artifact / A skill the harness would reject is not published
 - Observable: A user publishes a process whose steps run past the harness's limits; the skill is refused for that reason and the directory stays empty.
 - Unknown: Which limits does the harness publish for a skill, and can the renderer check its output against them before writing anything?
 - Needs: none
@@ -182,7 +182,7 @@ slices 2 onward, never ahead of them.
 ## Slice 19: Publish a process as a diagram
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a process as a diagram
+- Scenarios: shop-knowledge / publish-an-artifact / The user publishes a process as a diagram
 - Observable: A user publishes a process into a directory and finds a diagram of its steps and their branches.
 - Unknown: Do steps and branches carry enough structure to draw the diagram without hand layout?
 - Needs: none
@@ -209,7 +209,7 @@ slices 2 onward, never ahead of them.
 ## Slice 20: Publish anything as markdown
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes anything as markdown
+- Scenarios: shop-knowledge / publish-an-artifact / The user publishes anything as markdown
 - Observable: A user publishes a role into a directory and finds a page with its identity as a heading, its fields as a list, its sections at their levels, and its parts as tables.
 - Unknown: Can the page be laid out from the type alone, so the renderer knows nothing about any one type?
 - Needs: none
@@ -236,7 +236,7 @@ slices 2 onward, never ahead of them.
 ## Slice 22: Read a decision at every depth, as text or JSON, from wherever the user works
 
 - Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / The user reads the whole decision; shop-knowledge / read-back-what-the-shop-knows / The user reads one section of a decision; shop-knowledge / read-back-what-the-shop-knows / The user reads a decision with the things it points at filled in; shop-knowledge / read-back-what-the-shop-knows / The user takes the same answer as JSON; shop-knowledge / read-back-what-the-shop-knows / The user asks for the links to be followed two steps; shop-knowledge / read-back-what-the-shop-knows / The user reads from a folder inside the shop's knowledge; shop-knowledge / read-back-what-the-shop-knows / The user reads while working elsewhere, having named the knowledge base; shop-knowledge / read-back-what-the-shop-knows / Reading where no knowledge base can be found is refused; shop-knowledge / read-back-what-the-shop-knows / Reading with KB_ROOT naming somewhere that holds no knowledge base is refused; shop-knowledge / read-back-what-the-shop-knows / Reading from inside one knowledge base while KB_ROOT names another is refused
+- Scenarios: shop-knowledge / read-an-artifact / The user reads the whole decision; shop-knowledge / read-an-artifact / The user reads one section of a decision; shop-knowledge / read-an-artifact / The user reads a decision with the things it points at filled in; shop-knowledge / read-an-artifact / The user takes the same answer as JSON; shop-knowledge / read-an-artifact / The user asks for the links to be followed two steps; shop-knowledge / find-the-knowledge-base / The user reads from a folder inside the shop's knowledge; shop-knowledge / find-the-knowledge-base / The user reads while working elsewhere, having named the knowledge base; shop-knowledge / find-the-knowledge-base / Reading where no knowledge base can be found is refused; shop-knowledge / find-the-knowledge-base / Reading with KB_ROOT naming somewhere that holds no knowledge base is refused; shop-knowledge / find-the-knowledge-base / Reading from inside one knowledge base while KB_ROOT names another is refused
 - Observable: A user reads a decision whole with what it points at shown by name, or only its rationale, or whole with what it points at filled in one step when they do not say how far, or two steps so the tag inside the older decision is filled in too, and can take any of those answers as JSON instead of the default; and the user reads from a folder deep inside the shop's knowledge and is answered from the knowledge base found above them, or from elsewhere with KB_ROOT naming the shop's, and is refused with the command reporting failure where none can be found, where KB_ROOT names a directory holding no knowledge base, or where they work inside one knowledge base while KB_ROOT names another.
 - Unknown: none
 - Needs: none
@@ -245,7 +245,7 @@ slices 2 onward, never ahead of them.
 ## Slice 24: Revise a recorded decision, whole or in part
 
 - Kind: capability
-- Scenarios: shop-knowledge / revise-what-the-shop-knows / The user revises a recorded decision; shop-knowledge / revise-what-the-shop-knows / The user revises one part of a recorded decision
+- Scenarios: shop-knowledge / revise-an-artifact / The user revises a recorded decision; shop-knowledge / revise-an-artifact / The user revises one part of a recorded decision
 - Observable: A user replaces a decision from a file and the shop holds the new wording at a later version, or replaces only its rationale and the rest reads as before.
 - Unknown: none
 - Needs: none
@@ -254,7 +254,7 @@ slices 2 onward, never ahead of them.
 ## Slice 26: A decision the shop cannot accept is refused
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A decision that does not fit the shop's decision type is refused; shop-knowledge / record-a-decision / A decision recorded by nobody is refused; shop-knowledge / record-a-decision / A decision recorded without a reason is refused
+- Scenarios: shop-knowledge / record-an-artifact / A decision that does not fit the shop's decision type is refused; shop-knowledge / record-an-artifact / A decision recorded by nobody is refused; shop-knowledge / record-an-artifact / A decision recorded without a reason is refused
 - Observable: A user records a file that does not fit the decision type and is told which artifact and place is at fault with the command exiting non-zero, or records without saying which role they are, or without a message, and is refused for that reason.
 - Unknown: none
 - Needs: none
@@ -263,7 +263,7 @@ slices 2 onward, never ahead of them.
 ## Slice 28: Record a decision from a pipe, under a piece of work, or with a title already used
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / The user pipes a decision in instead of naming a file; shop-knowledge / record-a-decision / The user records a decision as part of a piece of work; shop-knowledge / record-a-decision / A decision whose title is already used is given a name of its own
+- Scenarios: shop-knowledge / record-an-artifact / The user pipes a decision in instead of naming a file; shop-knowledge / record-an-artifact / The user records a decision as part of a piece of work; shop-knowledge / record-an-artifact / A decision whose title is already used is given a name of its own
 - Observable: A user pipes a decision from another command into the record command and the shop holds it as if it had come from a file, a user working as the shopkeeper on a named piece of work records one and the change is attributed to both; and a user records a decision whose title is already used and is shown a name of its own for it, the taken name with a number added, while the earlier decision still reads back by its name.
 - Unknown: none
 - Needs: none
@@ -281,7 +281,7 @@ slices 2 onward, never ahead of them.
 ## Slice 30: List what the shop has recorded
 
 - Kind: capability
-- Scenarios: shop-knowledge / list-what-the-shop-has-recorded / The user lists every decision; shop-knowledge / list-what-the-shop-has-recorded / The user lists the decisions that match a field; shop-knowledge / list-what-the-shop-has-recorded / The user lists only the names, to feed another command
+- Scenarios: shop-knowledge / list-what-the-shop-holds / The user lists every decision; shop-knowledge / list-what-the-shop-holds / The user lists the decisions that match a field; shop-knowledge / list-what-the-shop-holds / The user lists only the names, to feed another command
 - Observable: A user lists the decisions and sees all three with name and title, narrows to the superseded one by a field, or asks for names only and sees three names fit to feed another command.
 - Unknown: none
 - Needs: none
@@ -299,7 +299,7 @@ slices 2 onward, never ahead of them.
 ## Slice 32: Follow the links from the command line
 
 - Kind: capability
-- Scenarios: shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what a decision points at; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user sees what points at a decision; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user narrows the links to one kind of link and one kind of thing; shop-knowledge / follow-the-links-between-what-the-shop-knows / The user follows the links two steps out
+- Scenarios: shop-knowledge / follow-the-links / The user sees what a decision points at; shop-knowledge / follow-the-links / The user sees what points at a decision; shop-knowledge / follow-the-links / The user narrows the links to one kind of link and one kind of thing; shop-knowledge / follow-the-links / The user follows the links two steps out
 - Observable: A user follows the links out of a decision and sees the older decision, in and sees both work items, narrowed to one link and one kind and sees both work items and nothing else, or two steps out and sees the older decision and the tag each with the route taken.
 - Unknown: none
 - Needs: none
@@ -380,7 +380,7 @@ slices 2 onward, never ahead of them.
 ## Slice 42: Retire what the shop no longer uses
 
 - Kind: capability
-- Scenarios: shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something nothing points at; shop-knowledge / retire-what-the-shop-no-longer-uses / The user retires something that is still pointed at
+- Scenarios: shop-knowledge / retire-an-artifact / The user retires something nothing points at; shop-knowledge / retire-an-artifact / The user retires something that is still pointed at
 - Observable: A user retires a tag nothing points at and the shop no longer holds it, or retires a tag a decision carries and is refused, seeing everything that points at it.
 - Unknown: none
 - Needs: none
@@ -407,7 +407,7 @@ slices 2 onward, never ahead of them.
 ## Slice 44: Check the shop's knowledge is sound
 
 - Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a sound knowledge base; shop-knowledge / check-the-shops-knowledge-is-sound / The user checks a knowledge base with faults; shop-knowledge / check-the-shops-knowledge-is-sound / The user is told what is behind its type
+- Scenarios: shop-knowledge / check-the-knowledge-base / The user checks a sound knowledge base; shop-knowledge / check-the-knowledge-base / The user checks a knowledge base with faults; shop-knowledge / check-the-knowledge-base / The user is told what is behind its type
 - Observable: A user checks a sound knowledge base and is told nothing is wrong, checks one with two faults and sees both with the artifact and place while the command exits non-zero, or sees a decision listed as behind its type and not as a fault.
 - Unknown: none
 - Needs: none
@@ -416,7 +416,7 @@ slices 2 onward, never ahead of them.
 ## Slice 47: The shop's knowledge base sits beside the shop's work, is started by someone for no stated reason, and is not started twice
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / The shop's knowledge sits in a place of its own inside the directory it was started in; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base where the directory already holds one is refused; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base inside one the shop already has is refused; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base asks for no reason; shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base without saying who is refused
+- Scenarios: shop-knowledge / start-a-knowledge-base / The shop's knowledge sits in a place of its own inside the directory it was started in; shop-knowledge / start-a-knowledge-base / Starting a knowledge base where the directory already holds one is refused; shop-knowledge / start-a-knowledge-base / Starting a knowledge base inside one the shop already has is refused; shop-knowledge / start-a-knowledge-base / Starting a knowledge base asks for no reason; shop-knowledge / start-a-knowledge-base / Starting a knowledge base without saying who is refused
 - Observable: A user starts a shop knowledge base in a directory holding other work of the shop's and finds the knowledge kept in a place of its own inside it, with that work left as it was; starting one where the directory already holds the shop's knowledge, or in a directory inside it, is refused for that reason with everything the shop already knows unchanged; starting one saying who but giving no reason succeeds with everything it was given recorded in the shop's history under a reason the command writes itself, and starting one without saying who is refused for that reason, the directory holding no knowledge base and the command reporting failure.
 - Unknown: none
 - Needs: Init's answer and bootstrap's Create answers, both dropped today, refused the one way every kb answer is (the two refusals of starting where a knowledge base already is)
@@ -443,7 +443,7 @@ slices 2 onward, never ahead of them.
 ## Slice 49: The shop's roles and tags hold their shape
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / A role keeps its harness fields apart from its shop identity; shop-knowledge / start-a-shop-knowledge-base / Anything the shop knows can be tagged
+- Scenarios: shop-knowledge / use-the-shops-types / A role keeps its harness fields apart from its shop identity; shop-knowledge / use-the-shops-types / Anything the shop knows can be tagged
 - Observable: A user records a role and its harness fields sit in one named group and its shop identity in another, and tags a decision with a tag so the decision names it while the tag's description is held once, on the tag.
 - Unknown: none
 - Needs: none
@@ -452,7 +452,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50: Publish a role as an agent
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / The user publishes a role as an agent
+- Scenarios: shop-knowledge / publish-an-artifact / The user publishes a role as an agent
 - Observable: A user publishes a role into a directory and finds an agent whose heading block is the role's harness fields and whose body is its prose.
 - Unknown: none
 - Needs: none
@@ -506,7 +506,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.6: Markdown lays out each kind of value as markdown
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown lays out each kind of value as markdown (both rows: the process's steps, the role's tags)
+- Scenarios: shop-knowledge / publish-an-artifact / Markdown lays out each kind of value as markdown (both rows: the process's steps, the role's tags)
 - Observable: A user publishes a process as markdown and finds its steps as a table with a column for each thing a step says, and a role with tags and finds its tags as a bullet list, with no value on either page written the way a program prints it.
 - Unknown: whether every value kb's content model holds, a part collection and the lists and mappings inside its items among them, can be laid out as markdown from the content alone, with no schema read and no type named
 - Needs: slice 20's page Then expects the role's `tools` as a bullet list, the layout adrs/0038 and 0041 set; its Then line is unchanged
@@ -515,7 +515,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.7: An agent the harness would reject is not published
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / An agent the harness would reject is not published
+- Scenarios: shop-knowledge / publish-an-artifact / An agent the harness would reject is not published
 - Observable: A user publishing a role whose harness name the harness would not load is told which limit it breaks, and finds nothing written.
 - Unknown: whether the agent renderer can hold a role's harness fields to the limits the harness publishes for an agent the way the skill renderer holds a process's body to its limit, before anything is written
 - Needs: none
@@ -524,7 +524,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.8: The shop's knowledge base starts where the user works, and elsewhere only when they name the place
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / The user starts a knowledge base somewhere else on purpose by naming the place. The six start scenarios rewritten in commit 1133296 go green with it under the tags they keep: The user starts a knowledge base and the shop's types are ready (`@slice-4`); Starting a knowledge base asks for no reason, Starting a knowledge base without saying who is refused, The shop's knowledge sits in a place of its own inside the directory it was started in, Starting a knowledge base where the directory already holds one is refused, Starting a knowledge base inside one the shop already has is refused (`@slice-47`)
+- Scenarios: shop-knowledge / start-a-knowledge-base / The user starts a knowledge base somewhere else on purpose by naming the place. The six start scenarios rewritten in commit 1133296 go green with it under the tags they keep: The user starts a knowledge base and the shop's types are ready (`@slice-4`); Starting a knowledge base asks for no reason, Starting a knowledge base without saying who is refused, The shop's knowledge sits in a place of its own inside the directory it was started in, Starting a knowledge base where the directory already holds one is refused, Starting a knowledge base inside one the shop already has is refused (`@slice-47`)
 - Observable: A user starts the shop's knowledge base from the directory they work in without naming one, is refused there as before where one exists or they are inside one, and starts one elsewhere only by naming the place.
 - Unknown: whether a knowledge base started from the working directory with no directory named is made, and refused, just as one started by naming it
 - Needs: the suite's shared way of starting a knowledge base starts it from the shop's directory without naming it (adrs/0037, 0042)
@@ -542,7 +542,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.10: shop-knol refuses, never tracebacks, when the working directory no longer exists
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal; shop-knowledge / read-back-what-the-shop-knows / Reading from a directory that has been removed ends in a plain refusal
+- Scenarios: shop-knowledge / start-a-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal; shop-knowledge / find-the-knowledge-base / Reading from a directory that has been removed ends in a plain refusal
 - Observable: A user whose shell sits in a directory that has since been removed is refused in one plain line, not shown a traceback, whether they start a knowledge base or read from one.
 - Unknown: whether shop-knol can meet a working directory that no longer exists with its own refusal before it has taken any argument, with the working directory still `init`'s default and that default still declared once (adrs/0032, 0037)
 - Needs: a way for the steps to run shop-knol from a directory removed after the user's shell entered it
@@ -551,7 +551,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.11: Markdown spells a yes, a no and an empty value in words
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown never shows a yes, a no or an empty value the way a program prints it (all four rows: a role's yes and no, a role's empty value, a process step's yes and no, a process step's empty value)
+- Scenarios: shop-knowledge / publish-an-artifact / Markdown never shows a yes, a no or an empty value the way a program prints it (all four rows: a role's yes and no, a role's empty value, a process step's yes and no, a process step's empty value)
 - Observable: A user publishing a role or a process as markdown finds a yes as `yes`, a no as `no` and an empty value as nothing, in the field list and in a table cell alike, and never `True`, `False`, `None`, `true`, `false` or `null` (adrs/0043).
 - Unknown: whether a value the user wrote as a yes, a no or an empty value still reaches the page as one after kb has checked and stored it, and is told apart there from text that reads `yes`
 - Needs: the Then that no value on the page is a programming language's representation also looks for the spellings adrs/0043 rules out (batch 9 final review, minor 7); slice 50.6's scenarios run under that Then unchanged
@@ -569,7 +569,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.13: A check that finds faults still shows what is behind its type
 
 - Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / The user is told what is behind its type even when the check finds faults
+- Scenarios: shop-knowledge / check-the-knowledge-base / The user is told what is behind its type even when the check finds faults
 - Observable: A user whose check finds faults sees them, one line each, and in the same run sees which artifacts are behind their type, the command still reporting failure (adrs/0046).
 - Unknown: whether a refusal can carry the check's answer on stdout while its faults still reach the user only through the one printer, one line each, exit 1
 - Needs: none
@@ -578,7 +578,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.14: Markdown stays well-formed whatever a value holds, an empty list shown as nothing
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown stays well-formed whatever a value holds (all four rows); shop-knowledge / publish-what-the-shop-knows / Markdown never shows a yes, a no or an empty value the way a program prints it (all six rows; its first four were made green by slice 50.11, and the outline moves here with its two new empty-list rows)
+- Scenarios: shop-knowledge / publish-an-artifact / Markdown stays well-formed whatever a value holds (all four rows); shop-knowledge / publish-an-artifact / Markdown never shows a yes, a no or an empty value the way a program prints it (all six rows; its first four were made green by slice 50.11, and the outline moves here with its two new empty-list rows)
 - Observable: A user publishing as markdown finds every table row with one cell per column, no line ending in a space, every value shown, and an empty list shown as its field's name and colon, or an empty cell (adrs/0043, 0045).
 - Unknown: whether any text a value holds can be shown in a cell or a line as written, the character that separates cells among it, without the page's layout breaking
 - Needs: none
@@ -587,7 +587,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.15: A renderer refuses an artifact of a type it does not render
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Publishing something as a kind of file it cannot become is refused (all three rows: a process as an agent, a role as a skill, a role as a diagram)
+- Scenarios: shop-knowledge / publish-an-artifact / Publishing something as a kind of file it cannot become is refused (all three rows: a process as an agent, a role as a skill, a role as a diagram)
 - Observable: A user publishing something as a kind of file it cannot become is refused, told the artifact's type and the type that kind is made from, and finds nothing written.
 - Unknown: whether a renderer can tell what type an artifact is from what it reads through the contract before it lays anything out
 - Needs: none
@@ -677,7 +677,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.17: A name given empty is refused, starting a knowledge base first
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base in a directory given an empty name is refused; shop-knowledge / record-a-decision / Recording from a file given an empty name is refused; shop-knowledge / read-back-what-the-shop-knows / Reading something given an empty name is refused; shop-knowledge / publish-what-the-shop-knows / Publishing into a directory given an empty name is refused (slices 50.19 to 50.21 merged here: one rule, implemented once)
+- Scenarios: shop-knowledge / start-a-knowledge-base / Starting a knowledge base in a directory given an empty name is refused; shop-knowledge / record-an-artifact / Recording from a file given an empty name is refused; shop-knowledge / read-an-artifact / Reading something given an empty name is refused; shop-knowledge / publish-an-artifact / Publishing into a directory given an empty name is refused (slices 50.19 to 50.21 merged here: one rule, implemented once)
 - Observable: A user who gives an empty name for a directory, a file or an artifact, to `init`, `create --from`, `read` or `render --to`, is refused, told it names no place, and finds nothing started, recorded or written.
 - Unknown: whether an empty name can be refused for every argument that names a place, the one way every argument refusal is (adrs/0023), with each argument's meaning still declared once (adrs/0032)
 - Needs: none
@@ -686,7 +686,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.18: Starting a knowledge base from a removed directory says the directory is gone
 
 - Kind: capability
-- Scenarios: shop-knowledge / start-a-shop-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green)
+- Scenarios: shop-knowledge / start-a-knowledge-base / Starting a knowledge base from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green)
 - Observable: A user starting a knowledge base from a directory that has since been removed is told, in plain words, that the directory they are working in is gone.
 - Unknown: whether shop-knol can tell a working directory that is gone from the operating system's other refusals, before kb is called
 - Needs: none
@@ -695,7 +695,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.18.1: Prose the shop cannot keep is refused in plain words
 
 - Kind: capability
-- Scenarios: shop-knowledge / record-a-decision / A decision whose prose the shop cannot keep is refused; shop-knowledge / revise-what-the-shop-knows / A revision whose prose the shop cannot keep is refused (both rows); shop-knowledge / make-several-changes-at-once / A batch whose prose the shop cannot keep leaves the shop untouched
+- Scenarios: shop-knowledge / record-an-artifact / A decision whose prose the shop cannot keep is refused; shop-knowledge / revise-an-artifact / A revision whose prose the shop cannot keep is refused (both rows); shop-knowledge / make-several-changes-at-once / A batch whose prose the shop cannot keep leaves the shop untouched
 - Observable: A user recording, revising or applying a batch from a file whose prose has a line ending in a space before its last is refused in plain words naming the place, and the shop is unchanged, where today the command ends in a traceback.
 - Unknown: whether text kb cannot keep is found where a user's file is read and checked, once, for every command that sends content
 - Needs: none
@@ -704,7 +704,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.18.2: Markdown's remaining well-formed cases
 
 - Kind: capability
-- Scenarios: shop-knowledge / publish-what-the-shop-knows / Markdown stays well-formed whatever a value holds (all ten rows; its six rows added in b0b535f are red: a title ending in a space; a section title ending in a space; a list of lists with an empty last item; a list holding a mapping with an empty last value; a field group's list of mappings with an empty last value; a column name holding the cell separator; the outline moves from `@slice-50.14` to `@slice-50.18.2`, its first four rows credited to slice 50.14)
+- Scenarios: shop-knowledge / publish-an-artifact / Markdown stays well-formed whatever a value holds (all ten rows; its six rows added in b0b535f are red: a title ending in a space; a section title ending in a space; a list of lists with an empty last item; a list holding a mapping with an empty last value; a field group's list of mappings with an empty last value; a column name holding the cell separator; the outline moves from `@slice-50.14` to `@slice-50.18.2`, its first four rows credited to slice 50.14)
 - Observable: A user publishing as markdown finds no heading or item line ending in a space and every table's heading row with one cell per column, whatever the artifact holds.
 - Unknown: none
 - Needs: none
@@ -713,7 +713,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.18.3: A check with no knowledge base to check shows no answer
 
 - Kind: capability
-- Scenarios: shop-knowledge / check-the-shops-knowledge-is-sound / Checking where the shop's knowledge cannot be found is refused (all three rows)
+- Scenarios: shop-knowledge / check-the-knowledge-base / Checking where the shop's knowledge cannot be found is refused (all three rows)
 - Observable: A user checking where no single knowledge base can be found is refused as every command is, and shown no check's answer; the behaviour 0c7d199 restored, now held by the suite.
 - Unknown: none
 - Needs: none
@@ -722,7 +722,7 @@ slices 2 onward, never ahead of them.
 ## Slice 50.22: Reading from a removed directory, refused or served through KB_ROOT
 
 - Kind: capability
-- Scenarios: shop-knowledge / read-back-what-the-shop-knows / Reading from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green); shop-knowledge / read-back-what-the-shop-knows / The user reads from a directory that has been removed, having named the knowledge base
+- Scenarios: shop-knowledge / find-the-knowledge-base / Reading from a directory that has been removed ends in a plain refusal (rewritten in 7b23b54; slice 50.10 made its earlier Thens green); shop-knowledge / find-the-knowledge-base / The user reads from a directory that has been removed, having named the knowledge base
 - Observable: A user reading from a directory that has since been removed is served through `KB_ROOT` when it names a knowledge base, and otherwise told the directory they are working in is gone.
 - Unknown: none here; kb finds the store
 - Needs: kb's store finding treats a working directory that no longer exists as inside no store (the kb pin-bump request logged 2026-09-27)
@@ -1578,3 +1578,4 @@ slices 2 onward, never ahead of them.
 - 2026-09-28 Batch 13's fix wave landed in 418c9a9 and was re-reviewed: all four findings addressed. Residual, parked with a ruling (one fix wave per final review): `tests/driver.py` crossed 250 lines during the fix and was brought back to 249 by tightening docstrings, not split, against CLAUDE.md's "split first"; it now holds four concerns (launching shop-knol, isolation, kb's answers as oracles, the environment). The first enabling slice of the next batch moves the kb-oracle helpers (`NO_STORE`, `actor`, `kb_answer`, `_kb_answer_from_gone`, `printed`, `refused_as_kb_refuses`, `UNKEPT`, `refused_as_unkept`) into a module of their own beside `driver.py`, imported plainly. Suite `100 passed`. Batch 13 done; pushed.
 - 2026-09-28 Spec amended (adrs/0049; kb's adrs/0020): shop-knol reaches the knowledge base wherever kb's search finds it, the store in-process or the connection to kb's server beside where the store would be, so roles in containers work through a shared server; testing reaches only servers it starts. Next, in a fresh session (shopsystem-bdd 0.7.0's agents): after kb's release carrying the server, formulate the shop's scenarios for working through a server; first, the parked `driver.py` split and the ninth review.
 
+- 2026-10-05 MIGRATED to capabilities (spec/ committed in 070886f, lines approved 2026-10-05). The 14 feature files became 16, one per capability under spec/capabilities/, each scenario moved verbatim with its tags, in its capability's line order: start-a-shop-knowledge-base split into start-a-knowledge-base and use-the-shops-types; read-back-what-the-shop-knows into find-the-knowledge-base and read-an-artifact; record-a-decision, revise-what-the-shop-knows, retire-what-the-shop-no-longer-uses, list-what-the-shop-has-recorded, follow-the-links-between-what-the-shop-knows, check-the-shops-knowledge-is-sound and publish-what-the-shop-knows renamed to record-an-artifact, revise-an-artifact, retire-an-artifact, list-what-the-shop-holds, follow-the-links, check-the-knowledge-base and publish-an-artifact. Test modules renamed with their features; no step definition changed; test_read_an_artifact.py binds both halves of read-back, whose finding scenarios share its Background steps; test_use_the_shops_types.py star-imports start_roles_and_tags. The feature half of every Scenarios line above is rewritten to the new names; batch plans are history and keep the old ones. Verified against the baseline: 100 passed, the same passing scenarios by title, the same count for each of the 40 slice tags. Unbacked lines approved at the gate go to formulating-features: init furnishing an empty knowledge base kb finds (and its refusals), `shop-knol types`, a server connection behaving as the store, the fields every shop artifact carries, a process's steps in place or shared, a mapping on a markdown page as a nested list.

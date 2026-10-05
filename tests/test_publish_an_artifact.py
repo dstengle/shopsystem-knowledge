@@ -9,7 +9,7 @@ from markdown_well_formed import *  # noqa: F403  pytest-bdd registers steps onl
 from publish_as_markdown import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from publish_refused import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
-scenarios("publish-what-the-shop-knows.feature")
+scenarios("publish-an-artifact.feature")
 
 CHECK_THE_STOCK = {"title": "Check the stock", "does": "Count what is on the shelf, front and back.\n", "settings": ["shelf"]}
 ROLE = {

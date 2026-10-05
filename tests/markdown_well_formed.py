@@ -1,4 +1,4 @@
-"""The steps of publish-what-the-shop-knows.feature about a markdown page staying well-formed whatever a value holds:
+"""The steps of publish-an-artifact.feature about a markdown page staying well-formed whatever a value holds:
 the Givens that give a process step or the role a value that could break the page, each giving the outline's `page`
 fixture, and the Thens that check the page's tables, its lines' ends and its values. The feature's test module
 star-imports this and no other does (adrs/0035). The pages it builds come from `markdown_pages`, which no step module

@@ -1,5 +1,6 @@
-Feature: Record a decision
-So that a choice the shop has made is written down where the whole shop can find it, the user can record a decision.
+# formulated from spec/capabilities/record-an-artifact.md
+Feature: Record an artifact
+  Narrator: the user, recording something new in the shop's knowledge
 
   Background:
     Given a shop knowledge base holding the shop's types

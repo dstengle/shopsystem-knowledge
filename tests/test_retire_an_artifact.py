@@ -4,7 +4,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from driver import actor, kb_answer, knol, printed, record, start
 
-scenarios("retire-what-the-shop-no-longer-uses.feature")
+scenarios("retire-an-artifact.feature")
 
 SEASONAL = "tag/seasonal"
 PRICING = "tag/pricing"

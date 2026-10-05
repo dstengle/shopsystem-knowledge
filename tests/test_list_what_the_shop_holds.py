@@ -2,7 +2,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
 
-scenarios("list-what-the-shop-has-recorded.feature")
+scenarios("list-what-the-shop-holds.feature")
 
 
 def _decision(title, **fields):

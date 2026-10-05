@@ -1,5 +1,6 @@
-Feature: Revise what the shop knows
-So that what the shop knows stays true as the shop learns, the user can revise what it has recorded.
+# formulated from spec/capabilities/revise-an-artifact.md
+Feature: Revise an artifact
+  Narrator: the user, revising what the shop has recorded
 
   Background:
     Given a shop knowledge base holding a decision with a purpose and a rationale, at its first version

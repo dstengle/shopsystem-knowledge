@@ -1,5 +1,6 @@
-Feature: Retire what the shop no longer uses
-So that the shop's knowledge does not fill with things it has stopped using, the user can retire what it no longer uses.
+# formulated from spec/capabilities/retire-an-artifact.md
+Feature: Retire an artifact
+  Narrator: the user, tidying away what the shop no longer uses
 
   Background:
     Given a shop knowledge base holding a tag "seasonal" that nothing points at

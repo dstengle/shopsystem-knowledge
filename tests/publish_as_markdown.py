@@ -1,4 +1,4 @@
-"""The steps of publish-what-the-shop-knows.feature about publishing as markdown: the When that renders the role or
+"""The steps of publish-an-artifact.feature about publishing as markdown: the When that renders the role or
 the process as markdown; the Givens that give the process steps saying more than one thing, or that add a yes and a
 no, an empty value or an empty list to one of them, and the Givens that give the role more than one tag, or a yes and
 a no, an empty value or an empty list, the yes/no/empty Givens among them giving the outline's `page` fixture that the

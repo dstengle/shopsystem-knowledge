@@ -2,7 +2,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, start
 
-scenarios("follow-the-links-between-what-the-shop-knows.feature")
+scenarios("follow-the-links.feature")
 
 OLDER = "decision/prices-are-reviewed-monthly"
 DECISION = "decision/price-reviews-happen-weekly"

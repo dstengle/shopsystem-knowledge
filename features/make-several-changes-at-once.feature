@@ -1,5 +1,6 @@
+# formulated from spec/capabilities/make-several-changes-at-once.md
 Feature: Make several changes at once
-So that a set of changes that only makes sense together lands together, the user can make several changes at once.
+  Narrator: the user, landing changes that only make sense together
 
   Background:
     Given a shop knowledge base holding the shop's types and a work item

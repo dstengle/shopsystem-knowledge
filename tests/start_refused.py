@@ -1,4 +1,4 @@
-"""The steps of start-a-shop-knowledge-base.feature about a start that kb refuses: a directory already holding a
+"""The steps of start-a-knowledge-base.feature about a start that kb refuses: a directory already holding a
 knowledge base, or inside one, and a directory since removed. The feature's test module star-imports this and no
 other does."""
 import pytest

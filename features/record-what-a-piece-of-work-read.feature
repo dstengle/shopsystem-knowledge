@@ -1,5 +1,6 @@
+# formulated from spec/capabilities/record-what-a-piece-of-work-read.md
 Feature: Record what a piece of work read
-So that a piece of work can say which version of the shop's knowledge it was built on while the shop keeps learning, the agent can record what it read.
+  Narrator: an agent doing a piece of work
 
   Background:
     Given a shop knowledge base holding a decision and a process

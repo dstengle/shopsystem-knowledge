@@ -5,7 +5,7 @@ from driver import knol, record, whole
 from record_refused_files import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from record_refused_files import SAYING_WHY
 
-scenarios("record-a-decision.feature")
+scenarios("record-an-artifact.feature")
 
 OLDER = {
     "title": "Prices are reviewed monthly",

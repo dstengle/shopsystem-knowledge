@@ -1,4 +1,4 @@
-"""The steps of record-a-decision.feature about a file the shop refuses to record: one that does not fit the decision
+"""The steps of record-an-artifact.feature about a file the shop refuses to record: one that does not fit the decision
 type, one that names an entry twice, one whose prose kb cannot keep as written, and one given an empty name. Each
 Then here compares what the user is shown with kb's own refusal of the same thing, so no step spells kb's wording (kb
 adrs/0018). The feature's test module star-imports this and no other does."""

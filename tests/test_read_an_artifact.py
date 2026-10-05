@@ -7,7 +7,8 @@ from pytest_bdd import given, scenarios, then, when
 from driver import answering, knol, printed, record
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
-scenarios("read-back-what-the-shop-knows.feature")
+# The finding scenarios share this module's Background steps, so it binds both features (each scenario bound once).
+scenarios("read-an-artifact.feature", "find-the-knowledge-base.feature")
 
 OLDER = "decision/prices-are-reviewed-monthly"
 DECISION = "decision/price-reviews-happen-weekly"

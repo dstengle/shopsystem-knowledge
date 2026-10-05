@@ -1,5 +1,6 @@
-Feature: Check the shop's knowledge is sound
-So that the shop can trust what it has recorded, the user can check its knowledge is sound.
+# formulated from spec/capabilities/check-the-knowledge-base.md
+Feature: Check the knowledge base
+  Narrator: the user, or a script, checking the shop's knowledge is sound
 
   @slice-44
   Scenario: The user checks a sound knowledge base

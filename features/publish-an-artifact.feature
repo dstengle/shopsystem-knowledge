@@ -1,5 +1,6 @@
-Feature: Publish what the shop knows
-So that the harness and people outside the command line can use what the shop knows, the user can publish it into files.
+# formulated from spec/capabilities/publish-an-artifact.md
+Feature: Publish an artifact
+  Narrator: the user, publishing what the shop knows into files
 
   Background:
     Given a shop knowledge base holding a process whose steps include a branch and a reused shared step, and a role
@@ -81,14 +82,6 @@ So that the harness and people outside the command line can use what the shop kn
       | role    | a field group holding a list of mappings, one mapping's last value an empty value |
       | process | steps that each say more than one thing, the name of one of those things holding the character that separates table cells |
 
-  @slice-50.17
-  Scenario: Publishing into a directory given an empty name is refused
-    Pins that an empty target is never taken to mean "here", so publishing never scatters files into wherever the user happens to be working.
-    When the user publishes the role as markdown into a directory whose name is given empty
-    Then publishing is rejected because the directory it was given has an empty name, which names no place
-    And nothing is written to the directory they are working in
-    And the command reports failure to whatever ran it
-
   @slice-50.15
   Scenario Outline: Publishing something as a kind of file it cannot become is refused
     Pins that each publisher takes only the type it is made for and says which type it was given, so a role never becomes a half-made skill and a process never a half-made agent.
@@ -118,3 +111,11 @@ So that the harness and people outside the command line can use what the shop kn
     When the user publishes the role as an agent into a directory
     Then the agent is rejected because it goes beyond the limits the harness publishes
     And nothing is written to the directory
+
+  @slice-50.17
+  Scenario: Publishing into a directory given an empty name is refused
+    Pins that an empty target is never taken to mean "here", so publishing never scatters files into wherever the user happens to be working.
+    When the user publishes the role as markdown into a directory whose name is given empty
+    Then publishing is rejected because the directory it was given has an empty name, which names no place
+    And nothing is written to the directory they are working in
+    And the command reports failure to whatever ran it

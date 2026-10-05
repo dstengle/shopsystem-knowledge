@@ -6,7 +6,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from driver import UNKEPT, knol, record, refused_as_unkept, start, whole
 
-scenarios("revise-what-the-shop-knows.feature")
+scenarios("revise-an-artifact.feature")
 
 NEW_SECTIONS = [
     {"title": "Purpose", "body": "Keep prices in step with what the shop pays.\n"},

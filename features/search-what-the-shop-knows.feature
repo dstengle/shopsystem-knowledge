@@ -1,5 +1,6 @@
+# formulated from spec/capabilities/search-what-the-shop-knows.md
 Feature: Search what the shop knows
-So that the user can find knowledge without knowing where it lives, the user can search what the shop knows.
+  Narrator: the user, finding knowledge without knowing where it lives
 
   Background:
     Given a shop knowledge base where two decisions and a process mention restocking in their prose

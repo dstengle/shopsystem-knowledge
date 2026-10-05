@@ -4,7 +4,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from driver import answering, knol, printed, record, start, whole
 
-scenarios("check-the-shops-knowledge-is-sound.feature")
+scenarios("check-the-knowledge-base.feature")
 
 WEEKLY = "decision/price-reviews-happen-weekly"
 MONTHLY = "decision/prices-are-reviewed-monthly"

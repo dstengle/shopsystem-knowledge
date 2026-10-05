@@ -1,5 +1,6 @@
+# formulated from spec/capabilities/review-who-changed-what.md
 Feature: Review who changed what
-So that the shop can see how its knowledge came to be the way it is, the user can review who changed what.
+  Narrator: the user, seeing how the shop's knowledge came to be as it is
 
   Background:
     Given today is 2026-09-23

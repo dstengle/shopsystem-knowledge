@@ -1,5 +1,6 @@
+# formulated from spec/capabilities/add-a-step-to-a-process.md
 Feature: Add a step to a process
-So that a process can be built up a step at a time, the user can add a step to a process.
+  Narrator: the user, building up a process a step at a time
 
   Background:
     Given a shop knowledge base holding a process with two steps

@@ -1,5 +1,6 @@
-Feature: List what the shop has recorded
-So that the user can see everything of one kind without knowing its name, the user can list what the shop has recorded.
+# formulated from spec/capabilities/list-what-the-shop-holds.md
+Feature: List what the shop holds
+  Narrator: the user, who knows the kind of thing but no name
 
   Background:
     Given a shop knowledge base holding three decisions, one of them superseded

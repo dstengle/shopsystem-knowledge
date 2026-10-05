@@ -4,9 +4,8 @@ from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, store_in
 from start_refused import *  # noqa: F403  pytest-bdd registers steps only through a star import
-from start_roles_and_tags import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
-scenarios("start-a-shop-knowledge-base.feature")
+scenarios("start-a-knowledge-base.feature")
 
 _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
 THE_SHOPS_TYPES = {"shop-artifact", "decision", "feature", "work-item", "role", "process", "step", "tag"}

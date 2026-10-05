@@ -1,4 +1,4 @@
-"""The steps of start-a-shop-knowledge-base.feature for slice 49's two scenarios, the role and the tag. The feature's
+"""The steps of use-the-shops-types.feature for slice 49's two scenarios, the role and the tag. The feature's
 test module star-imports this and no other does."""
 from kb.content import dumps
 from pytest_bdd import given, then, when

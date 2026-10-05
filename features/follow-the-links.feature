@@ -1,5 +1,6 @@
-Feature: Follow the links between what the shop knows
-So that the user can see how the shop's knowledge hangs together, the user can follow the links between what it knows.
+# formulated from spec/capabilities/follow-the-links.md
+Feature: Follow the links
+  Narrator: the user, seeing how the shop's knowledge hangs together
 
   Background:
     Given a shop knowledge base where a decision supersedes an older decision

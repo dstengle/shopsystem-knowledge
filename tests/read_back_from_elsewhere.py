@@ -1,4 +1,4 @@
-"""The steps of read-back-what-the-shop-knows.feature about where the knowledge base is found that only the
+"""The steps of find-the-knowledge-base.feature about where the knowledge base is found that only the
 read-back feature uses: the scenarios that give `workdir` from a shop its own Background already started, a directory
 since removed among them, and the Thens that say what came of it. The store-refusal Givens and Thens that the check
 feature's scenarios also use live in store_not_found.py, which conftest.py star-imports, instead. The feature's test module star-imports this and no other does."""

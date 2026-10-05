@@ -1,4 +1,4 @@
-"""The steps of publish-what-the-shop-knows.feature about a publish that is refused: a process or role past the
+"""The steps of publish-an-artifact.feature about a publish that is refused: a process or role past the
 limits the harness publishes, the type-refusal outline (publishing a kind from the wrong type), and a target given an
 empty name. The feature's test module star-imports this and no other does."""
 import pytest
