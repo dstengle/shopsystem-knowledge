@@ -60,6 +60,20 @@ def kb_refuses_to_start(env, root: Path, cwd: Path) -> list:
     return []
 
 
+OPERATOR = "operator"
+"""The role a store kb's operator starts is started under, in a step: a role of the step's own, never the one
+shop-knol is run as."""
+
+
+def operator_started(env, root: Path) -> None:
+    """A store started empty at `root` the way kb's operator starts one, through `kb.init` (published) in this
+    process, from `root` under exactly `env`, as `kb_answer` asks: never by writing a file. Refused, as `knol` is,
+    with `root` outside the test's own directory (`_isolated`)."""
+    driver._isolated(root, env)
+    with _as_run(root, env):
+        init(str(root), OPERATOR)
+
+
 @contextmanager
 def _as_run(directory, env):
     """In `directory`, under exactly `env`, as shop-knol was run; the suite's own directory and environment restored

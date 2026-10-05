@@ -15,16 +15,25 @@ def known_before(env):
 
 
 def _started_and_noted(env, shop, known_before):
+    """The shop's knowledge base started, with nothing naming a different one: KB_ROOT, if set, names the shop's."""
     start(env, shop)
     known_before["journal"] = knol(env, "journal").stdout
+    assert env.get("KB_ROOT") in (None, str(shop)), env.get("KB_ROOT")
 
 
-@given("the user is working in a directory that already holds the shop's knowledge")
+@given(
+    "the user is working in a directory that already holds the shop's knowledge, and nothing names a different "
+    "knowledge base"
+)
 def _a_directory_already_started(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
 
 
-@given("the user is working in a directory that sits inside the shop's knowledge", target_fixture="start_in")
+@given(
+    "the user is working in a directory that sits inside the shop's knowledge, and nothing names a different "
+    "knowledge base",
+    target_fixture="start_in",
+)
 def _a_directory_inside_a_started_one(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
     # Works in the directory kb's contract says init made (`kb.init`), inside the knowledge base.
@@ -61,8 +70,12 @@ def _still_there(env, known_before):
     assert knol(env, "journal").stdout == known_before["journal"]
 
 
-@given("the user is working in a directory that has since been removed", target_fixture="start_in")
-def _a_removed_directory(tmp_path):
+@given(
+    "the user is working in a directory that has since been removed, and nothing names a knowledge base",
+    target_fixture="start_in",
+)
+def _a_removed_directory(env, tmp_path):
+    del env["KB_ROOT"]
     return removed(tmp_path)
 
 

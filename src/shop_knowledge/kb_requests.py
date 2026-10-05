@@ -8,6 +8,11 @@ from kb.contract import kb_pb2
 from shop_knowledge import batch
 
 
+def init_request() -> kb_pb2.ListRequest:
+    """The names of the types a knowledge base holds, which tell init whether it is empty."""
+    return kb_pb2.ListRequest(kind="schema", form=kb_pb2.ListRequest.IDS)
+
+
 def create_request(args, document: dict) -> kb_pb2.CreateRequest:
     """The title is split off the content, since kb takes it as a field of its own."""
     content = dict(document)

@@ -101,11 +101,35 @@ _GONE = "the directory you are working in is gone"
 
 
 def _init(args) -> int:
-    args.root = _absolute(args.root)
-    _started(args.root, args.by["signature"])
-    for answer in bootstrap.load(connect(args.root), args.by["signature"]):
+    signed = args.by["signature"]
+    client = _named(_absolute(args.root), signed) if args.root else _found(_absolute(Path(".")), signed)
+    for answer in bootstrap.load(client, signed):
         _answered(answer)
     return 0
+
+
+def _found(here: Path, signed: kb_pb2.Signature):
+    """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here."""
+    if _empty(client := connect()):
+        return client
+    _started(here, signed)
+    return connect(here)
+
+
+def _named(root: Path, signed: kb_pb2.Signature):
+    """A store started at the named root; where kb refuses to start one, the store already there, when it is empty."""
+    try:
+        _started(root, signed)
+    except Refused:
+        if not _empty(connect(root)):
+            raise
+    return connect(root)
+
+
+def _empty(client) -> bool:
+    """Whether the knowledge base the client reaches holds no type but kb's own."""
+    listed = client.List(kb_requests.init_request())
+    return listed.WhichOneof("outcome") == "result" and list(listed.result.ids) == ["schema/schema"]
 
 
 def _started(root: Path, signature: kb_pb2.Signature) -> None:

@@ -3,12 +3,13 @@ from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from driver import knol, record, store_in
+from start_furnished import THE_SHOPS_TYPES
+from start_furnished import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from start_refused import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("start-a-knowledge-base.feature")
 
 _NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
-THE_SHOPS_TYPES = {"shop-artifact", "decision", "feature", "work-item", "role", "process", "step", "tag"}
 
 
 @given("the user is working in an empty directory for the shop's knowledge")
@@ -146,6 +147,11 @@ def _a_directory_with_work(shop):
     (shop / "orders").mkdir()
     (shop / "orders" / "monday.txt").write_text("Twelve sacks of oats.\n")
     return {"notes.txt": "Order oats on Monday.\n", "orders/monday.txt": "Twelve sacks of oats.\n"}
+
+
+@given("no knowledge base is found from that directory, neither above it nor named by KB_ROOT")
+def _none_found(env):
+    del env["KB_ROOT"]
 
 
 @then("the shop's knowledge is kept in a place of its own inside that directory")
