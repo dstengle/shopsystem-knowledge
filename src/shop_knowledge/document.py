@@ -20,7 +20,7 @@ def read(source: str, shape_name: str) -> dict:
         message = f"it is not text that can be read: {fault}"
         raise Refused([kb_pb2.Fault(artifact=name, rule="content", message=message)])
     except NotCanonical as fault:
-        raise Refused([kb_pb2.Fault(artifact=name, path=fault.path, rule="content", message=str(fault))])
+        raise Refused([kb_pb2.Fault(artifact=name, place=fault.path, rule="content", message=str(fault))])
     if faults := shape.violations(document, shape_name, name):
         raise Refused(faults)
     _kept(document, name)
@@ -34,7 +34,7 @@ def _kept(document: dict, name: str) -> None:
         dumps(document)
     except NotCanonical as fault:
         place = fault.path or _unkept_at(document)
-        raise Refused([kb_pb2.Fault(artifact=name, path=place, rule="content", message=str(fault))])
+        raise Refused([kb_pb2.Fault(artifact=name, place=place, rule="content", message=str(fault))])
 
 
 def _unkept_at(node, place: str = "") -> str:

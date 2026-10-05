@@ -19,9 +19,10 @@ _SEPARATOR = re.compile(r"(\\*)\|")
 def render(client, name: str) -> Rendered:
     """The page's file by path, the artifact's name without its kind, or the faults of the read that could not be
     made."""
-    artifact = source.whole(client, name)
-    if artifact.faults:
-        return refused(artifact.faults)
+    read = source.whole(client, name)
+    if faults := source.faults(read):
+        return refused(faults)
+    artifact = read.result
     return Rendered({f"{source.slug(artifact.id)}.md": _page(artifact.title, loads(artifact.content))}, [])
 
 

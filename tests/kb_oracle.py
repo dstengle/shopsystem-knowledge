@@ -3,9 +3,11 @@ to show a fault the way the user is shown it. Not a step module: imported plainl
 import os
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import driver
+from kb import NotStarted, init
 from kb.client import connect
 from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
@@ -15,10 +17,11 @@ NO_STORE = "store"
 """The `rule` kb's contract publishes (kb adrs/0018) for the fault it gives when a call finds no store."""
 
 
-def actor(env) -> kb_pb2.Actor:
-    """The actor a command run with `env` makes its change as: KB_ACTOR's role, and the piece of work after a colon."""
+def signature(env, message: str = "") -> kb_pb2.Signature:
+    """The signature a command run with `env` makes its change under: KB_ACTOR's role, the piece of work after a colon,
+    and the message given."""
     role, _, execution = env.get("KB_ACTOR", "").partition(":")
-    return kb_pb2.Actor(role=role, execution=execution)
+    return kb_pb2.Signature(role=role, execution=execution, message=message)
 
 
 def kb_answer(env, call, request, cwd=None):
@@ -39,12 +42,34 @@ def kb_answer(env, call, request, cwd=None):
     driver._isolated(directory, env)
     if isinstance(directory, driver.Removed):
         return _kb_answer_from_gone(env, call, request, directory)
+    with _as_run(directory, env):
+        return getattr(connect(), call)(request)
+
+
+def kb_refuses_to_start(env, root: Path, cwd: Path) -> list:
+    """kb's own refusal to start a store at `root`, asked as shop-knol starts one, through `kb.init` in this process,
+    from `cwd` under exactly `env`, as `kb_answer` asks: the faults of the `NotStarted` it raises, none if it starts
+    one. Refused, as `knol` is, with `cwd` outside the test's own directory (`_isolated`)."""
+    driver._isolated(cwd, env)
+    role, _, execution = env.get("KB_ACTOR", "").partition(":")
+    with _as_run(cwd, env):
+        try:
+            init(str(root), role, execution=execution)
+        except NotStarted as refusal:
+            return refusal.faults
+    return []
+
+
+@contextmanager
+def _as_run(directory, env):
+    """In `directory`, under exactly `env`, as shop-knol was run; the suite's own directory and environment restored
+    after."""
     here, kept = Path.cwd(), dict(os.environ)
     try:
         os.chdir(directory)
         os.environ.clear()
         os.environ.update(env)
-        return getattr(connect(), call)(request)
+        yield
     finally:
         os.chdir(here)
         os.environ.clear()
@@ -81,7 +106,7 @@ def printed(fault) -> str:
     """A fault as the one line the shop's spec says the user is shown: the artifact and the place in it, then kb's
     message as kb returned it, its lines joined."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
-    where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
+    where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
     return f"{where}: {message}" if where else message
 
 
@@ -90,7 +115,7 @@ def refused_as_kb_refuses(env, result, workdir, called):
     store rule it publishes (kb adrs/0018); the user is shown that one fault, in kb's words, and nothing else. Shared
     by store_not_found.py and read_back_from_elsewhere.py, each importing it plainly, never one from the other
     (no step module imports another)."""
-    faults = kb_answer(env, called["call"], called["request"], cwd=workdir).faults
+    faults = kb_answer(env, called["call"], called["request"], cwd=workdir).refusal.faults
     assert [fault.rule for fault in faults] == [NO_STORE], faults
     assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
     assert result.stdout == ""
@@ -109,7 +134,7 @@ def refused_as_unkept(result, path: Path, place: str) -> None:
         dumps(loads(path.read_text()))
     except NotCanonical as refusal:
         assert result.returncode == 1
-        fault = kb_pb2.Fault(artifact=str(path), path=place, message=str(refusal))
+        fault = kb_pb2.Fault(artifact=str(path), place=place, message=str(refusal))
         assert result.stderr.splitlines() == [printed(fault)], result.stderr
         return
     raise AssertionError(f"kb keeps {path} as written")

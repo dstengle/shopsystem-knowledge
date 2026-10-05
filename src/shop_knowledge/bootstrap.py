@@ -7,13 +7,14 @@ from kb.contract import kb_pb2
 TYPES = ("shop-artifact", "tag", "decision", "work-item", "feature", "role", "step", "process")
 
 
-def load(client, actor):
-    """Each type's Create answer, as it is made: the next Create is made only when the caller asks for the next answer."""
+def load(client, signed: kb_pb2.Signature):
+    """Each type's Create answer, as it is made, signed by the role and piece of work that started the knowledge base,
+    with a message of its own: the next Create is made only when the caller asks for the next answer."""
     for name in TYPES:
         text = resources.files("shop_knowledge.types").joinpath(f"{name}.yaml").read_text()
         content = loads(text)
         title = content.pop("title")
-        yield client.Create(kb_pb2.CreateRequest(
-            type="schema", title=title, content=dumps(content), actor=actor,
-            message=f"Define the shop's {title.lower()} type",
-        ))
+        signature = kb_pb2.Signature(
+            role=signed.role, execution=signed.execution, message=f"Define the shop's {title.lower()} type",
+        )
+        yield client.Create(kb_pb2.CreateRequest(kind="schema", title=title, content=dumps(content), signature=signature))

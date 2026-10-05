@@ -13,7 +13,7 @@ def violations(document, shape: str, source: str) -> list[kb_pb2.Fault]:
     return [
         kb_pb2.Fault(
             artifact=source,
-            path="/".join(str(part) for part in error.absolute_path),
+            place="/".join(str(part) for part in error.absolute_path),
             rule=error.validator,
             message=error.message,
         )

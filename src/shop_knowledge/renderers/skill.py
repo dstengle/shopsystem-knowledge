@@ -11,19 +11,21 @@ from shop_knowledge.renderers.rendered import Rendered, refused
 def render(client, name: str) -> Rendered:
     """The skill's files by path, or the faults of the reads that could not be made, or of an artifact that is not a
     process."""
-    process = source.whole(client, name)
-    faults = source.refusal(process, "skill", "process")
+    read = source.whole(client, name)
+    faults = source.refusal(read, "skill", "process")
     if faults:
         return refused(faults)
+    process = read.result
     steps = loads(process.content).get("steps", [])
-    shared = {used: source.whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
-    faults = [fault for response in shared.values() for fault in response.faults]
+    reads = {used: source.whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
+    faults = [fault for response in reads.values() for fault in source.faults(response)]
     if faults:
         return refused(faults)
+    shared = {used: response.result for used, response in reads.items()}
     return _skill(process, _body(process.title, steps, shared))
 
 
-def _skill(process: kb_pb2.ReadResponse, written: str) -> Rendered:
+def _skill(process: kb_pb2.Artifact, written: str) -> Rendered:
     """SKILL.md in a directory of the skill's name, the process's name without its kind, or refused if the harness would
     reject it."""
     faults = limits.skill(process.id, written)
@@ -56,7 +58,7 @@ def _step(name: str, numbers: dict, titles: dict) -> str:
     return f"step {numbers[name]} ({titles[name]})" if name in numbers else name
 
 
-def _reused(step: dict, used: kb_pb2.ReadResponse) -> list[str]:
+def _reused(step: dict, used: kb_pb2.Artifact) -> list[str]:
     """A shared step written out in full where it is used, with the settings this use gives it."""
     settings = ", ".join(f"{binding['name']} is {binding['value']}" for binding in step.get("with", []))
     said = f"This is the shared step {used.title}" + (f", where {settings}." if settings else ".")

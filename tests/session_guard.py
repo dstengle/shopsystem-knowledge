@@ -36,7 +36,7 @@ def _reachable_from(directory: Path, env: dict) -> bool:
     fault of another rule, or more than one fault - so a cause kb adds later is never mistaken for "no store here";
     an exception from the call counts the same way, refused rather than let escape as a traceback."""
     try:
-        faults = kb_oracle.kb_answer(env, "Journal", kb_pb2.JournalRequest(), cwd=directory).faults
+        faults = kb_oracle.kb_answer(env, "History", kb_pb2.HistoryRequest(), cwd=directory).refusal.faults
     except Exception:
         return True
     return not (len(faults) == 1 and faults[0].rule == NO_STORE)

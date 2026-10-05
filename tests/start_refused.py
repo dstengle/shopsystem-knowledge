@@ -2,11 +2,10 @@
 knowledge base, or inside one, and a directory since removed. The feature's test module star-imports this and no
 other does."""
 import pytest
-from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
 from driver import knol, removed, start, store_in
-from kb_oracle import actor, kb_answer, printed
+from kb_oracle import kb_refuses_to_start, printed
 
 
 @pytest.fixture
@@ -28,7 +27,7 @@ def _a_directory_already_started(env, shop, known_before):
 @given("the user is working in a directory that sits inside the shop's knowledge", target_fixture="start_in")
 def _a_directory_inside_a_started_one(env, shop, known_before):
     _started_and_noted(env, shop, known_before)
-    # Works in the directory kb's contract says init made (its Init row), inside the knowledge base.
+    # Works in the directory kb's contract says init made (`kb.init`), inside the knowledge base.
     return store_in(shop)
 
 
@@ -47,11 +46,10 @@ ROOT = "root"
 
 
 def _refused_as_kb_refuses_init(env, result, start_in):
-    """One line, printed as kb returned it: kb's own answer to the same Init, starting a store in the same directory,
-    is a refusal of the directory given, and the user is shown that fault in kb's words. Which refusal, the Given
-    decides; a refused Init changes nothing."""
-    request = kb_pb2.InitRequest(root=str(start_in.resolve()), actor=actor(env))
-    faults = kb_answer(env, "Init", request, cwd=start_in).faults
+    """One line, printed as kb returned it: kb's own refusal to start a store in the same directory is a refusal of
+    the directory given, and the user is shown that fault in kb's words. Which refusal, the Given decides; a refused
+    start changes nothing."""
+    faults = kb_refuses_to_start(env, start_in.resolve(), cwd=start_in)
     assert [fault.rule for fault in faults] == [ROOT], faults
     assert result.returncode == 1
     assert result.stdout == ""

@@ -21,7 +21,7 @@ def _checked_as(env, tmp_path, *violations):
     leave the shop so: kb's check answers for that state through the stand-in (adrs/0047), with the violations as this
     module words them, beside what the real check finds behind its type."""
     env.update(answering(env, tmp_path, {
-        "call": "Validate", "answer": {"violations": list(violations)}, "from_kb": ["stale", "violations"],
+        "call": "Check", "answer": {"result": {"violations": list(violations)}}, "from_kb": ["stale", "violations"],
     }))
 
 
@@ -32,13 +32,13 @@ def _line(fault: dict) -> str:
 
 def _without_its_rationale(decision: str) -> dict:
     """The fault of a decision whose file was edited by hand to drop a section its type requires."""
-    return {"artifact": decision, "path": "sections", "rule": "sections", "message": "its rationale was removed by hand"}
+    return {"artifact": decision, "place": "sections", "rule": "sections", "message": "its rationale was removed by hand"}
 
 
 UNREADABLE = {"artifact": WEEKLY, "rule": "unreadable", "message": "the decision's file, edited by hand, cannot be read"}
-NO_BODY = {"artifact": MONTHLY, "path": "sections/0", "rule": "required", "message": "its purpose lost its body by hand"}
+NO_BODY = {"artifact": MONTHLY, "place": "sections/0", "rule": "required", "message": "its purpose lost its body by hand"}
 DANGLING = {
-    "artifact": WORK_ITEM, "path": "decisions/0", "rule": "ref",
+    "artifact": WORK_ITEM, "place": "decisions/0", "rule": "ref",
     "message": "it was pointed by hand at decision/nothing, which the shop does not hold",
 }
 
@@ -57,7 +57,7 @@ def _shop_with_a_file_mangled_by_hand(env, shop, tmp_path):
 
 @when("the user checks the shop's knowledge", target_fixture="result")
 def _check(env, workdir, called):
-    called.update(call="Validate", request=kb_pb2.ValidateRequest())
+    called.update(call="Check", request=kb_pb2.CheckRequest())
     return knol(env, "validate", cwd=workdir)
 
 

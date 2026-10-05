@@ -9,10 +9,10 @@ from kb.contract import kb_pb2
 BODY_LINES = 500
 
 
-def _fault(artifact: str, path: str, message: str) -> kb_pb2.Fault:
-    """One harness-limit fault, on the artifact and the path a limit was broken at, worded with what the harness
+def _fault(artifact: str, place: str, message: str) -> kb_pb2.Fault:
+    """One harness-limit fault, on the artifact and the place a limit was broken at, worded with what the harness
     publishes and what this one is."""
-    return kb_pb2.Fault(artifact=artifact, path=path, rule="harness-limit", message=message)
+    return kb_pb2.Fault(artifact=artifact, place=place, rule="harness-limit", message=message)
 
 
 def skill(artifact: str, body: str) -> list[kb_pb2.Fault]:

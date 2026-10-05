@@ -14,7 +14,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `kb_requests.py` | each command's arguments as the request it sends kb, one public function per command, `<command>_request`, and `is_whole` for `cli._read` | kb calls, printing, reading files |
 | `arguments.py` | every `shop-knol` command's arguments and help, declared with argparse, and the renderer names from `RENDERERS`; an argument it cannot take is refused by raising, never printed | handlers, kb calls, printing |
 | `answers.py` | each kb answer as the document the user is shown: plain dicts and lists from kb's response messages or plain values, one public function per answer (`glance`, `whole`, `section`, `change`, `history`, `created`, `written_over`, `appended`, `applied`, `recorded`, `listed`, `names`, `written`, `reached`, `matched`, `deleted`, `checked`) | printing, kb calls, arguments |
-| `batch.py` | a batch file read into the operations of one Apply, in the order written | reading files, kb calls |
+| `batch.py` | a batch file read into the items of one BatchCreate or one BatchReplace, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
 | `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape and against whether kb can keep it (`kb.content`'s own refusal), or refused as a `Fault` on it | kb calls, printing, arguments |
 | `refusal.py` | the one exception every refusal travels in, `Refused`, before `cli`'s one printer shows it | kb calls, printing |
@@ -33,9 +33,10 @@ own it.
 ## Rules that make whole classes of defect unreachable
 
 1. **kb only through its contract.** Code under `src/` and `tests/` knows kb only through what kb publishes
-   (kb adrs/0018, adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, gives kb a
-   clock only as the `clock` that call takes, and from the rest of kb imports only `kb.content`: content as YAML 1.2
-   text, and `NotCanonical`, its refusal of text kb cannot keep. It never reads or writes a file inside a
+   (kb adrs/0018, adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, starts a
+   store only through `kb.init`, whose refusal is `kb.NotStarted`, gives kb a clock only as the `clock` those two
+   take, and from the rest of kb imports only `kb.content`: content as YAML 1.2 text, and `NotCanonical`, its refusal
+   of text kb cannot keep. It never reads or writes a file inside a
    knowledge base, names kb's storage or runs git. `jsonschema` is imported by `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
@@ -56,9 +57,9 @@ own it.
 - A function does one thing at one level of abstraction; if it needs a comment to separate its phases, it is two
   functions.
 - A file a user gives is read, checked against its shape, and checked against whether kb can keep it (`kb.content`'s
-  own refusal), in one place, `document.read`, and a kb answer's faults are refused in one way, `cli._answered`. One
-  place differs: a renderer turns a kb answer's faults into the `Rendered` faults it gives back, which `_render`
-  refuses through `_answered`.
+  own refusal), in one place, `document.read`, and a kb answer's refusal is refused in one way, `cli._answered`. One
+  place differs: a renderer turns a kb answer's refusal into the `Rendered` faults it gives back, which `_render`
+  refuses through `_refused`, the one refusal `_answered` itself makes.
 
 ## Step definitions
 

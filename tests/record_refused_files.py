@@ -9,7 +9,7 @@ from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
 from driver import knol
-from kb_oracle import UNKEPT, actor, kb_answer, printed, refused_as_unkept
+from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 
 SAYING_WHY = "Move price reviews to weekly"
 """The message the user records a file with when "saying who they are and why"."""
@@ -40,16 +40,16 @@ def _kb_refuses_to_create(env, decision_file):
     content = loads(decision_file.read_text())
     title = content.pop("title")
     request = kb_pb2.CreateRequest(
-        type="decision", title=title, content=dumps(content), actor=actor(env), message=SAYING_WHY,
+        kind="decision", title=title, content=dumps(content), signature=signature(env, SAYING_WHY),
     )
-    return kb_answer(env, "Create", request).faults
+    return kb_answer(env, "Create", request).refusal.faults
 
 
 @then("the user is told which artifact and which place in it is at fault")
 def _told_artifact_and_place(env, result, decision_file):
     """One line, naming the artifact and the place the shop's spec says, in kb's words for the fault there."""
     faults = _kb_refuses_to_create(env, decision_file)
-    assert [(fault.artifact, fault.path) for fault in faults] == [("decision/prices-are-reviewed-monthly", "sections")]
+    assert [(fault.artifact, fault.place) for fault in faults] == [("decision/prices-are-reviewed-monthly", "sections")]
     assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
 
 
@@ -72,10 +72,10 @@ def _decision_in_a_file_naming_an_entry_twice(tmp_path):
 def _rejected_for_an_entry_named_twice(result, decision_file):
     """One line naming the file and the place in it the step wrote twice, in the words kb's published reading of
     content (`kb.content.loads`) refuses the same text with (kb adrs/0018). The place is pinned to the step's own
-    knowledge of its own file, in the contract's Fault.path form, beside the comparison with kb's own refusal: a
+    knowledge of its own file, in the contract's Fault.place form, beside the comparison with kb's own refusal: a
     regression in where kb reports the place would otherwise pass unnoticed."""
     fault = _kb_refuses_to_read(decision_file)
-    assert fault.path == "sections/0/body", fault.path
+    assert fault.place == "sections/0/body", fault.place
     assert result.stderr.splitlines() == [printed(fault)], result.stderr
 
 
@@ -85,7 +85,7 @@ def _kb_refuses_to_read(path) -> kb_pb2.Fault:
     try:
         loads(path.read_text())
     except NotCanonical as refusal:
-        return kb_pb2.Fault(artifact=str(path), path=refusal.path, message=str(refusal))
+        return kb_pb2.Fault(artifact=str(path), place=refusal.path, message=str(refusal))
     raise AssertionError(f"kb reads {path} plainly")
 
 

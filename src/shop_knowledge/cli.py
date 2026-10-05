@@ -8,6 +8,7 @@ import os
 import sys
 from pathlib import Path
 
+import kb
 from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
@@ -47,13 +48,13 @@ _NO_MESSAGE = "every change must carry a message, given with -m"
 
 
 def _by(args) -> dict:
-    """Who made a change and why, as request fields, or a refusal per lack, before any file is read; init gives no why."""
+    """Who signs a change, and why, or a refusal per lack, before any file is read; init gives no why."""
     role, _, execution = os.environ.get("KB_ACTOR", "").partition(":")
     message = getattr(args, "message", "-")
     lacking = [("actor", _NO_ROLE)] * (not role) + [("message", _NO_MESSAGE)] * (not message)
     if lacking:
         raise Refused([kb_pb2.Fault(rule=rule, message=said) for rule, said in lacking])
-    return {"actor": kb_pb2.Actor(role=role, execution=execution), "message": message}
+    return {"signature": kb_pb2.Signature(role=role, execution=execution, message=message)}
 
 
 def _client():
@@ -72,7 +73,7 @@ def _show(document: dict | list, as_json: bool = False) -> None:
 def _plain(fault: kb_pb2.Fault) -> str:
     """One fault as a line a person reads: where, then what is wrong."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
-    where = f"{fault.artifact} at {fault.path}" if fault.path else fault.artifact
+    where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
     return f"{where}: {message}" if where else message
 
 
@@ -82,12 +83,18 @@ def _refuse(faults) -> int:
     return 1
 
 
-def _answered(response, also=()):
-    """kb's answer, or the refusal it carries: every kb answer's faults, and any `also` it counts as faults, are refused this one way."""
-    faults = [*response.faults, *also]
+def _answered(response):
+    """kb's result, or the refusal it carries: every kb answer's refusal is refused this one way."""
+    if response.WhichOneof("outcome") == "refusal":
+        _refused(response.refusal.faults)
+    return response.result
+
+
+def _refused(faults) -> None:
+    """Refused for these faults, when there are any: what `_answered` refuses a kb refusal with, and what a check's
+    violations and a renderer's faults are refused with."""
     if faults:
         raise Refused(faults)
-    return response
 
 
 _GONE = "the directory you are working in is gone"
@@ -95,11 +102,19 @@ _GONE = "the directory you are working in is gone"
 
 def _init(args) -> int:
     args.root = _absolute(args.root)
-    client = connect(args.root)
-    _answered(client.Init(kb_requests.init_request(args)))
-    for answer in bootstrap.load(client, args.by["actor"]):
+    _started(args.root, args.by["signature"])
+    for answer in bootstrap.load(connect(args.root), args.by["signature"]):
         _answered(answer)
     return 0
+
+
+def _started(root: Path, signature: kb_pb2.Signature) -> None:
+    """A store started in this process at the root, sent to kb absolute so a refusal it raises quotes a path that
+    names the place, not the working directory's own name for it; kb's refusal to start one is refused as any other."""
+    try:
+        kb.init(str(root.resolve()), signature.role, execution=signature.execution)
+    except kb.NotStarted as refusal:
+        raise Refused(refusal.faults) from refusal
 
 
 def _absolute(root: Path) -> Path:
@@ -120,21 +135,21 @@ def _create(args) -> int:
 
 def _write_artifact(args) -> int:
     request = kb_requests.write_request(args, document.read(args.source, "content"))
-    response = _answered(_client().Write(request))
+    response = _answered(_client().Replace(request))
     _show(answers.written_over(request.locator, response))
     return 0
 
 
 def _append(args) -> int:
     request = kb_requests.append_request(args, document.read(args.source, "content"))
-    response = _answered(_client().Append(request))
+    response = _answered(_client().Add(request))
     _show(answers.appended(request.locator, response))
     return 0
 
 
 def _delete(args) -> int:
     request = kb_requests.delete_request(args)
-    response = _answered(_client().Delete(request))
+    response = _answered(_client().Remove(request))
     _show(answers.deleted(request.locator, response))
     return 0
 
@@ -147,25 +162,27 @@ def _read(args) -> int:
 
 
 def _validate(args) -> int:
-    """kb's check answers with the call's own faults (a check that never ran, no store found) apart from what it found
-    once it ran (violations, damaged files included). A call that never ran shows no answer: its faults are refused
-    through `_answered` before anything is shown. A call that ran shows what it found, then refuses any violation as
-    the exit, so what is behind its type is shown beside the faults."""
-    response = _answered(_client().Validate(kb_requests.validate_request(args)))
+    """kb's check answers with a refusal (a check that never ran, no store found) apart from what it found once it ran
+    (violations, damaged files included). A call that never ran shows no answer: its refusal is refused through
+    `_answered` before anything is shown. A call that ran shows what it found, then refuses any violation as the exit,
+    so what is behind its type is shown beside the faults."""
+    response = _answered(_client().Check(kb_requests.validate_request(args)))
     _show(answers.checked(response))
-    _answered(response, response.violations)
+    _refused(response.violations)
     return 0
 
 
 def _apply(args) -> int:
     request = kb_requests.apply_request(args, document.read(args.source, "batch"))
-    response = _answered(_client().Apply(request))
+    client = _client()
+    batched = client.BatchCreate if isinstance(request, kb_pb2.BatchCreateRequest) else client.BatchReplace
+    response = _answered(batched(request))
     _show(answers.applied(response))
     return 0
 
 
 def _journal(args) -> int:
-    response = _answered(_client().Journal(kb_requests.journal_request(args)))
+    response = _answered(_client().History(kb_requests.journal_request(args)))
     _show(answers.history(response))
     return 0
 
@@ -177,7 +194,7 @@ def _list(args) -> int:
 
 
 def _refs(args) -> int:
-    response = _answered(_client().Refs(kb_requests.refs_request(args)))
+    response = _answered(_client().Follow(kb_requests.refs_request(args)))
     _show(answers.reached(response))
     return 0
 
@@ -195,7 +212,8 @@ def _snapshot(args) -> int:
 
 
 def _render(args) -> int:
-    rendered = _answered(RENDERERS[args.renderer](_client(), args.locator))
+    rendered = RENDERERS[args.renderer](_client(), args.locator)
+    _refused(rendered.faults)
     _write(rendered.files, args.to)
     _show(answers.written(rendered.files))
     return 0

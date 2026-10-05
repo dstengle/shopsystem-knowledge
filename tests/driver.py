@@ -102,7 +102,7 @@ def whole(env, name):
 
 
 def store_in(root: Path) -> Path:
-    """Where kb keeps the store it starts in `root`: the subdirectory kb/, which kb's contract names (its Init row).
+    """Where kb keeps the store it starts in `root`: the subdirectory kb/, which kb publishes (`kb.init`).
     The one place a step names it; what kb keeps inside it is kb's own."""
     return root / "kb"
 

@@ -4,10 +4,10 @@ a call the scenario described is answered with the `kb_pb2` message the step wro
 real kb unchanged. Told nothing (no KB_STAND_IN), it answers nothing itself.
 
 KB_STAND_IN names a YAML file the step wrote: a list of answers, each
-  call:    the client call it answers, such as Validate or Read
+  call:    the client call it answers, such as Check or Read
   asking:  optional; request fields the call must carry to be answered, such as {locator: {id: decision/x}}
-  answer:  the response message's fields, as the step wrote them
-  from_kb: optional; repeated fields of the response taken from the real kb's own answer to the same call
+  answer:  the response message's fields, as the step wrote them: its result, or its refusal
+  from_kb: optional; repeated fields of the response's result taken from the real kb's own result to the same call
 It knows kb only through what kb publishes: `kb.client`, `kb.contract` and `kb.content`."""
 import os
 from pathlib import Path
@@ -34,11 +34,12 @@ def _asks(answer: dict, request) -> bool:
 
 
 def _response(rpc: str, answer: dict, real):
-    """The message the step described, with any fields it takes from the real kb's answer to the same request."""
+    """The message the step described, with any fields of its result it takes from the real kb's result to the same
+    request."""
     message = json_format.ParseDict(answer["answer"], getattr(kb_pb2, f"{rpc}Response")())
     if answer.get("from_kb"):
         for field in answer["from_kb"]:
-            getattr(message, field).extend(getattr(real, field))
+            getattr(message.result, field).extend(getattr(real.result, field))
     return message
 
 
@@ -58,9 +59,9 @@ class _StandIn:
         def answered(request, timeout=None):
             """The real kb is always asked first: a call it refuses (no store found, say) is refused the same way
             whether or not a step described it, so a described answer never hides a refusal the real kb would give.
-            Only when the real kb carries no faults does a matching description answer instead."""
+            Only when the real kb gives its result does a matching description answer instead."""
             real = call(request, timeout=timeout)
-            if real.faults:
+            if real.WhichOneof("outcome") == "refusal":
                 return real
             for answer in described:
                 if _asks(answer, request):

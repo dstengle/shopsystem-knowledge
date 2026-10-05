@@ -53,7 +53,7 @@ def _one_change(env, result):
     # Asks kb in-process, through the driver and the scenario's own allowlisted environment, because
     # `shop-knol journal` has no batch filter and does not show the batch.
     batch = loads(result.stdout)["batch"]
-    history = kb_answer(env, "Journal", kb_pb2.JournalRequest(batch=batch))
+    history = kb_answer(env, "History", kb_pb2.HistoryRequest(batch=batch)).result
     assert [(entry.op, entry.artifact) for entry in history.entries] == [("create", WEEKLY), ("write", WORK_ITEM)]
     assert {entry.message for entry in history.entries} == {"Review prices weekly, starting with dairy"}
 

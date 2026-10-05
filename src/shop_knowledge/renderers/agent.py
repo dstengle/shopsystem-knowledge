@@ -9,10 +9,11 @@ from shop_knowledge.renderers.rendered import Rendered, refused
 def render(client, name: str) -> Rendered:
     """The agent's file by path, the role's name without its kind, or the faults of the read that could not be made, or
     of an artifact that is not a role."""
-    role = source.whole(client, name)
-    faults = source.refusal(role, "agent", "role")
+    read = source.whole(client, name)
+    faults = source.refusal(read, "agent", "role")
     if faults:
         return refused(faults)
+    role = read.result
     content = loads(role.content)
     harness = content.get("harness", {})
     body = "\n\n".join(sections.laid_out(content.get("sections", []), 1))

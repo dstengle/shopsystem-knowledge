@@ -52,7 +52,7 @@ only.
 - Observable: everything a user could do on kb v0.3.0 they can do on v0.5.0, the same commands giving the same answers and refusals
 - Unknown: whether every command maps onto its v1 call with its answer and its refusals unchanged
 - Needs: the pin in pyproject.toml; the stand-in and the steps' oracles speak v1's messages (needed by every scenario that compares with kb's answer)
-- Status: planned
+- Status: green
 
 ## Slice 53: shop-knol answers through a kb server exactly as through the store
 - Kind: capability
@@ -128,3 +128,6 @@ only.
 - 2026-10-05 slice 51 green. Someone can now: grow tests/driver.py for a server, because kb's answers asked as oracles (`kb_answer`, `actor`, `printed`, `refused_as_kb_refuses`, `UNKEPT`, `refused_as_unkept`, `NO_STORE`) sit in tests/kb_oracle.py and the driver holds only launching shop-knol, isolation and the environment (driver.py 249 to 143 lines, kb_oracle.py 115; no tests module over 250).
   Surprised by: kb_oracle reads driver's `_default_cwd`, `_isolated` and `Removed` at call time through `import driver` (conftest monkeypatches `driver._default_cwd`); session_guard's own `import driver` became unused. CLAUDE.md's two sentences reworded to name kb_oracle. Suite `37 failed, 94 passed`, the same failing list.
   Open questions: none. Next: slice 52.
+- 2026-10-05 slice 52 green. Someone can now: run every shop-knol command against kb v0.5.0 through contract v1 (`kb.init` for a start, Replace, Add, Remove, Check, History, Follow, BatchCreate or BatchReplace for `apply`), each answer keeping its keys; `pip show` gives 0.5.0 and no v0.3.0 message name is left under src/ or tests/.
+  Surprised by: read-an-artifact's Given 'the older decision is tagged "seasonal"' built its state with a mixed batch (create a tag, write the decision), which v1 cannot land, so "The user asks for the links to be followed two steps" went red; the step now makes the same state with `create` then `write`. The clock stand-in fronts `kb.init` beside `connect`, or init's own entry is stamped from the machine's clock ("The user reviews the changes since a date" went red). `_answered` no longer takes `also`: a check's violations and a renderer's faults are refused through `_refused`, and CLAUDE.md's size-and-shape sentence says so. A mixed batch is now a traceback until slice 57. Suite `37 failed, 94 passed` before, `38 failed, 93 passed` after: the one addition is "One bad change in a batch leaves the shop untouched".
+  Open questions: none. Next: slice 53.

@@ -135,7 +135,7 @@ def _start_in_an_empty_name(env, shop):
 @then("that directory holds no knowledge base")
 @then("the directory they are working in holds no knowledge base")
 def _holds_none(shop):
-    # Looks for the directory kb's contract says init makes (its Init row), since no shop-knol command can say where a
+    # Looks for the directory kb's contract says init makes (`kb.init`), since no shop-knol command can say where a
     # store would be kept if one had been started.
     assert not store_in(shop).exists()
 
@@ -151,7 +151,7 @@ def _a_directory_with_work(shop):
 @then("the shop's knowledge is kept in a place of its own inside that directory")
 def _kept_in_its_own_place(env, shop, shops_work, result):
     assert result.returncode == 0, result.stderr
-    # Lists the directory for the one kb's contract says init makes (its Init row), beside the work already there.
+    # Lists the directory for the one kb's contract says init makes (`kb.init`), beside the work already there.
     assert {path.name for path in shop.iterdir()} == {"notes.txt", "orders", store_in(shop).name}
     _found_from(env, shop)
 
@@ -180,6 +180,6 @@ def _start_elsewhere_by_naming(env, shop, elsewhere):
 @then("the shop's knowledge is kept in a place of its own inside the named directory")
 def _kept_in_its_own_place_named(env, elsewhere, result):
     assert result.returncode == 0, result.stderr
-    # Lists the directory for the one kb's contract says init makes (its Init row), and nothing else.
+    # Lists the directory for the one kb's contract says init makes (`kb.init`), and nothing else.
     assert {path.name for path in elsewhere.iterdir()} == {store_in(elsewhere).name}
     _found_from(env, elsewhere)

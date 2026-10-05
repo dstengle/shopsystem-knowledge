@@ -85,7 +85,7 @@ def _decision_file_mangled_by_hand(env, tmp_path):
     """No contract call leaves a stored file unreadable, so kb's answer to reading it comes from the stand-in
     (adrs/0047), its fault in this step's own words."""
     env.update(answering(env, tmp_path, {
-        "call": "Read", "asking": {"locator": {"id": DECISION}}, "answer": {"faults": [UNREADABLE]},
+        "call": "Read", "asking": {"locator": {"id": DECISION}}, "answer": {"refusal": {"faults": [UNREADABLE]}},
     }))
 
 
@@ -156,16 +156,15 @@ def _older_points_by_name(shown):
 
 @given('the older decision is tagged "seasonal"')
 def _older_decision_tagged_seasonal(env, tmp_path):
-    # Drives shop-knol as a user does: `apply`, one batch to create a tag and write the decision as one change.
+    # Drives shop-knol as a user does: `create` the tag, then `write` the decision pointing at it. Two commands, since
+    # a batch lands creates or writes, never both (kb contract v1).
+    tag = record(env, tmp_path, "tag", {"title": "seasonal", "description": "Changes with the season.\n"}, "Add a tag")
     path = tmp_path / "tag-the-older-decision.yaml"
-    path.write_text(dumps({"changes": [
-        {"create": "tag", "content": {"title": "seasonal", "description": "Changes with the season.\n"}},
-        {"write": OLDER, "content": {"tags": ["tag/seasonal"], "sections": [
-            {"title": "Purpose", "body": "Keep prices current.\n"},
-            {"title": "Rationale", "body": "Monthly was enough once.\n"},
-        ]}},
+    path.write_text(dumps({"tags": [tag], "sections": [
+        {"title": "Purpose", "body": "Keep prices current.\n"},
+        {"title": "Rationale", "body": "Monthly was enough once.\n"},
     ]}))
-    result = knol(env, "apply", "--from", str(path), "-m", "Tag the older decision seasonal")
+    result = knol(env, "write", OLDER, "--from", str(path), "-m", "Tag the older decision seasonal")
     assert result.returncode == 0, result.stderr
 
 
