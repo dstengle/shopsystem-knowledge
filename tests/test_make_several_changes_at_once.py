@@ -4,7 +4,8 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import UNKEPT, kb_answer, knol, record, refused_as_unkept, start
+from driver import knol, record, start
+from kb_oracle import UNKEPT, kb_answer, refused_as_unkept
 
 scenarios("make-several-changes-at-once.feature")
 

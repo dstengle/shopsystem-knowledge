@@ -4,7 +4,8 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import answering, knol, printed, record
+from driver import answering, knol, record
+from kb_oracle import printed
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 # The finding scenarios share this module's Background steps, so it binds both features (each scenario bound once).

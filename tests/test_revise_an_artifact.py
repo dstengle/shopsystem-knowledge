@@ -4,7 +4,8 @@ import pytest
 from kb.content import dumps
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from driver import UNKEPT, knol, record, refused_as_unkept, start, whole
+from driver import knol, record, start, whole
+from kb_oracle import UNKEPT, refused_as_unkept
 
 scenarios("revise-an-artifact.feature")
 

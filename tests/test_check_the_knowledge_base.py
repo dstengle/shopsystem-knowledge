@@ -2,7 +2,8 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import answering, knol, printed, record, start, whole
+from driver import answering, knol, record, start, whole
+from kb_oracle import printed
 
 scenarios("check-the-knowledge-base.feature")
 
@@ -155,7 +156,7 @@ def _listed_as_behind(shown):
 
 def _artifact_named(line: str) -> str:
     """The artifact a printed fault line names: everything before its place (` at `) or, with none, before its
-    message (`: `), whichever comes first (`driver.printed`'s own shape)."""
+    message (`: `), whichever comes first (`kb_oracle.printed`'s own shape)."""
     at, colon = line.find(" at "), line.find(": ")
     cut = at if at != -1 and (colon == -1 or at < colon) else colon
     return line if cut == -1 else line[:cut]

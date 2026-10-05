@@ -5,7 +5,8 @@ import pytest
 from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
-from driver import actor, kb_answer, knol, printed, removed, start, store_in
+from driver import knol, removed, start, store_in
+from kb_oracle import actor, kb_answer, printed
 
 
 @pytest.fixture

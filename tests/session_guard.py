@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from kb.contract import kb_pb2
 
-import driver
-from driver import NO_STORE
+import kb_oracle
+from kb_oracle import NO_STORE
 
 _ALLOWED_NAMES = ("PATH", "LANG", "SYSTEMROOT", "TMPDIR")
 """What a scenario's shop-knol, or the guard's own call to kb, needs from the machine the suite runs on - never the
@@ -36,7 +36,7 @@ def _reachable_from(directory: Path, env: dict) -> bool:
     fault of another rule, or more than one fault - so a cause kb adds later is never mistaken for "no store here";
     an exception from the call counts the same way, refused rather than let escape as a traceback."""
     try:
-        faults = driver.kb_answer(env, "Journal", kb_pb2.JournalRequest(), cwd=directory).faults
+        faults = kb_oracle.kb_answer(env, "Journal", kb_pb2.JournalRequest(), cwd=directory).faults
     except Exception:
         return True
     return not (len(faults) == 1 and faults[0].rule == NO_STORE)

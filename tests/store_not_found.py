@@ -4,7 +4,8 @@ scenario's own When made (`called`), the three "working …" Givens, and the The
 import pytest
 from pytest_bdd import given, then
 
-from driver import refused_as_kb_refuses, start
+from driver import start
+from kb_oracle import refused_as_kb_refuses
 
 
 @pytest.fixture

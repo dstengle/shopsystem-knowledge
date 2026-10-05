@@ -8,7 +8,8 @@ from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
-from driver import UNKEPT, actor, kb_answer, knol, printed, refused_as_unkept
+from driver import knol
+from kb_oracle import UNKEPT, actor, kb_answer, printed, refused_as_unkept
 
 SAYING_WHY = "Move price reviews to weekly"
 """The message the user records a file with when "saying who they are and why"."""

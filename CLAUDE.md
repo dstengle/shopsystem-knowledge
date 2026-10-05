@@ -94,10 +94,10 @@ own it.
   through the developer's own HOME - reaches a scenario's shop-knol or the guard's own call.
 - No Then relies on the order kb gives its faults in; each compares a set of lines (or of `(at, field)` pairs),
   never a position.
-- A Then that reads kb's own words gets them from `driver.kb_answer`: kb's own answer to the same call for the
-  same state, asked in-process, under the same allowlisted environment, after shop-knol's own call was refused, so
+- A Then that reads kb's own words gets them from `kb_oracle.kb_answer`
+  (`tests/kb_oracle.py`): kb's own answer to the same call for the same state, asked in-process, under the same allowlisted environment, after shop-knol's own call was refused, so
   no step spells kb's wording, which is kb's to change. A Then over a fault the stand-in gave compares with what
-  the stand-in gave (`driver.printed`, over the step's own words), never with kb's.
+  the stand-in gave (`kb_oracle.printed`, over the step's own words), never with kb's.
 
 ## Working here
 

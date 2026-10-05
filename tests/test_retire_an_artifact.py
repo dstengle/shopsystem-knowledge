@@ -2,7 +2,8 @@ from kb.content import loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
-from driver import actor, kb_answer, knol, printed, record, start
+from driver import knol, record, start
+from kb_oracle import actor, kb_answer, printed
 
 scenarios("retire-an-artifact.feature")
 
