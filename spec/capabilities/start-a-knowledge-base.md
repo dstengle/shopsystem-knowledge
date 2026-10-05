@@ -10,7 +10,8 @@ rests_on:
   - decision/init-furnishes-an-empty-knowledge-base
   - decision/init-furnishes-only-an-empty-knowledge-base
   - decision/init-refuses-a-knowledge-base-holding-the-shops-types
-  - decision/furnishing-waits-for-the-kb-v0-5-0-migration
+  - decision/a-working-directory-holding-the-shops-knowledge-keeps-its-reasons
+  - decision/furnishing-is-built-on-kb-v0-5-0
   - decision/init-edge-cases-settled-by-principle
   - decision/seven-types-on-a-shop-artifact-base
   - capability/find-the-knowledge-base
@@ -43,7 +44,7 @@ init says which role set it up and writes its own message. It refuses rather tha
 - If the user starts a knowledge base without saying which role they are, starting is refused because starting one must say which role did it, and the directory holds no knowledge base.
 - If the directory already holds the shop's knowledge, starting is refused because that directory already holds a knowledge base, and everything the shop knows is unchanged.
 - If the directory sits inside a knowledge base that holds the shop's knowledge, starting is refused because that directory is inside a knowledge base, and everything the shop knows is unchanged.
-- If the knowledge base init would furnish already holds the shop's types, starting is refused because it already holds the shop's knowledge, and nothing changes.
+- Where the knowledge base init would furnish is found through `KB_ROOT` or a server, or sits in a named directory, if it already holds the shop's types, starting is refused because it already holds the shop's knowledge, and nothing changes.
 - If the knowledge base init would furnish does not hold the shop's types but holds something else (other types, or content), starting is refused because it is not empty, naming what it holds, and nothing changes.
 - If the working directory has been removed, no directory is named and nothing names a knowledge base, starting is refused because the working directory is gone.
 - If the user starts a knowledge base in a directory whose name is given empty, starting is refused because that directory's name is empty, which names no place, and the working directory holds no knowledge base.
@@ -52,16 +53,16 @@ init says which role set it up and writes its own message. It refuses rather tha
 
 | command | maps to |
 |---|---|
-| `shop-knol init <root>` | Init, which creates `<root>/kb/`; then the bootstrap set loaded through Create |
-| `shop-knol init` | kb's client finds a knowledge base from the working directory. If one is found and empty, the bootstrap set is loaded into it through Create. If none is found, Init creates `kb/` in the working directory, and the bootstrap set is loaded through Create |
+| `shop-knol init <root>` | `kb.init(<root>, role)` in shop-knol's own process, which creates `<root>/kb/`; then the bootstrap set loaded through Create |
+| `shop-knol init` | kb's client finds a knowledge base from the working directory. If one is found and empty, the bootstrap set is loaded into it through Create, and no store is started. If none is found, `kb.init` starts a store in the working directory in shop-knol's own process, and the bootstrap set is loaded through Create |
 
+- kb has no Init call on the wire. shop-knol starts a store with `kb.init` only where it starts one, and loads the shop's types through Create in every case.
 - Naming `<root>` starts a knowledge base there, on purpose.
 - With no root named, the working directory is taken as an absolute path, so a refusal names the directory the user is in rather than `.`.
 - The finding is kb's: upward from the working directory, through `KB_ROOT`, or a connection to a server found in the same place. It is the same finding every other command uses (find-the-knowledge-base).
 - The actor comes from `KB_ACTOR` and is asked for before kb is called. `init` takes no `-m`; its messages are fixed.
-- kb's refusals of Init reach the user in kb's words. These cover a directory that already holds a store, a directory inside one, and a named directory that does not exist. The types are loaded only after Init answers without a fault, and loading stops at the first Create kb refuses.
+- When `kb.init` refuses, it raises `kb.NotStarted` with the faults, and they reach the user in kb's words. These cover a directory that already holds a store, a directory inside one, and a named directory that does not exist. The types are loaded only after `kb.init` returns without refusing, and loading stops at the first Create kb refuses.
 - kb records the start and the bootstrap set as creates under the role that ran `init`.
-- **Not built on the kb v0.3.0 pin.** Furnishing an operator-started knowledge base, and the finding init needs for it, will be built after the kb v0.5.0 migration that follows this one. On v0.3.0, init never reads `KB_ROOT`, and Init refuses a directory that already holds a store.
 
 ## Not yet
 

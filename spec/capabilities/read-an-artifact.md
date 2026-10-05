@@ -36,12 +36,13 @@ The answer can be taken as JSON. Finding artifacts without knowing their names i
 
 | command | maps to |
 |---|---|
-| `shop-knol read <locator> [--section <title>] [--whole] [--resolve [<depth>]] [--json]` | Read at the chosen level |
+| `shop-knol read <locator> [--section <title>] [--whole] [--resolve [<depth>]] [--json]` | Read, with the level asked as one of summary, whole with a depth, or section |
 
 - A locator is a name, or a name followed by `#` and a place inside it (kb's link notation).
+- With none of the level flags, the read asks for the summary level.
 - `--section <title>` is a section read, using the title as given.
-- `--whole` is a whole read with links as names.
-- `--resolve [<depth>]` is a whole read with links filled in. `--resolve` alone means depth 1.
+- `--whole` is a whole read at depth 0, with links as names.
+- `--resolve [<depth>]` is a whole read at that depth, with links filled in. `--resolve` alone means depth 1.
 - `--resolve` implies `--whole`. `--section` wins when given with either.
 - A whole read shows kb's identity, then its content. A section read shows what kb gives and nothing else.
 - `--json` is taken by `read` alone.

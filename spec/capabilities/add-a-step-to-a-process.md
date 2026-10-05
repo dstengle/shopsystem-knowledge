@@ -24,7 +24,7 @@ Adding a step to the end of a process, under a name the shop gives it. The step 
 
 | command | maps to |
 |---|---|
-| `shop-knol append <name>#<collection> --from <file or -> -m <why>` | Append |
+| `shop-knol append <name>#<collection> --from <file or -> -m <why>` | Add |
 
 - The locator is read as `write`'s is.
 - The file is checked against the `content` shape.

@@ -25,7 +25,7 @@ Seeing what an artifact points at and what points at it. The answer can be narro
 
 | command | maps to |
 |---|---|
-| `shop-knol refs <locator> --inbound\|--outbound [--via <field>] [--type <type>] [--depth <n>]` | Refs |
+| `shop-knol refs <locator> --inbound\|--outbound [--via <field>] [--type <type>] [--depth <n>]` | Follow |
 
 - One of the two directions is required. With no `--depth`, one step is followed.
 - The answer is a sequence, nearest first as kb gives it, with no wrapper key. Each entry has the reached artifact's `id`, `type` and `title`; `via` (the link of the last step); its stub's fields; and `route`, the steps taken, each as `field` and `id`.

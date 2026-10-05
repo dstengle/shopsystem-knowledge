@@ -40,11 +40,13 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 | `shop-knol types <name>` | reads one of the shop's types |
 
 - The command's name may change. `create`, `write`, `list` and `read` are not the way to the types.
-- The types are schema artifacts in kb's schema language: `decision`, `feature`, `work-item`, `role`, `process`, `step` and `tag`. Alongside them are whatever data-type schemas the process and feature schemas share through `$ref`.
+- The types are schema artifacts in kb's schema language: `decision`, `feature`, `work-item`, `role`, `process`, `step` and `tag`.
 - All seven build on a `shop-artifact` base schema through kb's composition mechanism, so the common fields are declared once.
+- The shop's schemas are the seven types and the `shop-artifact` base, eight in all.
 - `role` has two named field groups: `harness` (the harness contract fields) and the corpus identity fields.
 - `tag` is a title and a description. Other types target it through a `tags` reference field.
 - `process` declares a `steps` part collection. Each item either defines a step inline, or carries `uses: <ref to step>` and `with: <bindings>`.
+- kb v0.5.0 refuses a type that puts kb's keywords where kb does not read them, or a `ref` that does not state its whole shape. Each of the shop's eight schemas was created in a fresh v0.5.0 store and accepted as it is; nothing changes in them.
 
 ## Not yet
 

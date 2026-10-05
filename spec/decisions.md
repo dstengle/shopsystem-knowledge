@@ -423,3 +423,47 @@ source: the person, 2026-10-05
 Three cases are settled by principles already decided (a-case-a-spec-principle-answers-is-settled): a named directory holding a knowledge base kb's operator started empty is furnished (init-furnishes-an-empty-knowledge-base); with no directory named, a finding that refuses refuses init for the same reason (store-found-like-git); a knowledge base holding the shop's types and other content too is refused as already holding the shop's knowledge.
 date: 2026-10-05
 source: the person, 2026-10-05 (approved at the spec gate)
+
+## decision/kb-v0-5-0-pinned
+kb v0.5.0 is pinned, which publishes contract v1 as one breaking release. shop-knowledge knows kb only through what kb publishes: `kb.contract`, `kb.client.connect` with its clock, `kb.content` with `NotCanonical`, the rule names, and now `kb.init` and `kb.NotStarted` (kb's index, Constraints carried).
+date: 2026-10-05
+revisit_when: kb tags a release that shop-knowledge needs
+supersedes: decision/kb-pinned-by-tag
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/a-batch-holds-one-kind-of-change
+`shop-knol apply` takes a batch of one kind of change, all creates or all writes. kb v0.5.0 lands a set of one kind of change only, and a set that mixes kinds of change is gone from what a client can do.
+date: 2026-10-05
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/the-batch-scenarios-record-two-linked-creates
+The approved scenario "The user makes several changes at once" changes its meaning. Its batch, once a create and a write (a decision recorded and an existing work item pointed at it), now records a decision and a work item pointing at it: two creates linked by a key. Its Thens stand: both are in the shop, and the history shows one change. "A batch whose prose the shop cannot keep leaves the shop untouched" uses the same batch and changes the same way.
+date: 2026-10-05
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/furnishing-is-built-on-kb-v0-5-0
+Furnishing is buildable on kb v0.5.0 because a client starts a store with `kb.init`. Where kb finds an empty knowledge base that kb's operator started, in place or through a server, init loads the shop's types into it without starting anything. It starts a store with `kb.init` only where it starts one.
+date: 2026-10-05
+supersedes: decision/furnishing-waits-for-the-kb-v0-5-0-migration
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/the-command-line-survives-contract-v1
+Under contract v1 the commands, their flags and their answers stay as they are. `write`, `append`, `delete`, `refs`, `journal` and `validate` keep their names, and their answers keep their keys: an answer still says `type`, not kb's `kind`.
+date: 2026-10-05
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/moving-an-earlier-store-is-the-operators-kb-import
+Moving a knowledge base made by an earlier kb into a v0.5.0 store is the operator's `kb import`, not a shop-knol command.
+date: 2026-10-05
+source: docs/superpowers/specs/2026-10-05-kb-v0-5-0-migration.md
+
+## decision/a-working-directory-holding-the-shops-knowledge-keeps-its-reasons
+init keeps both jobs: it starts a store where none is found, and furnishes an empty one it finds. With no directory named, a working directory that holds the shop's knowledge is refused because it already holds a knowledge base, and one inside it because it is inside a knowledge base, as today. The refusal "already holds the shop's knowledge" covers only a knowledge base found through `KB_ROOT` or a server, or sitting in a named directory. The rest of init-refuses-a-knowledge-base-holding-the-shops-types stands.
+date: 2026-10-05
+supersedes: decision/init-refuses-a-knowledge-base-holding-the-shops-types
+source: the person, 2026-10-05
+
+## decision/only-a-create-carries-a-key
+A write in a batch that carries a key is refused because only a create carries a key, naming the key, and none of the batch's changes land; the batch shape allows `key` only beside `create`.
+date: 2026-10-05
+source: the person, 2026-10-05

@@ -25,7 +25,7 @@ Replacing a recorded artifact's wording, either whole or one section of it, so t
 
 | command | maps to |
 |---|---|
-| `shop-knol write <locator> --from <file or -> -m <why>` | Write |
+| `shop-knol write <locator> --from <file or -> -m <why>` | Replace |
 
 - A locator is a name, or a name followed by `#` and a place inside it (kb's link notation). shop-knol never computes a place from a section's title.
 - A whole write's file is passed as given, so kb refuses a title in it. A part's file holds the part as kb holds it; for a section, that is `title` and `body`.
@@ -35,4 +35,4 @@ Replacing a recorded artifact's wording, either whole or one section of it, so t
 
 ## Not yet
 
-Nothing deferred.
+- **An expected revision** on a replacement, on an addition (add-a-step-to-a-process) or on a removal (retire-an-artifact), using kb's rule `revision`. Promoted when two users revising one artifact lose a change.

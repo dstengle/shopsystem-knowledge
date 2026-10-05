@@ -22,11 +22,11 @@ Taking an artifact out of the shop for good when nothing depends on it. While so
 
 | command | maps to |
 |---|---|
-| `shop-knol delete <locator> -m <why>` | Delete |
+| `shop-knol delete <locator> -m <why>` | Remove |
 
 - The actor and message are asked for as in record-an-artifact.
 - The answer shows `id` (the locator's name) and `revision`.
-- A delete kb refuses because the artifact is still pointed at prints one line for each thing that points at it, as kb names them.
+- A removal kb refuses because the artifact is still pointed at prints one line for each thing that points at it, as kb names them.
 
 ## Not yet
 

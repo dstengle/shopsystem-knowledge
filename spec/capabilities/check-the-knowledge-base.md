@@ -27,7 +27,7 @@ This capability covers one check over the whole knowledge base. It names every f
 
 | command | maps to |
 |---|---|
-| `shop-knol validate` | Validate |
+| `shop-knol validate` | Check |
 
 - A check that finds no fault shows `sound: true` and `behind:` on stdout, and exits 0.
 - A check that finds faults prints them on stderr, one line each, and exits 1. It also shows `sound: false` and `behind:` on stdout.

@@ -25,7 +25,7 @@ Reading back the history: who changed what, when and why. It can be filtered by 
 
 | command | maps to |
 |---|---|
-| `shop-knol journal [--artifact <id>] [--actor <role>] [--execution <id>] [--since <when>]` | Journal |
+| `shop-knol journal [--artifact <id>] [--actor <role>] [--execution <id>] [--since <when>]` | History |
 
 - The filters are passed to kb as given; `--actor` is kb's `role`. A time kb cannot read is refused by kb.
 - A history entry that records what was read is shown with `read`, listing each artifact with the revision read.
