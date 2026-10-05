@@ -210,6 +210,26 @@ Review: per-task. Model: opus.
 - [ ] Probe Review Focus 2, and record it.
 - [ ] Checkpoint and commit.
 
+### Task 5.1: Slice 55.1, init never furnishes twice
+
+Review: per-task. Model: opus.
+
+**Added 2026-10-05 by a re-slice after Task 5's review.**
+
+**Scenarios** (`@slice-55.1`, 3): start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused (three rows: through KB_ROOT, through a server, in a named directory). The server row cannot pass until slice 53 (kb v0.5.0 has no `kb serve`); it stays red, failing in setup, and is named in the checkpoint.
+
+**Why red today:** the KB_ROOT row: init starts a second store in the working directory and exits 0 (start.py's finding falls through to starting when the found knowledge base holds the shop's types and KB_ROOT names somewhere else). The named-directory row: its Given is undefined, or init furnishes or refuses in kb's words instead.
+
+**Where it lands:** `src/shop_knowledge/start.py`, in the same branch slice 55 split. Steps beside slice 55's (`tests/start_not_empty.py` or `tests/start_refused.py`); the server row's Given may reuse Task 3's server Givens and stays red.
+
+**Decisions:** as Task 5's "Already holds the shop's types" decision: shop-knol's own refusal, in plain words naming the knowledge base as the user can find it (the KB_ROOT value, or the named directory), "it already holds the shop's knowledge". A knowledge base holding the shop's types and other things too is refused the same way (decision/init-edge-cases-settled-by-principle). A KB_ROOT naming the working directory itself keeps slice 47's reasons in kb's words (decision/a-working-directory-holding-the-shops-knowledge-keeps-its-reasons). Use the same naming form as slice 55's not-empty refusal.
+
+**Steps:**
+- [ ] Record the failing list; run `-m slice-55.1`.
+- [ ] Red-green the KB_ROOT row, then the named row.
+- [ ] Run `-m slice-55.1` (2 passed, 1 failed: the server row), then the whole suite.
+- [ ] Checkpoint and commit; slice 55.1's Status stays `in progress: its server row waits on slice 53`.
+
 ### Task 6: Slice 56, a batch of creates lands as one, its new artifacts linked by keys
 
 Review: per-task. Model: opus.

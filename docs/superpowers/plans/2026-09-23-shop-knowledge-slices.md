@@ -78,12 +78,20 @@ only.
 - Needs: none
 - Status: green
 
-## Slice 55.1: init never furnishes twice, and furnishes a served empty store
+## Slice 55.1: init never furnishes twice
 - Kind: capability
-- Scenarios: start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused (all three rows); start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types
-- Observable: init refuses a knowledge base that already holds the shop's types, wherever it is found, and furnishes a served empty store as one in place
-- Unknown: none once a kb server exists (slice 53 settles the server; slice 55 how a found knowledge base is told apart)
-- Needs: slice 53's server (the server rows; the outline's three rows share one tag, so its two buildable rows wait with it)
+- Scenarios: start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused (all three rows; its server row waits on slice 53)
+- Observable: init refuses a knowledge base found through KB_ROOT, or named, that already holds the shop's types, instead of starting a second store beside it
+- Unknown: none (slice 55 settled how a found knowledge base is told apart)
+- Needs: slice 53's server for the outline's server row only
+- Status: planned
+
+## Slice 55.2: init furnishes a served empty store
+- Kind: capability
+- Scenarios: start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types
+- Observable: a user reaching an operator's empty store through a server furnishes it as one in place
+- Unknown: none once a kb server exists
+- Needs: slice 53's server
 - Status: blocked: awaiting slice 53
 
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
@@ -163,3 +171,4 @@ only.
   - Suite `31 failed, 100 passed` before, `27 failed, 104 passed` after; only the slice's four scenarios left the failing list.
   - Review Focus 2: a Create refused partway leaves the types created before it, and a second `init` refuses the knowledge base as not empty, naming them; logged in the Backlog.
   Open questions: a knowledge base found upward (no KB_ROOT) holding types other than the shop's is refused with no name before its message, since no scenario says how to name it; `_absolute` still refuses a gone working directory before finding, even where KB_ROOT names a knowledge base. Next: slice 56.
+- 2026-10-05 RE-SLICE after Task 5's review (5dcfa5c): with KB_ROOT naming a knowledge base elsewhere that already holds the shop's types, init starts a second store in the working directory and reports success (reproduced by the reviewer), against start-a-knowledge-base's Purpose and Implementation (a store is started only where none is found). The already-holds outline is buildable but for its server row, so slice 55.1 keeps it and runs now, its server row waiting on slice 53; the server-furnish scenario becomes slice 55.2, blocked on 53. No Given, When or Then changes.
