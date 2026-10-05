@@ -82,6 +82,7 @@ Feature: Publish an artifact
       | role    | a field group holding a list of mappings, one mapping's last value an empty value |
       | process | steps that each say more than one thing, the name of one of those things holding the character that separates table cells |
 
+  @slice-59
   Scenario: Markdown shows a field holding a mapping as a list nested under the field
     Pins that a mapping keeps its shape on the page, each of its entries listed beneath the field that holds it, instead of being squeezed onto the field's own line.
     Given the role holds a field holding a mapping

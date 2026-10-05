@@ -59,6 +59,7 @@ Feature: Find the knowledge base
     And the user is shown the refusal in plain words, never a traceback
     And the command reports failure to whatever ran it
 
+  @slice-53
   Scenario: Reading where the knowledge base found is a connection to a server hosting the store
     Pins that a knowledge base reached through a connection to its server serves exactly as the store found in place does, so where the store lives changes nothing the user sees.
     Given the shop's knowledge base is hosted by a server
