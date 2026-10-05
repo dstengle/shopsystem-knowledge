@@ -8,12 +8,11 @@ import os
 import sys
 from pathlib import Path
 
-import kb
 from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, document, kb_requests
+from shop_knowledge import answers, arguments, document, kb_requests, start
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -97,57 +96,11 @@ def _refused(faults) -> None:
         raise Refused(faults)
 
 
-_GONE = "the directory you are working in is gone"
-
-
 def _init(args) -> int:
-    signed = args.by["signature"]
-    client = _named(_absolute(args.root), signed) if args.root else _found(_absolute(Path(".")), signed)
-    for answer in bootstrap.load(client, signed):
+    """The shop's types loaded into the knowledge base `start` chose, each answer refused as any other."""
+    for answer in start.furnished(args.root, args.by["signature"]):
         _answered(answer)
     return 0
-
-
-def _found(here: Path, signed: kb_pb2.Signature):
-    """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here."""
-    if _empty(client := connect()):
-        return client
-    _started(here, signed)
-    return connect(here)
-
-
-def _named(root: Path, signed: kb_pb2.Signature):
-    """A store started at the named root; where kb refuses to start one, the store already there, when it is empty."""
-    try:
-        _started(root, signed)
-    except Refused:
-        if not _empty(connect(root)):
-            raise
-    return connect(root)
-
-
-def _empty(client) -> bool:
-    """Whether the knowledge base the client reaches holds no type but kb's own."""
-    listed = client.List(kb_requests.init_request())
-    return listed.WhichOneof("outcome") == "result" and list(listed.result.ids) == ["schema/schema"]
-
-
-def _started(root: Path, signature: kb_pb2.Signature) -> None:
-    """A store started in this process at the root, sent to kb absolute so a refusal it raises quotes a path that
-    names the place, not the working directory's own name for it; kb's refusal to start one is refused as any other."""
-    try:
-        kb.init(str(root.resolve()), signature.role, execution=signature.execution)
-    except kb.NotStarted as refusal:
-        raise Refused(refusal.faults) from refusal
-
-
-def _absolute(root: Path) -> Path:
-    """The root to start in, a relative one taken from the working directory, which is refused in shop-knol's own
-    words if it is gone, before kb is called."""
-    try:
-        return root.absolute()
-    except FileNotFoundError as error:
-        raise Refused([kb_pb2.Fault(message=_GONE)]) from error
 
 
 def _create(args) -> int:

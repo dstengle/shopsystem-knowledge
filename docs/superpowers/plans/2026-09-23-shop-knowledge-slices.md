@@ -68,7 +68,7 @@ only.
 - Observable: a user who works where kb's operator started an empty knowledge base runs `shop-knol init` and gets the shop's types in it, while a user with nothing found still gets a new one beside their work
 - Unknown: how init tells whether kb finds a knowledge base from where it is, and loads the types into it instead of starting one
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 55: init refuses a knowledge base it cannot furnish
 - Kind: capability
@@ -147,3 +147,11 @@ only.
 - 2026-10-05 HAND-BACK slice 54, scenario "Naming a directory that holds an empty knowledge base furnishes it with the shop's types": not a bdd-red-green stop condition. The implementer's own stop rule fired: a file would cross the 250-line limit. Every scenario is green, but `src/shop_knowledge/cli.py` holds 269 lines with the least code that makes them green: `_init` picks `_named` or `_found`, and `_empty` sends one List of kind `schema` as ids (`kb_requests.init_request`). CLAUDE.md says "split first", and a split means a new module and a module-map row (or init moved out of `cli.py`'s row). The brief does not decide that, so it is handed back rather than chosen here.
   Evidence: `wc -l src/shop_knowledge/*.py ... | awk '$1 > 250'` gives `269 src/shop_knowledge/cli.py` (245 before). `-m slice-54` gives `7 passed`. Suite `38 failed, 93 passed` before, `31 failed, 100 passed` after; only the seven slice-54 scenarios left the failing list.
   Green in this slice: all seven (both furnish rows, the named furnish, none found, already holds, inside one, removed directory). Red: none, but the size check fails. Slice 54 stays not green until the split is decided. Suggested split: move init's handler and helpers (`_init`, `_found`, `_named`, `_empty`, `_started`, `_absolute`, `_GONE`) to a new `start.py` row ("which knowledge base init furnishes, the one kb finds or is named when empty or a store it starts, and kb's refusal to start one as `Refused`"), with `cli._HANDLERS` naming it.
+- 2026-10-05 slice 54 green. This resolves the HAND-BACK above, following the controller's ruling: init's finding, emptiness, furnishing and starting moved to a new module, `src/shop_knowledge/start.py`, with a CLAUDE.md row; `cli.py`'s row was adjusted. `cli.py` is 222 lines and `start.py` 71. Someone can now: run `shop-knol init` where kb's operator started an empty knowledge base, whether it is found upward, through KB_ROOT or named, and have it furnished with the shop's types; with nothing found, a new knowledge base is started beside their work.
+  Surprised by:
+  - Four of the seven scenarios needed only their Givens: none found, already holds, inside one, and removed directory. Today's init already did what they ask.
+  - The removed-directory Then holds shop-knol's own "gone" words, not kb's, so `start._absolute` still refuses before kb is called.
+  - `start.furnished` hands bootstrap's Create answers back to `cli._init`, so `_answered` stays the one way a kb answer is refused.
+  - Suite `38 failed, 93 passed` before, `31 failed, 100 passed` after; only the slice's seven scenarios left the failing list.
+  - Review Focus 1 (an unreachable server) is deferred with slice 53.
+  Open questions: for Task 5 (slice 55), every finding refusal still falls through to starting a store in the working directory, including those with KB_ROOT set. When slice 55 refuses those instead, `driver.start` and the init Whens of slices 4, 47 and 50.x will break, because the suite's `env` sets KB_ROOT to the shop's directory before any store exists. Next: slice 55.
