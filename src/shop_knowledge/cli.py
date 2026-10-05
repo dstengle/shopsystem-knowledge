@@ -12,7 +12,7 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, document, kb_requests, start
+from shop_knowledge import answers, arguments, bootstrap, document, kb_requests, start
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -170,6 +170,15 @@ def _list(args) -> int:
     return 0
 
 
+def _types(args) -> int:
+    request = kb_requests.types_request(args)
+    if args.name is None:
+        _show(answers.types(_answered(_client().List(request)), bootstrap.SHOP_TYPES))
+    else:
+        _show(answers.type_(_answered(_client().Read(request))))
+    return 0
+
+
 def _refs(args) -> int:
     response = _answered(_client().Follow(kb_requests.refs_request(args)))
     _show(answers.reached(response))
@@ -214,6 +223,7 @@ _HANDLERS = {
     "apply": _apply,
     "journal": _journal,
     "list": _list,
+    "types": _types,
     "refs": _refs,
     "search": _search,
     "render": _render,

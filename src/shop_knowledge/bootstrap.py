@@ -5,6 +5,9 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
 TYPES = ("shop-artifact", "tag", "decision", "work-item", "feature", "role", "step", "process")
+BASE = "shop-artifact"
+"""The one entry of TYPES that is no type of the shop's: the common fields the seven build on."""
+SHOP_TYPES = tuple(name for name in TYPES if name != BASE)
 
 
 def load(client, signed: kb_pb2.Signature):

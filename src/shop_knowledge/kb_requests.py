@@ -98,3 +98,12 @@ def snapshot_request(args) -> kb_pb2.SnapshotRequest:
     signed = args.by["signature"]
     signature = kb_pb2.Signature(role=signed.role, execution=args.execution, message=signed.message)
     return kb_pb2.SnapshotRequest(signature=signature, artifacts=args.names)
+
+
+def types_request(args) -> kb_pb2.ListRequest | kb_pb2.ReadRequest:
+    """Every type as a stub, or the one named, read whole at depth 0."""
+    if args.name is None:
+        return kb_pb2.ListRequest(kind="schema", form=kb_pb2.ListRequest.STUBS)
+    return kb_pb2.ReadRequest(
+        locator=kb_pb2.Locator(id=f"schema/{args.name}"), whole=kb_pb2.ReadRequest.Whole(depth=0),
+    )

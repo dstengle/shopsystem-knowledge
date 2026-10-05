@@ -116,7 +116,7 @@ only.
 - Observable: a user runs `shop-knol types` to see the shop's seven types and `shop-knol types <name>` to read one, and every kind of thing carries an owner, a status and tags
 - Unknown: what the types command shows of each type, and of one type, as the shop holds it
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 59: Markdown shows a field holding a mapping as a nested list
 - Kind: capability
@@ -136,6 +136,8 @@ only.
 - 2026-09-28 A relative `--from` or `--to` named from a removed working directory is refused in the operating system's words (`d.yaml: No such file or directory`), where the directory being gone is the cause. No line names it (from batch 13's review).
 - 2026-10-05 A knowledge base whose furnishing stopped at a refused Create cannot be finished by `init`: it keeps the shop's types created before the refusal, and a second `init` refuses it as not empty, naming them. Reproduction: an operator-started store named by KB_ROOT, `init` run with the stand-in (`driver.answering`) answering the Create titled `Decision` with a refusal, then `init` again without it: exit 1, `<KB_ROOT>: it is not empty: it holds the types decision, shop-artifact, tag` (decision is there because the stand-in asks the real kb first). No capability line says what a half-furnished knowledge base is (slice 55's Review Focus 2 probe, routed to formulation).
 - 2026-10-05 A create in a batch given `key: ""` lands as a create carrying no key: the batch shape takes it as a string and contract v1's `CreateItem.key` cannot tell empty from absent, so kb is never asked. Reproduction: `shop-knol apply` of a batch holding one decision create with `key: ""`: exit 0, the decision created. A link written `@` alone is refused in kb's words (`work-item/start-weekly-price-reviews at decisions/0: a link must land on a node of a kind the type allows; '@' does not`, exit 1). No line says whether an empty key is a key (slice 56's Review Focus 4 probe, routed to formulation).
+
+- 2026-10-05 `types shop-artifact` and `types schema` are shown whole, as kb holds them, exit 0: the command passes kb's read through and names no one of the seven as the only ones readable. Review Focus 5 asked for one line; only `nonesuch` (and a path such as `a/b`) is refused in one line, in kb's words. Reproduction: `shop-knol types schema` in a started knowledge base.
 
 ## Log
 
@@ -199,3 +201,12 @@ only.
   - Review Focus 3: `apply` of `changes: []` is one line in kb's words ("a set must hold at least one change"), exit 1, never a traceback (it holds no kind, so goes to kb as a BatchCreate).
   - Suite `18 failed, 113 passed` before, `15 failed, 116 passed` after; only the slice's three scenarios left the failing list.
   Open questions: none. Next: slice 58.
+
+- 2026-10-05 slice 58 green. Someone can now: run `shop-knol types` to see the shop's seven types, `shop-knol types <name>` to read one as kb holds it, and record every kind of thing with an owner, a status and tags.
+  Surprised by:
+  - The listing's eleven scenarios: only "The user asks which types the shop holds" was red on its Then (the command was not there); the other ten were red on undefined steps and went green on their steps alone, as the brief expected, since the read and create paths already carried the behaviour.
+  - The listing shows `name` (the id without its kind) and `title`, as a sequence; the seven are `bootstrap.SHOP_TYPES`, `TYPES` less `bootstrap.BASE`, so kb's own `schema/schema` and the base are left out of the listing only.
+  - Steps went to three siblings, `tests/types_listed_and_read.py`, `tests/types_common_fields.py` and `tests/types_process_steps.py`, star-imported by the feature's test module alone.
+  - Review Focus 5: `nonesuch` is one line in kb's words, exit 1; `a/b` the same; `schema` and `shop-artifact` are shown whole, exit 0 (logged in the Backlog); an empty name is refused by the argument.
+  - Suite `15 failed, 116 passed` before, `4 failed, 127 passed` after; only the slice's eleven scenarios left the failing list.
+  Open questions: whether `types schema` and `types shop-artifact` should be refused as not among the seven. Next: slice 59.

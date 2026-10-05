@@ -92,6 +92,9 @@ def command_parser() -> argparse.ArgumentParser:
     )
     listing.add_argument("--ids", action="store_true", help="the names alone")
 
+    types = commands.add_parser("types", help="see the shop's types, or read one by its name")
+    types.add_argument("name", nargs="?", type=_named("type"), help="the type to read; all of them are listed when not said")
+
     refs = commands.add_parser("refs", help="follow the links out of an artifact or into it, nearest first, each with its route")
     refs.add_argument("locator", type=_named("artifact"))
     direction = refs.add_mutually_exclusive_group(required=True)

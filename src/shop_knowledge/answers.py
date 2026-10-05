@@ -143,3 +143,15 @@ def checked(response: kb_pb2.Checked) -> dict:
             for stale in response.stale
         ],
     }
+
+
+def types(response: kb_pb2.Listed, shop_types) -> list:
+    """What asking for the types gives back: each of the shop's types, kb's own left out, by its name without its kind
+    and its title."""
+    held = {stub.id.partition("/")[2]: stub.title for stub in response.stubs}
+    return [{"name": name, "title": held[name]} for name in shop_types if name in held]
+
+
+def type_(response: kb_pb2.Artifact) -> dict:
+    """A type read as the user is shown it: as kb holds it, shown as any artifact read whole."""
+    return whole(response)
