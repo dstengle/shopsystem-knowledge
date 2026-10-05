@@ -84,7 +84,7 @@ only.
 - Observable: init refuses a knowledge base found through KB_ROOT, or named, that already holds the shop's types, instead of starting a second store beside it
 - Unknown: none (slice 55 settled how a found knowledge base is told apart)
 - Needs: slice 53's server for the outline's server row only
-- Status: planned
+- Status: in progress: its server row waits on slice 53
 
 ## Slice 55.2: init furnishes a served empty store
 - Kind: capability
@@ -172,3 +172,11 @@ only.
   - Review Focus 2: a Create refused partway leaves the types created before it, and a second `init` refuses the knowledge base as not empty, naming them; logged in the Backlog.
   Open questions: a knowledge base found upward (no KB_ROOT) holding types other than the shop's is refused with no name before its message, since no scenario says how to name it; `_absolute` still refuses a gone working directory before finding, even where KB_ROOT names a knowledge base. Next: slice 56.
 - 2026-10-05 RE-SLICE after Task 5's review (5dcfa5c): with KB_ROOT naming a knowledge base elsewhere that already holds the shop's types, init starts a second store in the working directory and reports success (reproduced by the reviewer), against start-a-knowledge-base's Purpose and Implementation (a store is started only where none is found). The already-holds outline is buildable but for its server row, so slice 55.1 keeps it and runs now, its server row waiting on slice 53; the server-furnish scenario becomes slice 55.2, blocked on 53. No Given, When or Then changes.
+- 2026-10-05 slice 55.1 in progress: its KB_ROOT and named-directory rows are green, and its server row waits on slice 53. That row fails in setup: `kb serve exited 2: ... invalid choice: 'serve'`. Someone can now: run `shop-knol init` with KB_ROOT naming a knowledge base elsewhere that already holds the shop's types, or name a directory holding one, and be refused in plain words naming it ("it already holds the shop's knowledge"), with nothing started and nothing changed.
+  Surprised by:
+  - The named row needed no Given of slice 54's kind. `_named` already reached the store there when kb refused to start one, so it now asks that store whether it holds the shop's types before passing kb's refusal on.
+  - A KB_ROOT naming the working directory itself, and a knowledge base found upward, still fall through to `kb.init`, so slice 47's and 54's reasons stay in kb's words (decision/a-working-directory-holding-the-shops-knowledge-keeps-its-reasons).
+  - Review Minor #1 fell out of the same change: `_found` now tests whether KB_ROOT is present, as kb does, so a set-but-empty KB_ROOT is refused in kb's words ("KB_ROOT names a directory that holds no store:") where init used to start a store in the working directory.
+  - The server Given starts its own `kb serve` through `driver.serve`, since the read-an-artifact `server` fixture sits in a step module that no other step module may import.
+  - Suite `27 failed, 104 passed` before, `25 failed, 106 passed` after; only the two rows left the failing list.
+  Open questions: a named directory holding types other than the shop's is still refused in kb.init's words, not as not empty, since no scenario names it; a KB_ROOT naming a store the working directory sits inside, which kb finds as the same store, is refused as already holding the shop's knowledge rather than in kb's "inside" words, since the decision keeps kb's reasons only for the working directory itself. Next: slice 56.

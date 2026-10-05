@@ -13,6 +13,7 @@ from shop_knowledge.refusal import Refused
 
 _GONE = "the directory you are working in is gone"
 _NOT_EMPTY = "it is not empty"
+_ALREADY_HOLDS = "it already holds the shop's knowledge"
 
 
 def furnished(root: Path | None, signed: kb_pb2.Signature):
@@ -25,35 +26,49 @@ def furnished(root: Path | None, signed: kb_pb2.Signature):
 
 def _found(here: Path, signed: kb_pb2.Signature):
     """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here. Where
-    KB_ROOT is set, kb's refusal to find one is refused as it gave it: only finding nothing, with nothing named, starts
-    a store."""
+    KB_ROOT is set, even empty, kb's refusal to find one is refused as it gave it: only finding nothing, with nothing
+    named, starts a store."""
     listed = (client := connect()).List(kb_requests.init_request())
-    if listed.WhichOneof("outcome") == "refusal" and os.environ.get("KB_ROOT"):
+    named = os.environ.get("KB_ROOT")
+    if listed.WhichOneof("outcome") == "refusal" and named is not None:
         raise Refused(listed.refusal.faults)
     if _empty(listed):
         return client
-    _refuse_unless_furnished(listed)
+    _refuse_unless_furnished(listed, named or "")
+    if named is not None and Path(named).resolve() != here.resolve() and _holds_the_shops_types(listed):
+        raise Refused([kb_pb2.Fault(artifact=named, message=_ALREADY_HOLDS)])
     _started(here, signed)
     return connect(here)
 
 
-def _refuse_unless_furnished(listed: kb_pb2.ListResponse) -> None:
+def _refuse_unless_furnished(listed: kb_pb2.ListResponse, named: str) -> None:
     """Refused, naming the knowledge base as KB_ROOT names it and the kinds of the types it holds besides kb's own,
     where kb found one holding types but not all of the shop's."""
-    if listed.WhichOneof("outcome") != "result":
-        return
-    kinds = [held.removeprefix("schema/") for held in listed.result.ids if held != "schema/schema"]
-    if not set(bootstrap.TYPES) <= set(kinds):
-        said = f"{_NOT_EMPTY}: it holds the types {', '.join(sorted(kinds))}"
-        raise Refused([kb_pb2.Fault(artifact=os.environ.get("KB_ROOT", ""), message=said)])
+    if listed.WhichOneof("outcome") == "result" and not _holds_the_shops_types(listed):
+        said = f"{_NOT_EMPTY}: it holds the types {', '.join(sorted(_kinds(listed)))}"
+        raise Refused([kb_pb2.Fault(artifact=named, message=said)])
+
+
+def _kinds(listed: kb_pb2.ListResponse) -> list[str]:
+    """The kinds of the types kb's answer to init's List names, besides kb's own."""
+    return [held.removeprefix("schema/") for held in listed.result.ids if held != "schema/schema"]
+
+
+def _holds_the_shops_types(listed: kb_pb2.ListResponse) -> bool:
+    """Whether kb's answer to init's List names every one of the shop's types."""
+    return listed.WhichOneof("outcome") == "result" and set(bootstrap.TYPES) <= set(_kinds(listed))
 
 
 def _named(root: Path, signed: kb_pb2.Signature):
-    """A store started at the named root; where kb refuses to start one, the store already there, when it is empty."""
+    """A store started at the named root; where kb refuses to start one, the store already there, when it is empty,
+    refused in shop-knol's own words, naming the root, when it holds the shop's types."""
     try:
         _started(root, signed)
-    except Refused:
-        if not _empty(connect(root).List(kb_requests.init_request())):
+    except Refused as refused:
+        listed = connect(root).List(kb_requests.init_request())
+        if _holds_the_shops_types(listed):
+            raise Refused([kb_pb2.Fault(artifact=str(root), message=_ALREADY_HOLDS)]) from refused
+        if not _empty(listed):
             raise
     return connect(root)
 
