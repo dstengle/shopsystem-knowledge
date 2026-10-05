@@ -37,7 +37,8 @@ own it.
    store only through `kb.init`, whose refusal is `kb.NotStarted`, gives kb a clock only as the `clock` those two
    take, and from the rest of kb imports only `kb.content`: content as YAML 1.2 text, and `NotCanonical`, its refusal
    of text kb cannot keep. It never reads or writes a file inside a
-   knowledge base, names kb's storage or runs git. `jsonschema` is imported by `shape.py` alone.
+   knowledge base, names kb's storage or runs git; the one file under a root's `kb/` a test writes is the connection to
+   a server, `kb/server.yaml` with its `address`, whose form kb publishes, and `tests/driver.py` alone writes it. `jsonschema` is imported by `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
@@ -69,7 +70,9 @@ own it.
   comes from the stand-in, `tests/stand_in/`: put on shop-knol's `PYTHONPATH` only through `driver.answering`, it
   answers the calls a step describes with the `kb_pb2` messages the step wrote, its faults in the step's own words,
   and hands every other call to the real kb. Nothing under `src/` knows it is there. The one place kb's contract names,
-  a root's `kb/`, is named in `tests/driver.py` alone.
+  a root's `kb/`, is named in `tests/driver.py` alone. So is the connection to a server, `kb/server.yaml` with its `address`, which
+  `tests/driver.py` alone writes; a server a step starts is a real `kb serve` on 127.0.0.1 and a port of its own,
+  inside the test's temporary directory, stopped when the test ends.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).

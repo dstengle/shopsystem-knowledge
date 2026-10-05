@@ -1,5 +1,6 @@
 """Drive shop-knol the way a user does: a subprocess per command, YAML in files and on stdout."""
 import os
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -105,6 +106,51 @@ def store_in(root: Path) -> Path:
     """Where kb keeps the store it starts in `root`: the subdirectory kb/, which kb publishes (`kb.init`).
     The one place a step names it; what kb keeps inside it is kb's own."""
     return root / "kb"
+
+
+def connection_in(directory: Path, address: str) -> None:
+    """Write, in `directory`, the connection to the server at `address`: `kb/server.yaml` holding its `address`, the
+    form kb publishes. The one place a step writes it; kb never does."""
+    store_in(directory).mkdir()
+    (store_in(directory) / "server.yaml").write_text(dumps({"address": address}))
+
+
+def _free_port() -> int:
+    """A port on 127.0.0.1 no one is listening on, as the system hands one out."""
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return probe.getsockname()[1]
+
+
+def _answering(server: subprocess.Popen, port: int) -> bool:
+    """Whether the server takes a connection on `port`; refused, with its output, once it has exited."""
+    if server.poll() is not None:
+        raise RuntimeError(f"kb serve exited {server.returncode}: {server.communicate()[1]}")
+    with socket.socket() as probe:
+        return probe.connect_ex(("127.0.0.1", port)) == 0
+
+
+def serve(env, root: Path) -> tuple[subprocess.Popen, str]:
+    """Start `kb serve` on the store in `root`, on 127.0.0.1 and a port of its own, from `root` itself, and return it
+    with its address once it takes connections. The caller stops it (`stop`)."""
+    _isolated(root, env)
+    port = _free_port()
+    address = f"127.0.0.1:{port}"
+    kb = Path(sys.executable).parent / "kb"
+    server = subprocess.Popen(
+        [str(kb), "serve", str(root), "--listen", address],
+        env=env, cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+    )
+    while not _answering(server, port):
+        continue
+    return server, address
+
+
+def stop(server: subprocess.Popen) -> None:
+    """Stop a server `serve` started, and wait until it has gone."""
+    if server.poll() is None:
+        server.terminate()
+    server.communicate()
 
 
 CLOCK = Path(__file__).parent / "clock"
