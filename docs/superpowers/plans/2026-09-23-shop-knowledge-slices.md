@@ -100,7 +100,7 @@ only.
 - Observable: a user records a decision and a work item pointing at it in one batch, the history showing one change, and a bad key or a bad change refuses the whole batch
 - Unknown: how a key a create carries, and a link written with it, reach kb
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 57: A batch of writes lands as one; a batch of mixed kinds, or a write carrying a key, is refused
 - Kind: capability
@@ -135,6 +135,7 @@ only.
 - 2026-09-28 `read <id> --section ""` answers the summary and `journal --artifact ""` the whole history, where "a name given empty names no place" would refuse them; these arguments default to `""`, so telling "given empty" apart needs another default. No capability line names them yet (from batch 13's review, routed to formulation).
 - 2026-09-28 A relative `--from` or `--to` named from a removed working directory is refused in the operating system's words (`d.yaml: No such file or directory`), where the directory being gone is the cause. No line names it (from batch 13's review).
 - 2026-10-05 A knowledge base whose furnishing stopped at a refused Create cannot be finished by `init`: it keeps the shop's types created before the refusal, and a second `init` refuses it as not empty, naming them. Reproduction: an operator-started store named by KB_ROOT, `init` run with the stand-in (`driver.answering`) answering the Create titled `Decision` with a refusal, then `init` again without it: exit 1, `<KB_ROOT>: it is not empty: it holds the types decision, shop-artifact, tag` (decision is there because the stand-in asks the real kb first). No capability line says what a half-furnished knowledge base is (slice 55's Review Focus 2 probe, routed to formulation).
+- 2026-10-05 A create in a batch given `key: ""` lands as a create carrying no key: the batch shape takes it as a string and contract v1's `CreateItem.key` cannot tell empty from absent, so kb is never asked. Reproduction: `shop-knol apply` of a batch holding one decision create with `key: ""`: exit 0, the decision created. A link written `@` alone is refused in kb's words (`work-item/start-weekly-price-reviews at decisions/0: a link must land on a node of a kind the type allows; '@' does not`, exit 1). No line says whether an empty key is a key (slice 56's Review Focus 4 probe, routed to formulation).
 
 ## Log
 
@@ -180,3 +181,13 @@ only.
   - The server Given starts its own `kb serve` through `driver.serve`, since the read-an-artifact `server` fixture sits in a step module that no other step module may import.
   - Suite `27 failed, 104 passed` before, `25 failed, 106 passed` after; only the two rows left the failing list.
   Open questions: a named directory holding types other than the shop's is still refused in kb.init's words, not as not empty, since no scenario names it; a KB_ROOT naming a store the working directory sits inside, which kb finds as the same store, is refused as already holding the shop's knowledge rather than in kb's "inside" words, since the decision keeps kb's reasons only for the working directory itself. Next: slice 56.
+- 2026-10-05 slice 56 green. Someone can now: record a decision and a work item pointing at it in one batch, the link written `@<key>` with a key the decision carries, wherever in the batch either stands, the history showing one change; a key no create carries, a key two creates share, a change that does not fit its type, or prose the shop cannot keep refuses the whole batch.
+  Surprised by:
+  - The production change is one field: `batch._item` carries a create's `key` into its `CreateItem`, and the `batch` shape names `key` as a string. Links written `@<key>` pass as written and kb puts the name in.
+  - Of the seven, only the first scenario and the key-shared scenario needed the key carried to go green. The outline was red on its undefined Given, then green on the first scenario's change (with `batch.py` stashed it is red on its Then: kb refuses `'@weekly'`). The key-no-create scenario and the prose scenario were red only on undefined steps and green on their steps alone: kb's `ref` refusal passes through, and `document.read` refuses the prose before kb. With `batch.py` stashed, the key-no-create scenario stays green, because the link's key is carried by nothing either way.
+  - "One bad change" was red on a traceback (its old mixed batch, which slice 57 refuses). Its step is now two creates, the second a work item with `owner` and `status` that do not fit, and its Then names that work item. No Gherkin changed.
+  - kb words a key no create carries as `a link must land on a node of a kind the type allows; '@monthly' does not` under rule `ref`. The Thens compare the printed lines with kb's own answer to the same BatchCreate (`kb_answer`), and check that a `ref` fault names the key.
+  - "The shop's history shows them as one change" now compares the batch's History with the ids the apply gave back, not a fixed list, so slice 57's writes scenario can read it too.
+  - Suite `25 failed, 106 passed` before, `18 failed, 113 passed` after; only the slice's seven scenarios left the failing list. test_make_several_changes_at_once.py is 219 lines, so slice 57 will likely need a sibling step module (adrs/0035).
+  - Review Focus 4: a link written `@` alone is refused in one line in kb's words, exit 1. A key given empty is taken as no key and the create lands (exit 0), never a traceback; logged in the Backlog.
+  Open questions: whether a key given empty is a key (Backlog). Next: slice 57.
