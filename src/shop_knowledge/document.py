@@ -10,10 +10,15 @@ from shop_knowledge import shape
 from shop_knowledge.refusal import Refused
 
 
+def named(source: str) -> str:
+    """What a fault on the file the user gave calls it: the path, or standard input for `-`."""
+    return "standard input" if source == "-" else source
+
+
 def read(source: str, shape_name: str) -> dict:
     """A file the user gave, or the text piped in for `-`, read the way kb reads content and checked against its
     shape and against kb's writing of content, or refused as a fault on it."""
-    name = "standard input" if source == "-" else source
+    name = named(source)
     try:
         document = loads(sys.stdin.read() if source == "-" else Path(source).read_text())
     except UnicodeDecodeError as fault:

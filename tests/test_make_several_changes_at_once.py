@@ -6,6 +6,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from driver import knol, record, start
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
+from batch_writes import *  # noqa: F403  this module alone star-imports it (adrs/0035)
 
 scenarios("make-several-changes-at-once.feature")
 

@@ -6,6 +6,7 @@ from kb.content import dumps, text
 from kb.contract import kb_pb2
 
 from shop_knowledge import batch
+from shop_knowledge.document import named
 
 
 def init_request() -> kb_pb2.ListRequest:
@@ -61,7 +62,7 @@ def validate_request(args) -> kb_pb2.CheckRequest:
 
 def apply_request(args, document: dict) -> kb_pb2.BatchCreateRequest | kb_pb2.BatchReplaceRequest:
     """One set of creates, or one set of writes, as the batch's changes are."""
-    items = batch.items(document)
+    items = batch.items(document, named(args.source))
     if all(isinstance(item, kb_pb2.CreateItem) for item in items):
         return kb_pb2.BatchCreateRequest(items=items, signature=args.by["signature"])
     return kb_pb2.BatchReplaceRequest(items=items, signature=args.by["signature"])

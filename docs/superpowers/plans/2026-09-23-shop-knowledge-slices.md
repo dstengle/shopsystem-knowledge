@@ -108,7 +108,7 @@ only.
 - Observable: a user rewrites several artifacts as one change, and a batch kb could not land as one set is refused in plain words before anything lands
 - Unknown: whether shop-knol's own refusal of a batch's kinds and keys reads as one refusal naming the batch and the key
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 58: The user sees and reads the shop's types through a command of their own
 - Kind: capability
@@ -191,3 +191,11 @@ only.
   - Suite `25 failed, 106 passed` before, `18 failed, 113 passed` after; only the slice's seven scenarios left the failing list. test_make_several_changes_at_once.py is 219 lines, so slice 57 will likely need a sibling step module (adrs/0035).
   - Review Focus 4: a link written `@` alone is refused in one line in kb's words, exit 1. A key given empty is taken as no key and the create lands (exit 0), never a traceback; logged in the Backlog.
   Open questions: whether a key given empty is a key (Backlog). Next: slice 57.
+- 2026-10-05 slice 57 green. Someone can now: rewrite several artifacts as one change with a batch of writes, the history showing one change; a batch mixing creates and writes, or a write carrying a key, is refused in one plain line naming the batch file (and `changes/<n>/key`), before kb is called.
+  Surprised by:
+  - "The user applies a batch whose changes are all writes" was red only on its undefined Givens and went green on its steps alone: Task 2's `apply_request` already sends a BatchReplace for all writes. The other two were red on their Then (a mixed batch ended in a protobuf traceback; a keyed write landed, its key ignored).
+  - The keyed-write refusal is shop-knol's own words raised in `batch.items`, not a JSON Schema rule (jsonschema's words name no key), so `shapes/batch.yaml` still allows `key` beside `write`; this is the form the Implementation line "allows `key` only beside `create`" takes. Both refusals' rule is empty, like `content`'s own-words siblings. `batch.items` takes the batch file's name, from the new `document.named`, which `document.read` uses too.
+  - Steps went to a sibling module, `tests/batch_writes.py`, star-imported by the feature's test module alone (adrs/0035); the test module stays 220 lines.
+  - Review Focus 3: `apply` of `changes: []` is one line in kb's words ("a set must hold at least one change"), exit 1, never a traceback (it holds no kind, so goes to kb as a BatchCreate).
+  - Suite `18 failed, 113 passed` before, `15 failed, 116 passed` after; only the slice's three scenarios left the failing list.
+  Open questions: none. Next: slice 58.

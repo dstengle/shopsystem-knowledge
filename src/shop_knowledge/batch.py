@@ -4,10 +4,20 @@ its own content, and a create may carry a key that a link anywhere in the set, w
 from kb.content import dumps, text
 from kb.contract import kb_pb2
 
+from shop_knowledge.refusal import Refused
 
-def items(document: dict) -> list[kb_pb2.CreateItem | kb_pb2.ReplaceItem]:
-    """The batch's changes, in the order written, as the items of one BatchCreate or one BatchReplace."""
-    return [_item(change) for change in document["changes"]]
+
+def items(document: dict, name: str) -> list[kb_pb2.CreateItem | kb_pb2.ReplaceItem]:
+    """The batch's changes, in the order written, as the items of one BatchCreate or one BatchReplace, or refused as a
+    fault on the batch file called `name` when they are of both kinds or a write carries a key."""
+    changes = document["changes"]
+    if len({"create" in change for change in changes}) > 1:
+        raise Refused([kb_pb2.Fault(artifact=name, message="a batch holds one kind of change")])
+    for number, change in enumerate(changes):
+        if "write" in change and "key" in change:
+            fault = kb_pb2.Fault(artifact=name, place=f"changes/{number}/key", message="only a create carries a key")
+            raise Refused([fault])
+    return [_item(change) for change in changes]
 
 
 def _item(change: dict) -> kb_pb2.CreateItem | kb_pb2.ReplaceItem:
