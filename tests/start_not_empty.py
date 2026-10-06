@@ -72,6 +72,22 @@ def _kb_root_names_one_holding(env, tmp_path, what, held, journal_before):
 
 
 @given(
+    parsers.parse(
+        "the user is working in one directory, and another directory holds a knowledge base holding {what} and not the "
+        "shop's types"
+    ),
+    target_fixture="elsewhere",
+)
+def _another_directory_holding(env, tmp_path, what, held, journal_before):
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    operator_started(env, elsewhere)
+    held.extend(_HOLDING[what](env, elsewhere))
+    _noted(env, elsewhere, journal_before)
+    return elsewhere
+
+
+@given(
     "the user is working outside any knowledge base, with KB_ROOT naming a knowledge base holding the shop's types",
     target_fixture="start_in",
 )
@@ -133,9 +149,10 @@ def _rejected_already_holds(result, journal_before):
 
 
 @then("starting the knowledge base is rejected because it is not empty")
-def _rejected_not_empty(env, result, held):
-    """One line, in shop-knol's own words, naming the knowledge base as the user named it, through KB_ROOT."""
-    said = kb_pb2.Fault(artifact=env["KB_ROOT"], message=f"{NOT_EMPTY}: it holds the types {', '.join(held)}")
+def _rejected_not_empty(result, held, journal_before):
+    """One line, in shop-knol's own words, naming the knowledge base as the user named it: KB_ROOT's value, or the
+    directory given."""
+    said = kb_pb2.Fault(artifact=journal_before["named"], message=f"{NOT_EMPTY}: it holds the types {', '.join(held)}")
     assert result.returncode == 1
     assert result.stdout == ""
     assert result.stderr.splitlines() == [printed(said)], result.stderr

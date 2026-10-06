@@ -3,6 +3,7 @@ import os
 import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from kb.content import dumps, loads
@@ -129,27 +130,38 @@ def _free_port() -> int:
         return probe.getsockname()[1]
 
 
-def _answering(server: subprocess.Popen, port: int) -> bool:
-    """Whether the server takes a connection on `port`; refused, with its output, once it has exited."""
+_SERVE_WITHIN = 5.0
+"""How long, in seconds, `serve` waits for kb serve to take connections before failing the step."""
+
+
+def _answering(server: subprocess.Popen, port: int, said: Path) -> bool:
+    """Whether the server takes a connection on `port`; refused, with what it wrote to `said`, once it has exited."""
     if server.poll() is not None:
-        raise RuntimeError(f"kb serve exited {server.returncode}: {server.communicate()[1]}")
+        raise RuntimeError(f"kb serve exited {server.returncode}: {said.read_text()}")
     with socket.socket() as probe:
         return probe.connect_ex(("127.0.0.1", port)) == 0
 
 
 def serve(env, root: Path) -> tuple[subprocess.Popen, str]:
     """Start `kb serve` on the store in `root`, on 127.0.0.1 and a port of its own, from `root` itself, and return it
-    with its address once it takes connections. The caller stops it (`stop`)."""
+    with its address once it takes connections; failed, with what it wrote, if it does not within `_SERVE_WITHIN`.
+    What it writes goes to a file beside `root`, in the test's own directory. The caller stops it (`stop`)."""
     _isolated(root, env)
     port = _free_port()
     address = f"127.0.0.1:{port}"
     kb = Path(sys.executable).parent / "kb"
-    server = subprocess.Popen(
-        [str(kb), "serve", str(root), "--listen", address],
-        env=env, cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
-    )
-    while not _answering(server, port):
-        continue
+    said = root.parent / "kb-serve.stderr"
+    with said.open("w") as stderr:
+        server = subprocess.Popen(
+            [str(kb), "serve", str(root), "--listen", address],
+            env=env, cwd=root, stdout=subprocess.DEVNULL, stderr=stderr,
+        )
+    deadline = time.monotonic() + _SERVE_WITHIN
+    while not _answering(server, port, said):
+        if time.monotonic() > deadline:
+            stop(server)
+            raise RuntimeError(f"kb serve took no connection within {_SERVE_WITHIN}s: {said.read_text()}")
+        time.sleep(0.05)
     return server, address
 
 

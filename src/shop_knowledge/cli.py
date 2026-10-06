@@ -97,8 +97,9 @@ def _refused(faults) -> None:
 
 
 def _init(args) -> int:
-    """The shop's types loaded into the knowledge base `start` chose, each answer refused as any other."""
-    for answer in start.furnished(args.root, args.by["signature"]):
+    """The shop's types loaded into the knowledge base `start` chose, each answer, and the answer it chose by, refused
+    as any other."""
+    for answer in start.furnished(args.root, args.by["signature"], _answered):
         _answered(answer)
     return 0
 

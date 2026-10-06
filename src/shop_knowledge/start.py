@@ -1,6 +1,9 @@
 """Starting the shop's knowledge base: finding one from where the user works, telling whether it is empty, furnishing
-it with the shop's types through bootstrap, or starting one with `kb.init`. Every refusal is raised as `Refused`;
-nothing here prints."""
+it with the shop's types through bootstrap, or starting one with `kb.init`. One found or named that holds something
+other than the shop's types is refused as not empty, naming what it holds; one that holds the shop's types, as
+already holding the shop's knowledge. Every refusal is raised as `Refused`, a kb answer's through the caller's
+`answered`; nothing here prints."""
+from collections.abc import Callable
 import os
 from pathlib import Path
 
@@ -16,22 +19,24 @@ _NOT_EMPTY = "it is not empty"
 _ALREADY_HOLDS = "it already holds the shop's knowledge"
 
 
-def furnished(root: Path | None, signed: kb_pb2.Signature):
+def furnished(root: Path | None, signed: kb_pb2.Signature, answered: Callable):
     """bootstrap's Create answers for the knowledge base to furnish: the named root's, or, with none named, the one kb
-    finds from the working directory. Each Create is made as the caller asks for its answer, so the caller refuses
-    the first one kb refuses before the next is made."""
-    client = _named(_absolute(root), signed) if root else _found(_absolute(Path(".")), signed)
+    finds from the working directory, a kb answer it is found by refused through `answered`. Each Create is made as
+    the caller asks for its answer, so the caller refuses the first one kb refuses before the next is made."""
+    client = _named(_absolute(root), signed) if root else _found(_absolute(Path(".")), signed, answered)
     return bootstrap.load(client, signed)
 
 
-def _found(here: Path, signed: kb_pb2.Signature):
+def _found(here: Path, signed: kb_pb2.Signature, answered: Callable):
     """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here. Where
-    KB_ROOT is set, even empty, kb's refusal to find one is refused as it gave it: only finding nothing, with nothing
-    named, starts a store."""
+    KB_ROOT is set, even empty, kb's refusal to find one is refused through `answered`, as it gave it: only finding
+    nothing, with nothing named, starts a store. One found holding something other than the shop's types is refused
+    as not empty, naming what it holds; one KB_ROOT names elsewhere holding the shop's types, as already holding the
+    shop's knowledge."""
     listed = (client := connect()).List(kb_requests.init_request())
     named = os.environ.get("KB_ROOT")
-    if listed.WhichOneof("outcome") == "refusal" and named is not None:
-        raise Refused(listed.refusal.faults)
+    if named is not None:
+        answered(listed)
     if _empty(listed):
         return client
     _refuse_unless_furnished(listed, named or "")
@@ -61,7 +66,8 @@ def _holds_the_shops_types(listed: kb_pb2.ListResponse) -> bool:
 
 def _named(root: Path, signed: kb_pb2.Signature):
     """A store started at the named root; where kb refuses to start one, the store already there, when it is empty,
-    refused in shop-knol's own words, naming the root, when it holds the shop's types."""
+    refused in shop-knol's own words, naming the root, when it holds the shop's types or holds something other than
+    them, and otherwise refused as kb refused it."""
     try:
         _started(root, signed)
     except Refused as refused:
@@ -69,6 +75,7 @@ def _named(root: Path, signed: kb_pb2.Signature):
         if _holds_the_shops_types(listed):
             raise Refused([kb_pb2.Fault(artifact=str(root), message=_ALREADY_HOLDS)]) from refused
         if not _empty(listed):
+            _refuse_unless_furnished(listed, str(root))
             raise
     return connect(root)
 
