@@ -59,8 +59,8 @@ only.
 - Scenarios: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store
 - Observable: a user whose directory holds only the connection to a kb server reads the shop's knowledge as if the store were beside them
 - Unknown: whether a kb server started by the test, inside its own temporary directory on a port of its own, serves shop-knol unchanged
-- Needs: starting and stopping a real kb server from a step, within the suite's isolation rules (needed by this scenario and by slice 55's server rows)
-- Status: blocked: awaiting a kb release that ships `kb serve` and a client that reaches a server through `kb/server.yaml` (kb v0.5.0 lists serving under Not yet)
+- Needs: kb's published served-store double (adrs/0050), for this scenario and the server rows of slices 55.1 and 55.2
+- Status: blocked: awaiting a kb release that ships serving, and the served-store double kb publishes for its clients' tests (adrs/0050)
 
 ## Slice 54: init furnishes an empty knowledge base it finds, and starts one only where none is found
 - Kind: capability
@@ -125,6 +125,14 @@ only.
 - Unknown: none
 - Needs: none
 - Status: green
+
+## Slice 59.1: init's code is named for init, and the tests start no kb server of their own
+- Kind: enabling
+- Check: `ls src/shop_knowledge/start.py` -> no such file, and CLAUDE.md's module map has a row for the module that holds init's code under its new name; `grep -rn -E "kb serve|\"serve\"|connection_in|server\.yaml|def serve|def stop|hosting" tests CLAUDE.md` -> nothing; `make test` -> `129 passed, 3 failed`, the 3 being the scenarios that need a server, now red on their undefined server steps
+- Observable: nothing in the repository starts a kb server or writes a connection to one; a scenario that needs a server waits for kb's published double (adrs/0050)
+- Unknown: none
+- Needs: none
+- Status: planned
 
 ## Satisfied by existing behaviour
 
@@ -221,3 +229,4 @@ only.
 - 2026-10-06 Whole-branch review of batch 14 (opus, a3d8729..0b3522c): suite `3 failed, 128 passed`, the 3 blocked on kb serve; size, imports, pin and feature files clean. Ready with fixes: the named not-empty refusal (formulated as a new row in 37abc45, for the fix wave); slice 55.1's server row needs more than kb serve (re-sliced above); CLAUDE.md's one-way-to-refuse sentence omits start's two refusals of kb's answers; `driver.serve` waits with no deadline. Feature files changed in this batch only by `@slice` tag moves in the two re-slices and the formulation commits, as the slicing rule allows; the batch plan's "tag lines included" is read as excepting the slicer's own tag moves.
 - 2026-10-06 KB REQUEST (for kb's plan, with the kb serve request from slice 53's hand-back): (1) ship `kb serve` and a client that reaches a server through `kb/server.yaml`, as kb's spec already states; (2) publish where a found knowledge base is (its root or a server's address) so a client can name it in a refusal; (3) publish `kb.init`'s `execution` keyword, which shop-knowledge passes but kb's start-a-store does not name; (4) publish the id of the type that describes types (`schema/schema`), which init reads as the mark of an empty store; (5) publish `NotCanonical`'s `path` attribute, which shop-knowledge reads.
 - 2026-10-06 Batch 14's fix wave: (1) the not-empty outline's named row is green: `start._named`, once kb.init refuses because the directory has a store, refuses one holding something other than the shop's types as "it is not empty: it holds the types ...", naming the directory as given, through `_refuse_unless_furnished`; the outline's Then names the knowledge base as the user named it (KB_ROOT or the directory), and a Given for the named row sits in tests/start_not_empty.py; `-m slice-55` 5 passed. (2) init's finding now refuses kb's List answer through `cli._answered`, handed to `start.furnished` as `answered`, so the Size and shape sentence holds for kb answers; `kb.init`'s `NotStarted` is an exception, not an answer, and stays raised as `Refused` in `start._started` (CLAUDE.md not reworded; see the fix-wave report). (3) `driver.serve` waits at most 5 s, polling every 50 ms, and fails with kb serve's own output, written to `kb-serve.stderr` in the test's directory; slice 53 now fails in its Given within about a second with kb's "invalid choice: 'serve'". (4) start.py's module and `_found` docstrings name the not-empty and already-holds refusals. Suite `4 failed, 128 passed` before, `3 failed, 129 passed` after (the three kb-serve scenarios); size check clean.
+- 2026-10-06 The person decided (adrs/0050, decision/tests-reach-a-server-only-through-kbs-double): tests reach a kb server only through a served-store double kb publishes; shop-knowledge's tests never start `kb serve` or write `kb/server.yaml`. Slice 59.1 renames init's module (start.py read as starting a server) and removes the server test code slice 53's hand-back committed. Slices 53, 55.1 (server row) and 55.2 now wait on kb's double. KB REQUEST, added to the 2026-10-06 request above: (6) publish a served-store double for clients' tests: given a store's root, serve it, put the connection where kb's search looks, and tear both down, so a client's tests reach a server without starting one or writing kb's files.
