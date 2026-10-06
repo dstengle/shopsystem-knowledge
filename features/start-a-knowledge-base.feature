@@ -117,16 +117,17 @@ Feature: Start a knowledge base
   @slice-55
   Scenario Outline: Starting where the knowledge base to furnish holds something other than the shop's types is refused
     Pins that only an empty knowledge base is furnished: one already holding something else is refused, and the user is told what is in it.
-    Given the user is working outside any knowledge base, with KB_ROOT naming a knowledge base holding <what it holds> and not the shop's types
-    When the user starts a shop knowledge base without naming a directory, saying who they are
+    Given <situation>
+    When the user starts a shop knowledge base <how>, saying who they are
     Then starting the knowledge base is rejected because it is not empty
     And the refusal names what it holds
     And nothing changes
 
     Examples:
-      | what it holds              |
-      | types other than the shop's |
-      | content                    |
+      | what it holds                                   | situation                                                                                                                                    | how                                 |
+      | types other than the shop's                     | the user is working outside any knowledge base, with KB_ROOT naming a knowledge base holding types other than the shop's and not the shop's types | without naming a directory          |
+      | content                                         | the user is working outside any knowledge base, with KB_ROOT naming a knowledge base holding content and not the shop's types                | without naming a directory          |
+      | types other than the shop's, in a named directory | the user is working in one directory, and another directory holds a knowledge base holding types other than the shop's and not the shop's types | in the other directory by naming it |
 
   @slice-54
   Scenario: Starting a knowledge base from a removed directory, with nothing naming a knowledge base, ends in a plain refusal
