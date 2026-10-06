@@ -70,6 +70,6 @@ shop-knowledge and kb were one effort until the walking skeleton was green, and 
 ## Testing
 
 - Built with the shopsystem-bdd workflow. Feature files are formulated from this spec, from the perspective of a shopsystem user at the command line.
-- kb is exercised through its in-process transport. Where a scenario says the shop works with a server, a real kb server is used, started inside the test's own temporary directory on a port of its own.
+- kb is exercised through its in-process transport. Where a scenario says the shop works with a server, the server comes from a served-store double kb publishes for its clients' tests; shop-knowledge's tests never start a kb server or write a connection to one themselves. Until kb publishes it, those scenarios wait.
 - shop-knowledge knows kb only through what kb publishes, in its tests as in its code. Where a scenario needs kb in a state no contract call can produce, a stand-in for kb at the contract boundary answers with kb's contract messages.
-- No test reaches a knowledge base outside its own temporary directory, and no test calls a server it did not start.
+- No test reaches a knowledge base outside its own temporary directory, and no test calls a server but the one kb's double gives it.

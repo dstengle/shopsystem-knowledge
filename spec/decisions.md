@@ -467,3 +467,9 @@ source: the person, 2026-10-05
 A write in a batch that carries a key is refused because only a create carries a key, naming the key, and none of the batch's changes land; the batch shape allows `key` only beside `create`.
 date: 2026-10-05
 source: the person, 2026-10-05
+
+## decision/tests-reach-a-server-only-through-kbs-double
+A scenario that needs a kb server gets it from a served-store double kb publishes for its clients' tests; shop-knowledge's tests never start `kb serve` or write `kb/server.yaml` themselves, and its scenarios that need a server wait until kb publishes the double. Supersedes the testing sentence of shop-knol-reaches-kb-wherever-kb-finds-it (a server the test starts in its own temporary directory on a port of its own); the rest of that entry stands.
+date: 2026-10-06
+supersedes: decision/shop-knol-reaches-kb-wherever-kb-finds-it
+source: the person, 2026-10-06 ("I'd prefer that this start using a mock provided by kb")
