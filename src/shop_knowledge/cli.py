@@ -12,7 +12,7 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, document, kb_requests, start
+from shop_knowledge import answers, arguments, bootstrap, document, init, kb_requests
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -97,9 +97,9 @@ def _refused(faults) -> None:
 
 
 def _init(args) -> int:
-    """The shop's types loaded into the knowledge base `start` chose, each answer, and the answer it chose by, refused
+    """The shop's types loaded into the knowledge base `init` chose, each answer, and the answer it chose by, refused
     as any other."""
-    for answer in start.furnished(args.root, args.by["signature"], _answered):
+    for answer in init.furnished(args.root, args.by["signature"], _answered):
         _answered(answer)
     return 0
 

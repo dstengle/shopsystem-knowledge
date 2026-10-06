@@ -1,4 +1,4 @@
-"""Starting the shop's knowledge base: finding one from where the user works, telling whether it is empty, furnishing
+"""Furnishing the shop's knowledge base, what `init` does: finding one from where the user works, telling whether it is empty, furnishing
 it with the shop's types through bootstrap, or starting one with `kb.init`. One found or named that holds something
 other than the shop's types is refused as not empty, naming what it holds; one that holds the shop's types, as
 already holding the shop's knowledge. Every refusal is raised as `Refused`, a kb answer's through the caller's

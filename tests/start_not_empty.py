@@ -5,7 +5,7 @@ import pytest
 from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then
 
-from driver import connection_in, knol, serve, start, stop, store_in
+from driver import knol, start, store_in
 from kb_oracle import operator_created, operator_started, printed
 
 NOT_EMPTY = "it is not empty"
@@ -31,11 +31,11 @@ def journal_before():
     return {}
 
 
-def _noted(env, root, journal_before, named=None):
+def _noted(env, root, journal_before):
     """The knowledge base at `root`, named outright, as its journal read before init ran, and the name the user finds
-    it by: `root` itself, unless a server's address names it."""
+    it by: `root` itself."""
     journal_before["root"] = str(root)
-    journal_before["named"] = named or str(root)
+    journal_before["named"] = str(root)
     journal_before["journal"] = knol({**env, "KB_ROOT": str(root)}, "journal").stdout
 
 
@@ -110,32 +110,6 @@ def _another_directory_furnished(env, tmp_path, journal_before):
     start(env, elsewhere)
     _noted(env, elsewhere, journal_before)
     return elsewhere
-
-
-@pytest.fixture
-def hosting(env, tmp_path):
-    """A store holding the shop's types, started by the shop's own init, and the real `kb serve` hosting it on a port
-    of its own, stopped when the test ends however it ends: its root and its address."""
-    hosted = tmp_path / "hosted"
-    hosted.mkdir()
-    start(env, hosted)
-    server, address = serve(env, hosted)
-    yield hosted, address
-    stop(server)
-
-
-@given(
-    "the user is working where kb finds a connection to a server hosting a store holding the shop's types",
-    target_fixture="start_in",
-)
-def _connected_to_a_furnished_one(env, tmp_path, hosting, journal_before):
-    del env["KB_ROOT"]
-    hosted, address = hosting
-    connected = tmp_path / "connected"
-    connected.mkdir()
-    connection_in(connected, address)
-    _noted(env, hosted, journal_before, named=address)
-    return connected
 
 
 @then("starting the knowledge base is rejected because it already holds the shop's knowledge")
