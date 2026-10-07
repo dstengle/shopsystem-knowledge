@@ -36,6 +36,7 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - If two of the shop's capabilities would be published under one file name, publishing is refused because they would share a file, naming both, and nothing is written.
 - If two of the shop's decisions would be published under one file name, publishing is refused because they would share a file, naming both, and nothing is written.
 - If two of the shop's decisions carry one number, publishing is refused because a number names one decision, naming both, and nothing is written.
+- If a capability of the shop rests on a decision no shop names, publishing is refused because that decision belongs to no shop, naming it, and nothing is written.
 - If two features formulate one of the shop's capabilities, publishing is refused because they would share a file, naming both, and nothing is written.
 - If a scenario's `uses` points at a capability of its own shop, publishing is refused because a scenario uses only another shop's capability, naming the scenario, and nothing is written.
 
