@@ -1,5 +1,6 @@
 """Drive shop-knol the way a user does: a subprocess per command, YAML in files and on stdout."""
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -94,7 +95,7 @@ def start(env, shop):
 
 def record(env, tmp_path, type_name, content, message):
     """Write content to a file, record it, and return the id the user is shown."""
-    path = tmp_path / f"{content['title']}.yaml"
+    path = tmp_path / f"{re.sub(r'[^A-Za-z0-9]+', '_', content['title'])}.yaml"
     path.write_text(dumps(content))
     result = knol(env, "create", type_name, "--from", str(path), "-m", message)
     assert result.returncode == 0, result.stderr

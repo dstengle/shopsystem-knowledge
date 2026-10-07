@@ -3,7 +3,7 @@ constraints, sections, a reading order and decisions; capabilities of the shop w
 on its decisions; and a feature formulating each capability. Imported plainly, never star-imported. `build` returns the
 names kb minted, and the content it gave, so a scenario reads what it needs from there instead of spelling it."""
 from decision_fields import decided
-from driver import knol, record
+from driver import knol, record, whole
 from kb.content import dumps
 
 PURPOSE = {"title": "Purpose", "body": "Keep the shelves full.\n"}
@@ -134,3 +134,19 @@ def capability_content(env, tmp_path, lines):
     product = put(env, tmp_path, "product", "Corner shop", gist="A shop on the corner.")
     shop = put(env, tmp_path, "shop", "Shelves", product=product, gist="Keeps the shelves.")
     return {"title": "Checkout", "shop": shop, "gist": "A capability.", "behaviour": lines, **KIND_DEFAULTS["capability"]}
+
+
+def ordered_capability(env, tmp_path, shop, title):
+    """A capability of `title` added to `shop`, last in its reading order, and a feature formulating it, recorded as the
+    user does; return the capability's name and the feature's."""
+    lines = [{"title": "Only line", "says": "When asked, it answers."}]
+    capability = put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines)
+    feature = _feature(env, tmp_path, {"title": title, "behaviour": lines}, capability)
+    held = whole(env, shop)
+    complete = {key: value for key, value in held.items() if key not in {"id", "type", "schema_version", "revision", "title"}}
+    complete["reading_order"] = [*held["reading_order"], capability]
+    path = tmp_path / "shop-ordered.yaml"
+    path.write_text(dumps(complete))
+    result = knol(env, "write", shop, "--from", str(path), "-m", "Order the shop's capabilities")
+    assert result.returncode == 0, result.stderr
+    return capability, feature
