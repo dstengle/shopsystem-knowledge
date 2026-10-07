@@ -44,7 +44,7 @@ only.
 - Observable: a new knowledge base holds products, shops, capabilities, the reshaped decision and the new feature beside the five kept types, and each of the ten carries an owner, a status and tags
 - Unknown: whether the reshaped decision, whose required shop needs a shop and a product, can stand in for every decision today's scenarios record without changing what any of them says
 - Needs: every existing scenario that records a decision gives it the reshaped decision's required fields (statement, date, number, shop) as step data only, per integration answer 2; no Given, When or Then changes
-- Status: planned
+- Status: green
 
 ## Slice 61: Publish a shop's index
 - Kind: capability
@@ -139,3 +139,7 @@ only.
 - 2026-10-07 QUESTION FOR THE SPEC: publish-a-shops-spec, a decision named by the decisions of two shops: refused (a decision belongs to one shop, naming both shops, nothing written), or allowed (each shop publishes it as its own, each judging its numbers apart)? No principle decides it; for the person. No slice of batch 16 depends on it.
 - 2026-10-07 Slice 67 gains publish-a-shops-spec / Publishing is refused when a capability of the shop rests on a decision no shop names (line added 2026-10-07 under the person's delegation, settled by principle; formulated by the small-change path)
 - 2026-10-07 Slice 60's Unknown, re-read after decision/a-shop-names-its-decisions: whether the reshaped decision (statement, date and number required, no shop link) can stand in for every decision today's scenarios record without changing what any of them observes; its Needs reads statement, date and number only
+- 2026-10-07 slice 60 green. Someone can now: start a knowledge base holding the shop's ten types (product, shop, capability, the reshaped decision and the new feature beside the five kept), and record each with an owner, a status and tags.
+  Surprised by: kb's Replace takes a decision's whole content, so the four steps that write a whole decision (batch_writes, review-who-changed-what, revise-an-artifact, read-an-artifact's tagging of the older decision) give statement, date and number too, beside the creates. Type-order probe (.superpowers/batch16/slice60/probe_order.py, fresh v0.6.0 stores): kb accepts a link whose targets name a kind not yet defined, so shop and capability load in either order; TYPES is shop-artifact, tag, product, shop, capability, decision, work-item, feature, role, step, process. 16 test modules gained decision fields, all from tests/decision_fields.py (decided(n)). Needing nothing but data: every existing scenario that records a decision, and the decision and feature rows of the ten-types outline (the work item, role, process, step and tag rows needed nothing); the two Thens that count the types needed new step text. Types carry title as required beside the listed fields, as every existing type does; no length or line-break limits yet (slice 62).
+  Open questions: none. Next: slice 61.
+- 2026-10-07 Suite: 137 passed, 16 failed at e6044f0 in 13.7 s; failing: slice 62's 16 rows of use-the-shops-types
