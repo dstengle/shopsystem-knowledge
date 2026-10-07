@@ -100,7 +100,7 @@ only.
 - Observable: every file a publish writes says it was published from the knowledge base and must not be edited, and a shop whose spec would publish inconsistently is refused with nothing written
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -162,3 +162,5 @@ only.
   Surprised by: nothing; the line handle is the part id kb already gives, so no renaming rule was needed. Review Focus 4: coverage named a capability gives one line, 'a coverage is made from a shop; this one is a capability', exit 1; a decision or missing shop gives kb's 'holds nothing by the name', exit 1; no traceback, no Backlog line needed.
   Open questions: none. Next: slice 67.
 - 2026-10-07 Suite: 176 passed, 13 failed at 8e80fe4 in 271 s; failing: the 13 publish-a-shops-spec scenarios of slice 67
+- 2026-10-07 slice 67 green. Someone can now: publish a shop's spec with every file carrying its published-from line, and be refused, with nothing written and every fault named, when the shop would publish inconsistently. Surprised by: the earlier slices' whole-file expectations (index, capabilities, ledger, records) had to carry the line; the unowned-decision IndexError in spec_decisions is now unreachable because spec_faults runs first. Open questions: none. Next: none (batch 16 ends).
+- 2026-10-07 Suite: 189 passed, 0 failed at 0e1e354 in 21 s
