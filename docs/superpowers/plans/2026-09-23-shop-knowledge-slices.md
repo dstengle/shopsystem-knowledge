@@ -76,7 +76,7 @@ only.
 - Observable: the user publishes a shop and finds its ledger, listing its own decisions and then those of other shops its capabilities rest on, and one numbered record per decision of its own
 - Unknown: how a publisher finds the decisions of other shops that a shop's capabilities rest on, and those shops' names, through the contract
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 65: Publish a shop's feature files
 - Kind: capability
@@ -153,3 +153,5 @@ only.
   Surprised by: the outline's Then for the feature file cannot see the file (slice 65 writes it), so it reads the capability page's formulated_as naming features/<name>.feature; the Given adds its capability to the Background's shop and its reading order; names.from_title already held the whole rule; List filters on the link field formulates. Review Focus 1: a title leaving no name (such as a lone registered-sign) is refused by kb at record, so no empty file name reaches the publisher; 'Café ®' publishes as caf.md. Review Focus 3: publishing over an older spec writes the files over; a removed capability's page stays in the directory (no line says otherwise, recorded, not changed).
   Open questions: should publishing remove pages of capabilities no longer in the shop (no line says)? Next: slice 64.
 - 2026-10-07 Suite: 162 passed, 22 failed at 5bbb681 in 18 s; failing: the 22 publish-a-shops-spec scenarios of slices 64 to 67
+- 2026-10-07 slice 64 green. Someone can now: publish a shop's ledger and one ADR record per decision with shop-knol render spec. Surprised by: the brief carried no Review Focus 2 text, so it was not probed; a decision a capability rests on that no shop names raises IndexError in spec_decisions._others (Task 8 turns it into the refusal); spec_shop gained supersedes/extends/revisit_when on its second decision so the ledger and record cover them. Open questions: a foreign decision's source names the shop by its kb name (shop/<slug>), not its title. Next: slice 65.
+- 2026-10-07 Suite: 170 passed, 14 failed at 1f28dbb in 273 s; failing: the 14 publish-a-shops-spec scenarios of slices 65 to 67
