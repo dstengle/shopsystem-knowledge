@@ -34,12 +34,13 @@ own it.
 ## Rules that make whole classes of defect unreachable
 
 1. **kb only through its contract.** Code under `src/` and `tests/` knows kb only through what kb publishes
-   (kb adrs/0018, adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, starts a
+   (kb adrs/0018, adrs/0047): it calls kb through `kb.client.connect` with `kb.contract.kb_pb2` messages, asks a
+   client where its store is only through the client's `where()`, whose answer is a `kb.client.Where`, starts a
    store only through `kb.init`, whose refusal is `kb.NotStarted`, gives kb a clock only as the `clock` those two
    take, and from the rest of kb imports only `kb.content`: content as YAML 1.2 text, and `NotCanonical`, its refusal
-   of text kb cannot keep. It never reads or writes a file inside a
-   knowledge base, names kb's storage or runs git. A scenario that needs a server of kb's gets it from a served-store double
-   kb publishes (adrs/0050); no test starts such a server or writes a connection to one. `jsonschema` is imported by `shape.py` alone.
+   of text kb cannot keep; and, under `tests/` alone and in one module, `kb.testing.served`. It never reads or writes a file inside a
+   knowledge base, names kb's storage or runs git. A scenario that needs a server of kb's gets it from the served-store double
+   kb publishes, `kb.testing.served` (adrs/0050); no test starts such a server or writes a connection to one. `jsonschema` is imported by `shape.py` alone.
 2. **kb is pinned, never edited here.** A change shop-knowledge needs from kb is logged in the slice plan as a
    request to bump the pin, and the slice that needs it waits for the release.
 3. **YAML 1.2, the way kb reads it.** Every file a user gives and everything printed goes through `kb.content`.
@@ -71,8 +72,8 @@ own it.
   comes from the stand-in, `tests/stand_in/`: put on shop-knol's `PYTHONPATH` only through `driver.answering`, it
   answers the calls a step describes with the `kb_pb2` messages the step wrote, its faults in the step's own words,
   and hands every other call to the real kb. Nothing under `src/` knows it is there. The one place kb's contract names,
-  a root's `kb/`, is named in `tests/driver.py` alone. A scenario that needs a server of kb's gets it from a served-store double kb
-  publishes (adrs/0050); no test starts such a server or writes a connection to one.
+  a root's `kb/`, is named in `tests/driver.py` alone. A scenario that needs a server of kb's gets it from the served-store double kb
+  publishes, `kb.testing.served`, used through one fixture (adrs/0050); no test starts such a server or writes a connection to one.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).
