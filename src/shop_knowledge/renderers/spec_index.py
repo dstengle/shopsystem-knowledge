@@ -23,10 +23,15 @@ def page(title: str, content: dict, capabilities: dict[str, Capability]) -> str:
 
 
 def _constraints(constraints: list[dict], capabilities: dict[str, Capability]) -> str:
-    return "\n".join(
-        f"- **{each['title']}.** {each['says']} Pinned in {_joined([capabilities[id].name for id in each['pinned_in']])}."
-        for each in constraints
-    )
+    return "\n".join(_constraint(each, capabilities) for each in constraints)
+
+
+def _constraint(constraint: dict, capabilities: dict[str, Capability]) -> str:
+    """One bullet; the Pinned-in clause only where the constraint is pinned in a capability."""
+    line = f"- **{constraint['title']}.** {constraint['says']}"
+    if pinned := constraint.get("pinned_in"):
+        line += f" Pinned in {_joined([capabilities[id].name for id in pinned])}."
+    return line
 
 
 def _composition(reading_order: list[str], capabilities: dict[str, Capability]) -> str:
