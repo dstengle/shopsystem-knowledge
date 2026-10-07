@@ -76,7 +76,7 @@ only.
 - Observable: a user whose directory holds only the connection to a kb server reads the shop's knowledge as if the store were beside them
 - Unknown: whether a kb server started by the test, inside its own temporary directory on a port of its own, serves shop-knol unchanged
 - Needs: kb's published served-store double (adrs/0050), for this scenario and the server rows of slices 55.1 and 55.2
-- Status: planned: needs 52.2
+- Status: green
 
 ## Slice 54: init furnishes an empty knowledge base it finds, and starts one only where none is found
 - Kind: capability
@@ -262,3 +262,7 @@ only.
   Surprised by: the plan's import grep also matches `from kb_oracle` and `import kb_oracle` (14 lines, all already there at 4703afc), so it does not list nothing; a stricter `^(from kb[ .]|import kb\b)` form lists nothing.
   Open questions: whether the plan's import check should be tightened to `from kb[ .]`. Next: slice 53.
 - 2026-10-07 Suite: 129 passed, 3 failed at 7b83e8d in 10.07 s; failing: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store; start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types; start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused [through a server] (all three on undefined server steps)
+- 2026-10-07 slice 53 green. Someone can now: read the shop's knowledge from a folder deep inside a directory holding only a connection to a kb server hosting the store, and see the decision exactly as the store itself shows it.
+  Surprised by: nothing; kb's double serves a shop-knol subprocess unchanged from pytest's own process, and nothing under src/ changed. The served store is `served_store` (tests/served_store.py, star-imported by conftest alone, the one module importing kb.testing): a fixture giving `serve(store_root, connection_dir) -> "host:port"`, every store it served stopped and its connection removed at teardown. The find feature's two server Givens and its Then sit in tests/read_back_from_elsewhere.py (not shared). Review Focus 1: with the double's block ended and its connection rewritten by hand in scratch (.superpowers/batch15/probe53), `read`, `list` and `create` from the connection's directory each print one line, 'the server the connection names, at 127.0.0.1:<port>, cannot be reached', exit 1, no traceback. Review Focus 2: `create` with KB_ROOT naming the store while served prints one line, 'the store is served, and every change goes through its server, at 127.0.0.1:<port>; nothing was written', exit 1, the journal unchanged (10 entries before and after); a list through the server meanwhile answers.
+  Open questions: none. Next: slice 55.1's server row.
+- 2026-10-07 Suite: 130 passed, 2 failed at d1dca3c in 10.21 s; failing: start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types; start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused [through a server] (both on undefined server steps)
