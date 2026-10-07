@@ -1,9 +1,9 @@
 """The spec renderer: a shop's spec, published from the shop and, through it, the capabilities it orders and its
-constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages and the decisions' ledger and records."""
+constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
 from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import names, source, spec_capabilities, spec_decisions, spec_index
+from shop_knowledge.renderers import gherkin, names, source, spec_capabilities, spec_decisions, spec_index
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
@@ -17,14 +17,14 @@ def render(client, name: str) -> Rendered:
     capabilities, faults = _capabilities(client, _wanted(content))
     if faults:
         return refused(faults)
-    pages, faults = _pages(client, [capabilities[id] for id in content.get("reading_order", [])])
+    pages, features, faults = _pages(client, [capabilities[id] for id in content.get("reading_order", [])])
     if faults:
         return refused(faults)
     decisions, faults = spec_decisions.files(client, content, [loads(capabilities[id].content) for id in content.get("reading_order", [])])
     if faults:
         return refused(faults)
     index = {"spec/index.md": spec_index.page(shop.title, content, {id: _described(each) for id, each in capabilities.items()})}
-    return Rendered({**index, **pages, **decisions}, [])
+    return Rendered({**index, **pages, **features, **decisions}, [])
 
 
 def _wanted(content: dict) -> list[str]:
@@ -49,14 +49,20 @@ def _described(capability: kb_pb2.Artifact) -> spec_index.Capability:
 
 
 def _pages(client, capabilities: list[kb_pb2.Artifact]):
-    """Each capability's page by its path, or the faults of the first search for its feature that was refused."""
-    pages = {}
+    """Each capability's page and the feature file formulating it, by path, or the faults of the first search for its
+    feature that was refused."""
+    pages, files = {}, {}
     for capability in capabilities:
-        features = client.List(kb_pb2.ListRequest(kind="feature", fields={"formulates": capability.id}, form=kb_pb2.ListRequest.IDS))
-        if faults := list(features.refusal.faults):
-            return {}, faults
+        found = client.List(kb_pb2.ListRequest(kind="feature", fields={"formulates": capability.id}, form=kb_pb2.ListRequest.IDS))
+        if faults := list(found.refusal.faults):
+            return {}, {}, faults
         name = names.from_title(capability.title)
-        formulated_as = f"features/{name}.feature" if features.result.ids else None
+        content = loads(capability.content)
+        if found.result.ids:
+            read = source.whole(client, found.result.ids[0])
+            if faults := source.faults(read):
+                return {}, {}, faults
+            files[f"features/{name}.feature"] = gherkin.feature_file(name, read.result.title, content["narrator"], loads(read.result.content))
         pages[f"spec/capabilities/{name}.md"] = spec_capabilities.page(
-            capability.id, capability.title, loads(capability.content), formulated_as)
-    return pages, []
+            capability.id, capability.title, content, f"features/{name}.feature" if found.result.ids else None)
+    return pages, files, []

@@ -51,8 +51,8 @@ def _holds_that_capability(result, target, formulated, name):
 
 @then(parsers.parse("that directory holds `features/{name}.feature` for the feature formulating it"))
 def _names_that_feature(result, target, formulated, name):
-    """The capability's page names the feature file under the same name; the file itself is written, and read, by the
-    feature-files scenario."""
+    """The capability's page names the feature file under the same name, and the file is in the directory."""
     assert result.returncode == 0, result.stderr
     frontmatter, _ = _page(target, name)
     assert frontmatter["formulated_as"] == f"features/{name}.feature"
+    assert (target / "features" / f"{name}.feature").is_file()
