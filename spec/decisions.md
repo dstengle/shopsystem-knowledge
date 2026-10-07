@@ -520,3 +520,8 @@ source: adrs/0055-short-fields-for-progressive-disclosure.md
 A decision carries no link to a shop; a shop names its decisions through an optional `decisions` field, and the shop's decisions (the ledger's own entries, its ADR records, the numbers judged for collisions) are those it names, so the approved scenarios that see what a decision points at, and a glance's stubs, are unchanged.
 date: 2026-10-07
 source: the person's delegation, 2026-10-07, slicing batch 16
+
+## decision/a-ragged-table-is-refused
+A feature table whose rows have different widths is refused when the shop's spec is published, rather than laid out or crashed on, by the principle that shop-knol never shows a traceback and refuses in plain words.
+date: 2026-10-07
+source: the person's delegation, 2026-10-07, batch 16's branch review (small-change path)

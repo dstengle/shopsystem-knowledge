@@ -158,6 +158,14 @@ Feature: Publish a shop's spec
     Then publishing is rejected because those features would share a file, naming both
     And nothing is written to the directory
 
+  @slice-67.1
+  Scenario: Publishing is refused when a table in a feature has rows of different widths
+    Pins that a published feature file never holds a table whose rows do not line up, and that the user is told which scenario holds it.
+    Given a scenario in a feature formulating one of the shop's capabilities, whose step's table has a row with fewer cells than its header
+    When the user publishes the shop's spec into a directory
+    Then publishing is rejected because a table's rows must each have one cell per column, naming that scenario
+    And nothing is written to the directory
+
   @slice-67
   Scenario: Publishing is refused when a scenario's uses points at a capability of its own shop
     Pins that a scenario reaches only across to another shop's capability, never back into its own shop.

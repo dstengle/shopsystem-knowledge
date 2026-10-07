@@ -102,6 +102,14 @@ only.
 - Needs: none
 - Status: green
 
+## Slice 67.1: A ragged feature table is refused
+- Kind: capability
+- Scenarios: publish-a-shops-spec / Publishing is refused when a table in a feature has rows of different widths
+- Observable: publishing a shop whose feature holds a table with rows of different widths is refused in plain words naming the scenario, never a traceback
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
