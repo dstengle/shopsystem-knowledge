@@ -5,7 +5,7 @@ import pytest
 from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then
 
-from driver import knol, start, store_in
+from driver import knol, start, store_in, unnamed
 from kb_oracle import operator_created, operator_started, printed
 
 NOT_EMPTY = "it is not empty"
@@ -101,6 +101,25 @@ def _kb_root_names_a_furnished_one(env, tmp_path, journal_before):
 
 
 @given(
+    "the user is working where kb finds a connection to a server hosting a store holding the shop's types",
+    target_fixture="start_in",
+)
+def _served_a_furnished_one(env, tmp_path, served_store, journal_before):
+    """A store furnished with the shop's types, served by kb's double, its connection in the directory the user works
+    in, nothing naming a knowledge base; the user finds it by the server's address."""
+    root = tmp_path / "furnished"
+    root.mkdir()
+    start(env, root)
+    office = tmp_path / "office"
+    office.mkdir()
+    address = served_store(root, office)
+    del env["KB_ROOT"]
+    _noted(env, root, journal_before)
+    journal_before.update(named=address, served=True)
+    return office
+
+
+@given(
     "the user is working in one directory, and another directory holds a knowledge base holding the shop's types",
     target_fixture="elsewhere",
 )
@@ -140,5 +159,18 @@ def _names_what_it_holds(result, held):
 
 @then("nothing changes")
 def _nothing_changes(env, start_in, journal_before):
+    """The journal read straight from the knowledge base, unchanged (a read, which kb does not refuse of a store it
+    serves), and no store started where the user works."""
     assert knol({**env, "KB_ROOT": journal_before["root"]}, "journal").stdout == journal_before["journal"]
-    assert not store_in(start_in).exists()
+    if journal_before.get("served"):
+        _reaches_only_the_served_store(env, start_in, journal_before)
+    else:
+        assert not store_in(start_in).exists()
+
+
+def _reaches_only_the_served_store(env, start_in, journal_before):
+    """Where the user works holds the connection, so no store was started there: kb refuses a directory holding both,
+    and from there the journal is still the served store's."""
+    through = knol(unnamed(env), "journal", cwd=start_in)
+    assert through.returncode == 0, through.stderr
+    assert through.stdout == journal_before["journal"]

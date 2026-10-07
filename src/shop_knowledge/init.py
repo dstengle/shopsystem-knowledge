@@ -1,8 +1,8 @@
 """Furnishing the shop's knowledge base, what `init` does: finding one from where the user works, telling whether it is empty, furnishing
 it with the shop's types through bootstrap, or starting one with `kb.init`. One found or named that holds something
-other than the shop's types is refused as not empty, naming what it holds; one that holds the shop's types, as
-already holding the shop's knowledge. Every refusal is raised as `Refused`, a kb answer's through the caller's
-`answered`; nothing here prints."""
+other than the shop's types is refused as not empty, naming what it holds; one that holds the shop's types, found
+through KB_ROOT elsewhere, reached through a server (named by its address) or named, as already holding the shop's
+knowledge. Every refusal is raised as `Refused`, a kb answer's through the caller's `answered`; nothing here prints."""
 from collections.abc import Callable
 import os
 from pathlib import Path
@@ -31,8 +31,8 @@ def _found(here: Path, signed: kb_pb2.Signature, answered: Callable):
     """The knowledge base kb finds from the working directory, when it is empty; otherwise a store started here. Where
     KB_ROOT is set, even empty, kb's refusal to find one is refused through `answered`, as it gave it: only finding
     nothing, with nothing named, starts a store. One found holding something other than the shop's types is refused
-    as not empty, naming what it holds; one KB_ROOT names elsewhere holding the shop's types, as already holding the
-    shop's knowledge."""
+    as not empty, naming what it holds; one KB_ROOT names elsewhere, or one reached through a server, holding the
+    shop's types, as already holding the shop's knowledge."""
     listed = (client := connect()).List(kb_requests.init_request())
     named = os.environ.get("KB_ROOT")
     if named is not None:
@@ -40,10 +40,19 @@ def _found(here: Path, signed: kb_pb2.Signature, answered: Callable):
     if _empty(listed):
         return client
     _refuse_unless_furnished(listed, named or "")
-    if named is not None and Path(named).resolve() != here.resolve() and _holds_the_shops_types(listed):
-        raise Refused([kb_pb2.Fault(artifact=named, message=_ALREADY_HOLDS)])
+    if _holds_the_shops_types(listed) and (elsewhere := _reached_elsewhere(client, here, named)):
+        raise Refused([kb_pb2.Fault(artifact=elsewhere, message=_ALREADY_HOLDS)])
     _started(here, signed)
     return connect(here)
+
+
+def _reached_elsewhere(client, here: Path, named: str | None) -> str:
+    """How the user reaches the knowledge base kb found, where it is not the working directory's own: KB_ROOT's value
+    where it names another directory, or else the server's address (`host:port`) where kb reaches it through a
+    connection to a server; empty otherwise."""
+    if named is not None and Path(named).resolve() != here.resolve():
+        return named
+    return client.where().address
 
 
 def _refuse_unless_furnished(listed: kb_pb2.ListResponse, named: str) -> None:
