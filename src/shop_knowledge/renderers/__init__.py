@@ -1,5 +1,6 @@
 """Renderers: client code that reads an artifact through the contract and gives back the files to publish, by path
 under the directory asked for. A renderer writes nothing and changes nothing; the command line writes what it gives."""
-from shop_knowledge.renderers import agent, diagram, markdown, skill
+from shop_knowledge.renderers import agent, diagram, markdown, skill, spec
 
-RENDERERS = {"agent": agent.render, "diagram": diagram.render, "markdown": markdown.render, "skill": skill.render}
+RENDERERS = {"agent": agent.render, "diagram": diagram.render, "markdown": markdown.render, "skill": skill.render,
+             "spec": spec.render}

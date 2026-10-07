@@ -19,10 +19,13 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
 | `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape and against whether kb can keep it (`kb.content`'s own refusal), or refused as a `Fault` on it | kb calls, printing, arguments |
 | `refusal.py` | the one exception every refusal travels in, `Refused`, before `cli`'s one printer shows it | kb calls, printing |
-| `renderers/` | one module per renderer, each reading an artifact through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
+| `renderers/` | one module per renderer, each reading an artifact, and, for `spec`, the shop's other artifacts, through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
 | `renderers/source.py` | reading the artifact a renderer publishes, what stops it being published (the read's faults, then a type other than the one the renderer is made from), and its name without its kind | rendering, writing |
 | `renderers/sections.py` | the layout of a content model's `sections` as headings and bodies, shared by the markdown and agent renderers | rendering a whole artifact, files |
 | `renderers/limits.py` | the limits the harness publishes, each checked against a renderer's output before anything is written, with where it was published | rendering, files |
+| `renderers/spec.py` | the `spec` renderer: reading a shop whole and the capabilities its index names, refusing what is no shop, and giving back the spec's files by path | writing files, the layout of any one file |
+| `renderers/spec_index.py` | the layout of the spec's `spec/index.md` from the shop's content and its capabilities' names and gists | reading, files |
+| `renderers/names.py` | the name a published file is given from a title | reading, files |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts, and naming which of them is the base the ten build on | the types themselves |
 | `types/*.yaml` | the shop's types, one file each, as schema artifacts in kb's schema language | code |
 | `shapes/*.yaml` | the shape of each file a user gives, as JSON Schema | code |
