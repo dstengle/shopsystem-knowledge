@@ -68,7 +68,7 @@ only.
 - Observable: shop-knol runs on the kb release that serves a store, every answer unchanged, and a test may reach a server through kb's own double
 - Unknown: none (probed: the suite gives the same answer on v0.6.0)
 - Needs: kb v0.6.0, released 2026-10-06
-- Status: planned
+- Status: green
 
 ## Slice 53: shop-knol answers through a kb server exactly as through the store
 - Kind: capability
@@ -258,3 +258,7 @@ only.
   Surprised by: nothing under tests/ needed changing: module state in driver is per worker, markers register in each worker, and the session guard runs in the controller and in every worker. Review Focus 5: two `make test` runs at once from this checkout each gave 129 passed, 3 failed, the same three, in their own base temps (pytest-5723, pytest-5724, 32 popen-gwN each), no kb/ in the checkout or /tmp; a store started above `--basetemp` is refused by the controller (exit 4, one line); pointed at a store in the workers alone (a scratch plugin), every worker refuses and nothing runs, but as xdist's 'node down' traceback per worker and exit 5, not one line and exit 4.
   Open questions: none. Next: slice 52.2.
 - 2026-10-07 Suite: 129 passed, 3 failed at 51897c7 in 10.50 s; failing: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store; start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types; start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused [through a server] (all three on undefined server steps)
+- 2026-10-07 slice 52.2 green. Someone can now: install shop-knowledge on kb v0.6.0 (pip show gives 0.6.0, kb.testing.served imports), with CLAUDE.md rule 1 admitting kb.testing.served (tests only, one module, one fixture) and the client's where() (kb.client.Where), and the suite giving the same answer as on v0.5.0.
+  Surprised by: the plan's import grep also matches `from kb_oracle` and `import kb_oracle` (14 lines, all already there at 4703afc), so it does not list nothing; a stricter `^(from kb[ .]|import kb\b)` form lists nothing.
+  Open questions: whether the plan's import check should be tightened to `from kb[ .]`. Next: slice 53.
+- 2026-10-07 Suite: 129 passed, 3 failed at 7b83e8d in 10.07 s; failing: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store; start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types; start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused [through a server] (all three on undefined server steps)
