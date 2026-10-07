@@ -1,10 +1,12 @@
 """The steps of find-the-knowledge-base.feature about where the knowledge base is found that only the
 read-back feature uses: the scenarios that give `workdir` from a shop its own Background already started, a directory
-since removed among them, and the Thens that say what came of it. The store-refusal Givens and Thens that the check
+since removed among them, or a folder deep inside a directory holding a connection to a server hosting the shop's store
+(served by conftest's `served_store`), and the Thens that say what came of it. The store-refusal Givens and Thens that the check
 feature's scenarios also use live in store_not_found.py, which conftest.py star-imports, instead. The feature's test module star-imports this and no other does."""
+from kb.content import loads
 from pytest_bdd import given, then
 
-from driver import removed
+from driver import knol, removed
 from kb_oracle import refused_as_kb_refuses
 
 
@@ -57,3 +59,33 @@ def _rejected_as_gone(env, result, workdir, called):
 )
 def _working_in_a_removed_directory_naming_the_shop(tmp_path, decision_id):
     return removed(tmp_path)
+
+
+@given("the shop's knowledge base is hosted by a server", target_fixture="connected")
+def _hosted_by_a_server(served_store, shop, tmp_path, decision_id):
+    """The shop's store, its decision already recorded, served by kb's double; gives back the directory of the test's
+    own that holds the connection to it, never the shop's own."""
+    connected = tmp_path / "office"
+    connected.mkdir()
+    served_store(shop, connected)
+    return connected
+
+
+@given(
+    "the user is working in a folder deep inside a directory holding a connection to that server",
+    target_fixture="workdir",
+)
+def _working_deep_inside_the_connection(env, connected):
+    del env["KB_ROOT"]
+    deep = connected / "notes" / "pricing" / "2026"
+    deep.mkdir(parents=True)
+    return deep
+
+
+@then("the user sees the decision, just as they would from the store itself")
+def _decision_as_from_the_store(env, shop, shown, decision_id):
+    """What the server showed equals the same read made of the store itself, named by KB_ROOT: a read, which kb does
+    not refuse of a store it serves."""
+    straight = knol({**env, "KB_ROOT": str(shop)}, "read", decision_id)
+    assert straight.returncode == 0, straight.stderr
+    assert shown == loads(straight.stdout)

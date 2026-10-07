@@ -10,6 +10,7 @@ import driver
 from driver import knol, start
 from session_guard import _allowlisted
 from session_guard import *  # noqa: F403  conftest.py alone star-imports this, so pytest sees `pytest_sessionstart` (adrs/0048)
+from served_store import *  # noqa: F403  conftest.py alone star-imports this (adrs/0048)
 from store_not_found import *  # noqa: F403  conftest.py alone star-imports this (adrs/0048)
 
 
