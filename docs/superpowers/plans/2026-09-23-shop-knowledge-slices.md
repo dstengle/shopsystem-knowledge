@@ -54,13 +54,29 @@ only.
 - Needs: the pin in pyproject.toml; the stand-in and the steps' oracles speak v1's messages (needed by every scenario that compares with kb's answer)
 - Status: green
 
+## Slice 52.1: The suite runs in parallel and answers in under a minute
+- Kind: enabling
+- Check: `make test` -> `129 passed, 3 failed` (the same three server scenarios), in under 60 s by pytest's own summary line; `make dev` from a fresh checkout installs what the parallel run needs
+- Observable: a developer gets the suite's answer in under a minute, every scenario still isolated in its own temporary directory
+- Unknown: whether the suite's isolation (each run in its own temporary directory, the session guard, the allowlisted environment) holds when scenarios run in several processes at once
+- Needs: none
+- Status: planned
+
+## Slice 52.2: shop-knowledge pins kb v0.6.0, and its rules admit kb's served-store double
+- Kind: enabling
+- Check: `grep -n "shopsystem-kb" pyproject.toml` -> the v0.6.0 tag; after `make dev`, `.venv/bin/python -c "import kb.testing; kb.testing.served"` exits 0; CLAUDE.md's rule 1 names `kb.testing` as what tests may import for a served store, and `kb.client.Where` as what src may read of a client's search; `make test` -> `129 passed, 3 failed`, the same three
+- Observable: shop-knol runs on the kb release that serves a store, every answer unchanged, and a test may reach a server through kb's own double
+- Unknown: none (probed: the suite gives the same answer on v0.6.0)
+- Needs: kb v0.6.0, released 2026-10-06
+- Status: planned
+
 ## Slice 53: shop-knol answers through a kb server exactly as through the store
 - Kind: capability
 - Scenarios: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store
 - Observable: a user whose directory holds only the connection to a kb server reads the shop's knowledge as if the store were beside them
 - Unknown: whether a kb server started by the test, inside its own temporary directory on a port of its own, serves shop-knol unchanged
 - Needs: kb's published served-store double (adrs/0050), for this scenario and the server rows of slices 55.1 and 55.2
-- Status: blocked: awaiting a kb release that ships serving, and the served-store double kb publishes for its clients' tests (adrs/0050)
+- Status: planned: needs 52.2
 
 ## Slice 54: init furnishes an empty knowledge base it finds, and starts one only where none is found
 - Kind: capability
@@ -84,7 +100,7 @@ only.
 - Observable: init refuses a knowledge base found through KB_ROOT, or named, that already holds the shop's types, instead of starting a second store beside it
 - Unknown: none (slice 55 settled how a found knowledge base is told apart)
 - Needs: slice 53's server for the outline's server row only
-- Status: in progress: its server row waits on slice 53
+- Status: in progress: its server row needs 53
 
 ## Slice 55.2: init furnishes a served empty store
 - Kind: capability
@@ -92,7 +108,7 @@ only.
 - Observable: a user reaching an operator's empty store through a server furnishes it as one in place
 - Unknown: none once a kb server exists
 - Needs: slice 53's server
-- Status: blocked: awaiting slice 53
+- Status: planned: needs 53
 
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
 - Kind: capability
@@ -231,3 +247,10 @@ only.
 - 2026-10-06 Batch 14's fix wave: (1) the not-empty outline's named row is green: `start._named`, once kb.init refuses because the directory has a store, refuses one holding something other than the shop's types as "it is not empty: it holds the types ...", naming the directory as given, through `_refuse_unless_furnished`; the outline's Then names the knowledge base as the user named it (KB_ROOT or the directory), and a Given for the named row sits in tests/start_not_empty.py; `-m slice-55` 5 passed. (2) init's finding now refuses kb's List answer through `cli._answered`, handed to `start.furnished` as `answered`, so the Size and shape sentence holds for kb answers; `kb.init`'s `NotStarted` is an exception, not an answer, and stays raised as `Refused` in `start._started` (CLAUDE.md not reworded; see the fix-wave report). (3) `driver.serve` waits at most 5 s, polling every 50 ms, and fails with kb serve's own output, written to `kb-serve.stderr` in the test's directory; slice 53 now fails in its Given within about a second with kb's "invalid choice: 'serve'". (4) start.py's module and `_found` docstrings name the not-empty and already-holds refusals. Suite `4 failed, 128 passed` before, `3 failed, 129 passed` after (the three kb-serve scenarios); size check clean.
 - 2026-10-06 The person decided (adrs/0050, decision/tests-reach-a-server-only-through-kbs-double): tests reach a kb server only through a served-store double kb publishes; shop-knowledge's tests never start `kb serve` or write `kb/server.yaml`. Slice 59.1 renames init's module (start.py read as starting a server) and removes the server test code slice 53's hand-back committed. Slices 53, 55.1 (server row) and 55.2 now wait on kb's double. KB REQUEST, added to the 2026-10-06 request above: (6) publish a served-store double for clients' tests: given a store's root, serve it, put the connection where kb's search looks, and tear both down, so a client's tests reach a server without starting one or writing kb's files.
 - 2026-10-06 slice 59.1 green. Someone can now: read init's code as `init.py`, with nothing in the repository starting a kb server or writing a connection to one; the 3 server scenarios wait, red on undefined steps, for kb's double (adrs/0050). Suite before `3 failed, 129 passed`, after `3 failed, 129 passed` (the 3 server scenarios were red on a missing `kb serve` before, now on undefined steps). Surprised by: CLAUDE.md's wording "a kb server" matches the Check's `kb serve` grep, so it reads "a server of kb's"; the Then "the user sees the decision, just as they would from the store itself" went with its server Given. Open questions: none. Next: waits on kb's double (slices 53, 55.1, 55.2).
+- 2026-10-07 Suite: 129 passed, 3 failed at 414cf0f in 124 s; failing: find-the-knowledge-base / Reading where the knowledge base found is a connection to a server hosting the store; start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types; start-a-knowledge-base / Starting where the knowledge base to furnish already holds the shop's types is refused [through a server] (all three on undefined server steps)
+- 2026-10-07 kb v0.6.0 tagged and pushed (6ac9707), answering every item of the 2026-10-06 KB REQUEST: (1) `kb serve` and a client reaching a server through `kb/server.yaml`; (2) `client.where()` giving `kb.client.Where` (root, address, faults); (3) `kb.init`'s `execution` published; (4) `schema/schema` published; (5) `NotCanonical.path` published; (6) `kb.testing.served(store_root, connection_dir, *, clock=None)`, serving in the test's own process, writing and removing the connection. Also new: a root given to `connect` is searched upward; a served store refuses direct changes (`served`) and stamps with its own clock.
+- 2026-10-07 Probe: the suite in a scratch worktree of 414cf0f with the pin moved to v0.6.0 (`make dev`; `pip show shopsystem-kb` -> Version: 0.6.0) -> 129 passed, 3 failed, the same three, in 127 s
+- 2026-10-07 Probe: `git -C ../shopsystem-kb show v0.6.0:src/kb/testing.py` -> `served` exported, a context manager yielding `host:port`, ValueError when the directory already holds a connection
+- 2026-10-07 Suite over 60 s, run serially (`make test` is `pytest -q`, no parallelism), every step starting shop-knol as a subprocess; CLAUDE.md requires a subprocess per command but gives no reason for running serially, so the batch begins with an enabling slice that makes it fast (52.1).
+- 2026-10-07 RE-SLICE on kb v0.6.0: no Given, When or Then changes, so this skill re-orders alone. Order: 52.1 (fast suite), 52.2 (pin v0.6.0, rule 1 admits kb.testing and kb.client.Where), 53, 55.1's server row, 55.2. Slice 53's unknown is now whether kb's double, serving in pytest's own process, serves a shop-knol subprocess unchanged; the server it names is the double's, never one the test starts (adrs/0050). Slice 55.1's server row is not "Unknown: none": with nothing named, init today lists the served store, finds the shop's types, and goes on to start a store in the working directory (kb.init, refused in kb's words); telling a knowledge base reached through a server, so it is refused as already holding the shop's knowledge, is that row's unknown, through `client.where()`. 55.2 is expected to pass once its Given exists (init's List and Creates already go wherever kb's client finds), which only a run will say.
+- 2026-10-07 Ruling under the person's delegation (2026-10-07, "work independently"), for the person to confirm: the already-holds refusal of a knowledge base found through a server names it by the server's address as kb's `client.where()` gives it (`host:port`), since decision 461 puts a server among the knowledge bases this refusal covers and the outline's other rows name the knowledge base as the user reached it; the outline's Then says nothing of naming, so no Given, When or Then changes.
