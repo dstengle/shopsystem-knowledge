@@ -119,6 +119,22 @@ def _rejected_used(result, refused_for):
     _lines_naming(result, *refused_for)
 
 
+@given("a scenario in a feature formulating one of the shop's capabilities, whose step's table has a row with fewer cells than its header",
+       target_fixture="refused_for")
+def _a_scenario_with_a_ragged_table(env, tmp_path, built):
+    capability = _capability(env, tmp_path, built.shop, "Shelve the tins")
+    spec_shop.reading_order(env, tmp_path, built.shop, [*built.capabilities, capability])
+    steps = [{"keyword": "When", "text": "the user acts", "table": [["tin", "shelf"], ["beans"]]},
+             {"keyword": "Then", "text": "the shelf is in order"}]
+    feature = _feature_of(env, tmp_path, capability, "Shelve the tins", {"steps": steps})
+    return ["must each have one cell per column", [feature, "Shelve the tins, as the user does it"]]
+
+
+@then("publishing is rejected because a table's rows must each have one cell per column, naming that scenario")
+def _rejected_ragged(result, refused_for):
+    _lines_naming(result, *refused_for)
+
+
 @then("nothing is written to the directory")
 def _nothing_written(target):
     assert list(target.iterdir()) == []

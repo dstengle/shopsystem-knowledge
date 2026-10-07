@@ -32,6 +32,7 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
         *_shared([(each.id, f"features/{names.from_title(capability.title)}.feature")
                   for capability in ordered for each in formulating.get(capability.id, [])], "features-share-a-file"),
         *_used(set(listed.result.ids) | set(content.get("reading_order", [])), formulating),
+        *_ragged(formulating),
     ]
 
 
@@ -91,3 +92,22 @@ def _used(shop_capabilities: set[str], formulating: dict[str, list[kb_pb2.Artifa
         for features in formulating.values() for feature in features
         for scenario in loads(feature.content).get("scenarios", []) for used in scenario.get("uses", []) if used in shop_capabilities
     ]
+
+
+def _ragged(formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
+    """A fault for each scenario, or background, holding a table whose rows are not all as wide as its first."""
+    faults = []
+    for features in formulating.values():
+        for feature in features:
+            content = loads(feature.content)
+            holders = [("the background", _tables(content.get("background", []), []))] + [
+                (f"scenario \"{each['title']}\"", _tables(each["steps"], [each["examples"]] if each.get("examples") else []))
+                for each in content.get("scenarios", [])]
+            faults += [_fault(feature.id, "table-rows-differ-in-width",
+                              f"{name} holds a table whose rows differ in width; a table's rows must each have one cell per column")
+                       for name, tables in holders if any(len({len(row) for row in table}) > 1 for table in tables)]
+    return faults
+
+
+def _tables(steps: list[dict], more: list[list[list[str]]]) -> list[list[list[str]]]:
+    return [*[step["table"] for step in steps if step.get("table")], *more]
