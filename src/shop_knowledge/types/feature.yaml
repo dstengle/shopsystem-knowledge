@@ -28,7 +28,7 @@ schema:
           title:
             type: string
             maxLength: 80
-            pattern: '^[^\n]*$'
+            pattern: '^[^\n]*(?!\n)$'
           description:
             type: string
           formulates:

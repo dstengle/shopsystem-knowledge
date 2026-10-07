@@ -17,7 +17,7 @@ schema:
     gist:
       type: string
       maxLength: 200
-      pattern: '^[^\n]*$'
+      pattern: '^[^\n]*(?!\n)$'
     narrator:
       type: string
     rests_on:
@@ -41,7 +41,7 @@ schema:
           title:
             type: string
             maxLength: 80
-            pattern: '^[^\n]*$'
+            pattern: '^[^\n]*(?!\n)$'
           says:
             type: string
         required: [title, says]
@@ -52,7 +52,7 @@ schema:
           title:
             type: string
             maxLength: 80
-            pattern: '^[^\n]*$'
+            pattern: '^[^\n]*(?!\n)$'
           defers:
             type: string
           trigger:
