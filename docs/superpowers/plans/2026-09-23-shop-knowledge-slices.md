@@ -108,7 +108,7 @@ only.
 - Observable: a user reaching an operator's empty store through a server furnishes it as one in place
 - Unknown: none once a kb server exists
 - Needs: slice 53's server
-- Status: planned: needs 53
+- Status: green
 
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
 - Kind: capability
@@ -167,6 +167,7 @@ only.
 - 2026-10-06 The stand-in's `from_kb` would turn a refusal answer into a result (`tests/stand_in/sitecustomize.py`); no step writes that combination (from Task 2's review).
 - 2026-10-06 KB_ROOT naming the knowledge base the user works inside is refused "it already holds the shop's knowledge" (a ruling under the person's delegation), where the "inside" line could also apply: for the person to confirm, with an Examples row (from Task 5.1's review).
 - 2026-10-07 init with nothing named, where kb finds a connection to a server hosting a store holding types other than the shop's, is refused as not empty but names no knowledge base: stderr is 'it is not empty: it holds the types recipe, supplier' (the Fault's artifact empty), while the already-holds refusal of a served store names its address. Reproduction: .superpowers/batch15/probe55-1/scripts/probe.py <empty scratch dir> (kb.init a store, the operator creates schema Recipe and Supplier, kb.testing.served(store, office), shop-knol init from office with KB_ROOT unset). Whether it should name the address as already-holds does is for the person; the not-empty outline has no server row.
+- 2026-10-07 init over a damaged connection to a server hides the damage behind kb.init's reason: a garbage kb/server.yaml in the working directory, then `shop-knol init` prints 'a store goes in a place of its own, and <dir> already holds something in that place' where `list --type schema --ids` prints that the connection cannot be read or names no address. Same class as the damaged-store entry. (slice 55.2's Review Focus 4 probe)
 
 ## Log
 
@@ -271,3 +272,7 @@ only.
   Surprised by: the connection lives in the working directory's kb/, so "nothing changes" could not say no store was started by kb/ being absent; for the served row it runs `shop-knol journal` from where the user works and sees the served store's journal unchanged (kb refuses a directory holding both a store and a connection). init tells a served store by the client's where() (address non-empty), asked only once the List shows the shop's types; the in-place and KB_ROOT paths are as before. Review Focus 3: init from a directory holding a connection to a served store holding types recipe and supplier is refused as not empty, one line 'it is not empty: it holds the types recipe, supplier', exit 1, journal unchanged, nothing but the connection in the working directory's kb/; it names no knowledge base (logged in the Backlog).
   Open questions: whether the not-empty refusal of a served store should name the server's address (Backlog); the person's confirmation of the 2026-10-07 ruling naming a served store by its address. Next: slice 55.2.
 - 2026-10-07 Suite: 131 passed, 1 failed at 892a70a in 10.20 s; failing: start-a-knowledge-base / With no directory named, an empty store kb reaches through a server is furnished with the shop's types (on undefined server steps)
+- 2026-10-07 slice 55.2 green. Someone can now: run `shop-knol init` where kb finds a connection to a server hosting an empty store and have it furnished with the shop's types through the server, as one found in place.
+  Surprised by: nothing; the Given (tests/start_furnished.py) was the only change, nothing under src/ changed (the scenario was red on its undefined Given per the record at 892a70a). Review Focus 4: with a hand-written garbage connection (.superpowers/batch15/probe55/kb/server.yaml), `init` prints one line 'a store goes in a place of its own, and <dir> already holds something in that place', exit 1, no traceback, nothing written; `list` there prints 'the connection to a server cannot be read or names no address host:port: <path>', exit 1.
+  Open questions: none. Next: slice 56.
+- 2026-10-07 Suite: 132 passed, 0 failed at b98965b in 10.9 s
