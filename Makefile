@@ -11,5 +11,6 @@ KB ?= ../shopsystem-kb
 dev-local: dev
 	.venv/bin/pip install -e $(KB)
 
+# In parallel, one worker per core; each scenario keeps its own temporary directory.
 test:
-	.venv/bin/python -m pytest -q
+	.venv/bin/python -m pytest -q -n auto
