@@ -46,6 +46,23 @@ def _kb_root_names_an_operated_one(env, tmp_path, operated):
 
 
 @given(
+    "the user is working where kb finds a connection to a server hosting a store kb's operator started empty",
+    target_fixture="start_in",
+)
+def _served_an_operated_one(env, tmp_path, served_store, operated):
+    """An empty store started by kb's operator, served by kb's double, its connection in the directory the user works
+    in, nothing naming a knowledge base."""
+    root = tmp_path / "operated"
+    root.mkdir()
+    _operator_started(env, root, operated)
+    office = tmp_path / "office"
+    office.mkdir()
+    served_store(root, office)
+    del env["KB_ROOT"]
+    return office
+
+
+@given(
     "the user is working in one directory, and another directory holds a knowledge base kb's operator started empty",
     target_fixture="elsewhere",
 )
