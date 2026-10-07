@@ -478,3 +478,40 @@ source: the person, 2026-10-06 ("I'd prefer that this start using a mock provide
 Naming a directory that sits inside a knowledge base but holds none of its own is refused because that directory is inside a knowledge base, and nothing changes: init neither furnishes nor names the knowledge base above it. Settled by principle (a-case-a-spec-principle-answers-is-settled): start-a-knowledge-base's Purpose (init refuses rather than nest the shop's knowledge) and its Implementation (kb.init's refusal for a directory inside a store reaches the user in kb's words). Found by batch 15's branch review, after kb v0.6.0 began searching upward from a root given to `connect`.
 date: 2026-10-07
 source: the person's delegation, 2026-10-07 ("Please proceed and work independently")
+
+## decision/the-shops-types-model-the-bdd-spec
+The shop's types model what shopsystem-bdd produces for each shop (its index, capabilities, decision records and feature files), and one product's knowledge base holds every one of its shops, each managing one bounded context.
+date: 2026-10-07
+supersedes: decision/seven-types-close-the-loop
+source: adrs/0051-the-shops-types-model-the-bdd-spec.md
+
+## decision/ten-types-on-a-shop-artifact-base
+The shop's types are ten, all on the `shop-artifact` base (owner, status, tags): `role`, `process`, `step`, `tag` and `work-item` as they were, `feature` replaced, `decision` reshaped, and `product`, `shop` and `capability` new.
+date: 2026-10-07
+supersedes: decision/seven-types-on-a-shop-artifact-base
+source: adrs/0051-the-shops-types-model-the-bdd-spec.md
+
+## decision/old-feature-and-decision-artifacts-are-not-converted
+Artifacts of the old `feature` and `decision` types are not converted when the types change, because no knowledge base in use holds any.
+date: 2026-10-07
+source: docs/superpowers/specs/2026-10-07-spec-system-types-design.md
+
+## decision/kb-is-the-source-of-the-spec
+A shop's spec, ledger, decision records and feature files are published from the knowledge base by the `spec` publisher, and each published file says it is not to be edited by hand.
+date: 2026-10-07
+source: adrs/0052-kb-is-the-source-of-the-spec.md
+
+## decision/spec-writes-are-batches-applied-after-the-gate
+shopsystem-bdd's writer agents draft `shop-knol apply` batch files and read kb only through `shop-knol read`, `list`, `refs`, `search` and `types`; the controller validates the drafts before the gate, applies the creates and then the writes after it, publishes the shop's spec and commits it.
+date: 2026-10-07
+source: adrs/0053-spec-writes-are-batches-applied-after-the-gate.md
+
+## decision/every-decision-is-an-adr
+Every decision in a shop's ledger is a decision artifact the knowledge base holds, numbered as the shop's next and published as its ADR; no ledger entry stands alone.
+date: 2026-10-07
+source: adrs/0054-every-decision-is-an-adr.md
+
+## decision/short-fields-for-progressive-disclosure
+Progressive disclosure is a rule of every type: what a glance shows is one short line or a link, every part carries a short title, and long prose lives in sections and part body fields; kb checks the short lines through limits written into the types.
+date: 2026-10-07
+source: adrs/0055-short-fields-for-progressive-disclosure.md

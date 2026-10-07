@@ -16,15 +16,16 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - **Answers are YAML, with JSON where a command offers it.** JSON is the same structure. Today only `read` offers it. Pinned in read-an-artifact.
 - **No traceback.** shop-knol never shows a traceback. Every refusal, kb's or shop-knol's own, reports failure to whatever ran the command. Pinned wherever a refusal is.
 - **kb's refusals are passed through.** They are printed as kb returned them, naming the artifact, the place in it, and what is wrong. Pinned in record-an-artifact and check-the-knowledge-base.
-- **shop-knol's own refusals are in plain words.** Each says what was refused and names the place it concerns: the file, the directory or the artifact. A name given empty names no place and is refused. Pinned in start-a-knowledge-base, record-an-artifact, read-an-artifact and publish-an-artifact.
+- **shop-knol's own refusals are in plain words.** Each says what was refused and names the place it concerns: the file, the directory or the artifact. A name given empty names no place and is refused. Pinned in start-a-knowledge-base, record-an-artifact, read-an-artifact, publish-an-artifact and publish-a-shops-spec.
 - **Every change says who and why.** Every mutating command requires an actor and a message. `init` requires an actor and no message. Pinned in record-an-artifact and start-a-knowledge-base.
 - **kb mints the ids.** Ids are minted by kb from titles and never supplied by the user. Pinned in record-an-artifact.
-- **Publishing only reads.** Files are written only when the renderer refused nothing. Pinned in publish-an-artifact.
+- **Publishing only reads.** Files are written only when the renderer refused nothing. Pinned in publish-an-artifact and publish-a-shops-spec.
 - **Corpus-only roles.** The boundary for a corpus-only role is a harness permission allowlist of exactly `shop-knol *`. The harness provides it; shop-knowledge does not implement it.
 - **Bounds:**
   - `--resolve` with no depth means depth 1.
   - `refs` with no `--depth` follows one step.
   - An agent's harness `name` may not contain `:` and may not start with `-`.
+  - A gist or a statement is at most 200 characters, and a part's title at most 80; neither holds a line break. Pinned in use-the-shops-types.
 
 ### Mechanisms every command shares (may change)
 
@@ -35,7 +36,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - An argument shop-knol cannot take is refused as one fault: the command as argparse names it (`shop-knol list`), then argparse's message. No usage block is printed. `-h` is help on stdout, with exit 0.
 - Every file the user gives is read as YAML 1.2 through `kb.content`. Text kb cannot keep is refused by `kb.content`'s own refusal, `NotCanonical`. A file that is not UTF-8 is a fault with rule `content` and message `it is not text that can be read: <reason>`.
 - A file the user gives is checked against its shape, written as JSON Schema. Each violation is one fault: `artifact` is the file as named, `place` is its parts joined with `/`, `rule` is the JSON Schema keyword, and `message` is jsonschema's.
-- Each command maps to one contract v1 call, named in its capability. Every kb response is a result or a refusal, never both.
+- Each command maps to one contract v1 call, named in its capability, except `coverage` and `render spec`, which read through Read, List and Follow. Every kb response is a result or a refusal, never both.
 - Every change sends kb one signature: the role, the piece of work and the message.
 - A place inside an artifact, the part of a locator after `#`, is sent as kb's `place`.
 - An answer keeps shop-knol's own keys whatever kb names them: it says `type` where kb's v1 says `kind`.
@@ -44,7 +45,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 
 1. [start-a-knowledge-base](capabilities/start-a-knowledge-base.md): set up a knowledge base holding the shop's types.
 2. [find-the-knowledge-base](capabilities/find-the-knowledge-base.md): have every other command find the one knowledge base it works on.
-3. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's types, and record things that use them.
+3. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's ten types, and record things that use them, a shop's spec among them.
 4. [record-an-artifact](capabilities/record-an-artifact.md): record something new under a name the shop mints.
 5. [read-an-artifact](capabilities/read-an-artifact.md): read one artifact at a chosen level.
 6. [revise-an-artifact](capabilities/revise-an-artifact.md): replace an artifact, or one section of it.
@@ -58,6 +59,8 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 14. [record-what-a-piece-of-work-read](capabilities/record-what-a-piece-of-work-read.md): anchor a piece of work to the versions it read.
 15. [check-the-knowledge-base](capabilities/check-the-knowledge-base.md): learn whether the shop's knowledge is sound and what is behind its type.
 16. [publish-an-artifact](capabilities/publish-an-artifact.md): publish an artifact into files as a skill, an agent, a diagram or a markdown page.
+17. [publish-a-shops-spec](capabilities/publish-a-shops-spec.md): publish a shop's whole spec, ledger, decision records and feature files into its repository.
+18. [see-what-is-formulated](capabilities/see-what-is-formulated.md): see which of a shop's Behaviour lines no scenario, or more than one, formulates.
 
 ## Order of building
 

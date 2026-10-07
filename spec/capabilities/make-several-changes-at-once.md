@@ -45,3 +45,4 @@ This capability covers applying a batch of creates, or a batch of replacements. 
 ## Not yet
 
 - **Batches of additions or of removals.** Promoted when a user needs several steps added, or several artifacts retired, as one change.
+- **Checking a batch without landing it.** A validate-only mode on the batch calls, so a batch is checked and nothing lands. A write that links to an artifact the same round creates can only be checked once the creates have landed. It is a request to kb. Promoted when kb publishes a validate-only mode on its batch calls and the pin is bumped to it.

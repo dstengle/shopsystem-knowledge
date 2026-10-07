@@ -5,10 +5,11 @@ narrator: the user, working with the shop's kinds of thing
 rests_on:
   - decision/types-are-readable
   - decision/types-have-a-command-of-their-own
-  - decision/seven-types-on-a-shop-artifact-base
+  - decision/ten-types-on-a-shop-artifact-base
   - decision/role-splits-harness-from-identity
   - decision/a-tag-is-an-artifact
-  - decision/seven-types-close-the-loop
+  - decision/the-shops-types-model-the-bdd-spec
+  - decision/short-fields-for-progressive-disclosure
 formulated_as: features/use-the-shops-types.feature
 ---
 
@@ -16,10 +17,10 @@ formulated_as: features/use-the-shops-types.feature
 
 ## Purpose
 
-This capability covers what the user can do with the shop's seven types:
+This capability covers what the user can do with the shop's ten types:
 - see which types the shop holds, through a command for the shop's types that is separate from the commands for artifacts;
 - read one of them, through the same command;
-- record things whose shape the types give, such as a role's two groups of fields, a tag held once and named elsewhere, and a process's steps.
+- record things whose shape the types give, such as a role's two groups of fields, a tag held once and named elsewhere, a process's steps, and a shop's spec: its product, the shop itself, its capabilities, its decisions and the features formulating them.
 
 The types arrive when a knowledge base is set up (start-a-knowledge-base). Defining or changing a type is not offered. How a type is enforced is kb's job, and it surfaces as a refusal of a change (record-an-artifact).
 
@@ -27,10 +28,20 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 
 - When the user asks which types the shop holds, the user is shown each of the shop's types.
 - When the user reads one of the shop's types by its name, the user is shown that type as the shop holds it.
-- Every artifact of the shop's seven types can carry an owner, a status and tags, among the fields every shop artifact carries.
+- Every artifact of the shop's ten types can carry an owner, a status and tags, among the fields every shop artifact carries.
 - When the user records a role, the fields the harness needs are kept as one named group, and the fields that say who the role is in the shop are kept as another.
 - When the user tags a decision with a tag the shop holds, the decision names that tag, and the tag's description is held once, on the tag itself.
 - A process's steps each either define a step in place, or use a shared step with settings of their own.
+- When the user reads an artifact of the shop's types at a glance, each field it shows is one short line or a link.
+- When the user reads an artifact holding parts at a glance, each part is shown by its title.
+- When the user records an artifact holding parts, each part's name is minted from its title.
+- If the user records a gist or a statement longer than 200 characters, the change is refused because it does not fit its type.
+- If the user records a gist or a statement that holds a line break, the change is refused because it does not fit its type.
+- If the user records a part whose title is longer than 80 characters, the change is refused because it does not fit its type.
+- If the user records a part whose title holds a line break, the change is refused because it does not fit its type.
+- If the user records a scenario whose `uses` points at anything but a capability, the change is refused because it does not fit its type.
+- When the user records a feature, each of its scenarios names the one Behaviour line it formulates, as a link into a capability's Behaviour lines.
+- When the user records a scenario with labels, each label is kept as a plain word, not as a link to a tag.
 
 ## Implementation, may change
 
@@ -40,16 +51,47 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 | `shop-knol types <name>` | reads one of the shop's types |
 
 - The command's name may change. `create`, `write`, `list` and `read` are not the way to the types.
-- The types are schema artifacts in kb's schema language: `decision`, `feature`, `work-item`, `role`, `process`, `step` and `tag`.
-- All seven build on a `shop-artifact` base schema through kb's composition mechanism, so the common fields are declared once.
-- The shop's schemas are the seven types and the `shop-artifact` base, eight in all.
+- The types are schema artifacts in kb's schema language: `product`, `shop`, `capability`, `decision`, `feature`, `work-item`, `role`, `process`, `step` and `tag`.
+- `role`, `process`, `step`, `tag` and `work-item` stay as they were. `feature` is replaced, `decision` is reshaped, and `product`, `shop` and `capability` are new.
+- All ten build on the `shop-artifact` base schema (owner, status, tags) through kb's composition mechanism, so the common fields are declared once.
+- The shop's schemas are the ten types and the `shop-artifact` base, eleven in all.
 - `role` has two named field groups: `harness` (the harness contract fields) and the corpus identity fields.
 - `tag` is a title and a description. Other types target it through a `tags` reference field.
 - `process` declares a `steps` part collection. Each item either defines a step inline, or carries `uses: <ref to step>` and `with: <bindings>`.
-- kb v0.5.0 refuses a type that puts kb's keywords where kb does not read them, or a `ref` that does not state its whole shape. Each of the shop's eight schemas was created in a fresh v0.5.0 store and accepted as it is; nothing changes in them.
+- kb v0.5.0 refuses a type that puts kb's keywords where kb does not read them, or a `ref` that does not state its whole shape. Each of the eight schemas of the earlier seven-type set was created in a fresh v0.5.0 store and accepted as it was.
+- Long prose lives in sections and in a part's own body fields, read one at a time or whole.
+- The short lines are written into the types and checked by kb: a `gist` or a `statement` is at most 200 characters, a part's `title` at most 80, and neither holds a line break.
+
+| type | glance fields | other fields | sections | parts |
+|---|---|---|---|---|
+| product | `gist` | | Purpose | |
+| shop | `product` → product, `gist` | `narrator`, `reading_order` → capability, many, in order | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `pinned_in` → capability, many |
+| capability | `shop` → shop, `gist` | `narrator`, `rests_on` → decision, many | Purpose; an `Implementation, may change` section may follow | `behaviour`: `title`, `says` (one EARS line); `not_yet`: `title`, `defers`, `trigger` |
+| decision | `statement`, `date`, `supersedes` → decision | `number`, `shop` → shop, `revisit_when`, `extends` → decision, many | Purpose, Rationale | |
+| feature | `formulates` → capability | `background`: steps | | `scenarios`: `title`, `description`, `formulates` → a capability's behaviour line, `uses` → capability, many, `labels` (Gherkin tags), `steps`, `examples` |
+
+- Every section listed for a type is required, save the capability's `Implementation, may change`, which may follow: a product requires Purpose; a shop, Purpose, Order of building and Testing; a capability, Purpose; a decision, Purpose and Rationale; a feature has no sections. A missing required section is refused as a change that does not fit its type (record-an-artifact).
+- Required fields:
+  - product: `gist`;
+  - shop: `product`, `gist`;
+  - capability: `shop`, `gist`, `narrator`;
+  - decision: `statement`, `date`, `number`, `shop`;
+  - feature: `formulates`;
+  - a `behaviour` item: `title`, `says`;
+  - a `not_yet` item: `title`, `defers`, `trigger`;
+  - a `constraints` item: `title`, `says`;
+  - a scenario: `title`, `formulates`, `steps`;
+  - a step: `keyword`, `text`.
+- Every other field is optional: a shop's `narrator` and `reading_order`; a capability's `rests_on`; a decision's `supersedes`, `extends` and `revisit_when`; a constraint's `pinned_in`; a scenario's `description`, `uses`, `labels` and `examples`; a step's `table` and `docstring`.
+- A decision's `date` is a day, `YYYY-MM-DD`. Its `number` is a whole number, given by whoever records it as the shop's next; it is the number its ADR file carries.
+- A scenario's step is `keyword` (Given, When, Then, And or But), `text`, and optionally a `table` (rows of cells, the first row the header) or a `docstring`. `examples` is a table, the first row the header.
+- `labels` are plain words such as `@slice-55.3`.
+- A scenario's `formulates` is one link into a capability's `behaviour` part: `capability/<name>#behaviour/<line>`. A scenario has no field that can point at a scenario.
 
 ## Not yet
 
 - **Defining or changing a type.** This would be product-local or user-local extensions: additional schema and renderer sets that shop-knowledge loads, which kb never learns of. When it comes, it belongs to the shop's types command, not to `create` or `write`. Promoted when a product or a user wants types or renderers of its own.
 - **Validation that kb's schema language cannot express.** If needed, it would run client-side before the call and would not be binding. Promoted when such a validation is needed.
 - **Scenario status over time.** It will be a ledger, modelled later; it will not be a field on the scenario or on a work item. Promoted when assignment cannot be tracked without one, or at the crossover.
+- **The slice plan as types.** Slices, the backlog and the log, held as artifacts that point at scenarios; the spec's types do not change when they come. Promoted when the slice plan is to be held in the knowledge base.
+- **The product's own concerns.** A lead shop holds the product's own concerns; beyond the `product` artifact itself, none is modelled. Promoted when a product's own concerns are to be held in the knowledge base.

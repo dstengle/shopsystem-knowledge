@@ -13,7 +13,8 @@ rests_on:
   - decision/a-working-directory-holding-the-shops-knowledge-keeps-its-reasons
   - decision/furnishing-is-built-on-kb-v0-5-0
   - decision/init-edge-cases-settled-by-principle
-  - decision/seven-types-on-a-shop-artifact-base
+  - decision/ten-types-on-a-shop-artifact-base
+  - decision/old-feature-and-decision-artifacts-are-not-converted
   - capability/find-the-knowledge-base
 formulated_as: features/start-a-knowledge-base.feature
 ---
@@ -33,7 +34,7 @@ init says which role set it up and writes its own message. It refuses rather tha
 
 ## Behaviour
 
-- When the user starts a knowledge base, saying which role they are, the shop can hold decisions, features, work items, roles, processes, steps and tags, and the user defines nothing of their own before recording the first one.
+- When the user starts a knowledge base, saying which role they are, the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags, and the user defines nothing of their own before recording the first one.
 - Where no knowledge base is found from the working directory, when the user starts a knowledge base without naming a directory, saying which role they are, the shop's knowledge is kept in a place of its own inside the working directory, and what that directory already held is left as it was.
 - When the user starts a knowledge base by naming another directory, saying which role they are, the shop's knowledge is kept in a place of its own inside the named directory, and the working directory holds no knowledge base.
 - When the user starts a knowledge base, saying which role they are and giving no message, the knowledge base is started, and everything it was given is recorded in the history under a message the command writes itself.
