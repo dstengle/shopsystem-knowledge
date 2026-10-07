@@ -32,7 +32,7 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 - When the user records a role, the fields the harness needs are kept as one named group, and the fields that say who the role is in the shop are kept as another.
 - When the user tags a decision with a tag the shop holds, the decision names that tag, and the tag's description is held once, on the tag itself.
 - A process's steps each either define a step in place, or use a shared step with settings of their own.
-- When the user reads an artifact of the shop's types at a glance, each field it shows is one short line or a link.
+- When the user reads a product, a shop, a capability, a decision or a feature at a glance, each field it shows is one short line or a link, as it was recorded.
 - When the user reads an artifact holding parts at a glance, each part is shown by its title.
 - When the user records an artifact holding parts, each part's name is minted from its title.
 - If the user records a gist or a statement longer than 200 characters, the change is refused because it does not fit its type.
