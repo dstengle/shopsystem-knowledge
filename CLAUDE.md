@@ -25,6 +25,7 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `renderers/limits.py` | the limits the harness publishes, each checked against a renderer's output before anything is written, with where it was published | rendering, files |
 | `renderers/spec.py` | the `spec` renderer: reading a shop whole, the capabilities its index names and the features formulating its capabilities, refusing what is no shop, and giving back the spec's files by path | writing files, the layout of any one file |
 | `renderers/spec_capabilities.py` | the layout of a capability's page, `spec/capabilities/<name>.md`, from the capability's content and the name of the feature file formulating it | reading, files |
+| `renderers/spec_decisions.py` | the shop's decisions as files: reading the decisions its `decisions` names and those its capabilities rest on that another shop names (that shop found by Follow), laying out the ledger, `spec/decisions.md`, and a record, `adrs/<number>-<name>.md`, for each of the shop's own | writing files |
 | `renderers/spec_index.py` | the layout of the spec's `spec/index.md` from the shop's content and its capabilities' names and gists | reading, files |
 | `renderers/names.py` | the name a published file is given from a title | reading, files |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts, and naming which of them is the base the ten build on | the types themselves |

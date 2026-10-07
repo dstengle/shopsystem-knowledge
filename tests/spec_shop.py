@@ -32,7 +32,7 @@ CAPABILITIES = [
 ]
 DECISIONS = [
     {"title": "Shelves are filled daily", **decided(1)},
-    {"title": "Counts are kept weekly", **decided(2)},
+    {"title": "Counts are kept weekly", **decided(2), "revisit_when": "the shop grows", "supersedes": 0, "extends": [0]},
 ]
 CONSTRAINTS = [
     {"title": "Shelves stay full", "says": "No shelf is left empty.", "pinned": [0, 1]},
@@ -49,7 +49,14 @@ class Built:
         self.capabilities, self.decisions, self.features = capabilities, decisions, features
 
 
-def _decision(env, tmp_path, fields):
+def _decision(env, tmp_path, fields, earlier=()):
+    """Record a decision; `supersedes` and `extends`, where it has them, are indexes into the `earlier` names."""
+    given = {key: value for key, value in fields.items() if key not in {"supersedes", "extends"}}
+    if "supersedes" in fields:
+        given["supersedes"] = earlier[fields["supersedes"]]
+    if "extends" in fields:
+        given["extends"] = [earlier[at] for at in fields["extends"]]
+    fields = given
     sections = [
         {"title": "Purpose", "body": f"{fields['title']}, because the shelves need it.\n"},
         {"title": "Rationale", "body": "The shop runs better so.\n"},
@@ -78,7 +85,9 @@ def build(env, tmp_path) -> Built:
     its capabilities exist, since they link to it and it to them."""
     product = record(env, tmp_path, "product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": [PURPOSE]},
                      "Record the product")
-    decisions = [_decision(env, tmp_path, fields) for fields in DECISIONS]
+    decisions = []
+    for fields in DECISIONS:
+        decisions.append(_decision(env, tmp_path, fields, decisions))
     shop_content = {
         "title": "Shelves", "product": product, "gist": "Keeps the shelves.", "narrator": "the shopkeeper",
         "decisions": decisions, "sections": SHOP_SECTIONS,
@@ -150,3 +159,31 @@ def ordered_capability(env, tmp_path, shop, title):
     result = knol(env, "write", shop, "--from", str(path), "-m", "Order the shop's capabilities")
     assert result.returncode == 0, result.stderr
     return capability, feature
+
+
+def _rewritten(env, tmp_path, name, **changed):
+    """The artifact `name` written over with `changed` fields beside what it holds."""
+    held = whole(env, name)
+    complete = {key: value for key, value in held.items() if key not in {"id", "type", "schema_version", "revision", "title"}}
+    path = tmp_path / "rewritten.yaml"
+    path.write_text(dumps({**complete, **changed}))
+    result = knol(env, "write", name, "--from", str(path), "-m", f"Rewrite {name}")
+    assert result.returncode == 0, result.stderr
+
+
+def numbered_decision(env, tmp_path, shop, number, title):
+    """A decision of `number` and `title` added to the decisions `shop` names; return its name."""
+    decision = put(env, tmp_path, "decision", title, **decided(number))
+    _rewritten(env, tmp_path, shop, decisions=[*whole(env, shop).get("decisions", []), decision])
+    return decision
+
+
+def other_shop_decision(env, tmp_path, product, number, title):
+    """Another shop of `product` that names a decision of `number` and `title`; return the shop's name and the decision's."""
+    shop = put(env, tmp_path, "shop", "Aisles", product=product, gist="Keeps the aisles.")
+    return shop, numbered_decision(env, tmp_path, shop, number, title)
+
+
+def rest_on(env, tmp_path, capability, decision):
+    """`capability` made to rest on `decision` as well as what it rests on."""
+    _rewritten(env, tmp_path, capability, rests_on=[*whole(env, capability)["rests_on"], decision])

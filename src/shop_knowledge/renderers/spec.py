@@ -1,9 +1,9 @@
 """The spec renderer: a shop's spec, published from the shop and, through it, the capabilities it orders and its
-constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`."""
+constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages and the decisions' ledger and records."""
 from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import names, source, spec_capabilities, spec_index
+from shop_knowledge.renderers import names, source, spec_capabilities, spec_decisions, spec_index
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
@@ -20,8 +20,11 @@ def render(client, name: str) -> Rendered:
     pages, faults = _pages(client, [capabilities[id] for id in content.get("reading_order", [])])
     if faults:
         return refused(faults)
+    decisions, faults = spec_decisions.files(client, content, [loads(capabilities[id].content) for id in content.get("reading_order", [])])
+    if faults:
+        return refused(faults)
     index = {"spec/index.md": spec_index.page(shop.title, content, {id: _described(each) for id, each in capabilities.items()})}
-    return Rendered({**index, **pages}, [])
+    return Rendered({**index, **pages, **decisions}, [])
 
 
 def _wanted(content: dict) -> list[str]:
