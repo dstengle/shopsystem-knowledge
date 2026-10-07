@@ -65,9 +65,9 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 | type | glance fields | other fields | sections | parts |
 |---|---|---|---|---|
 | product | `gist` | | Purpose | |
-| shop | `product` → product, `gist` | `narrator`, `reading_order` → capability, many, in order | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `pinned_in` → capability, many |
+| shop | `product` → product, `gist` | `narrator`, `reading_order` → capability, many, in order, `decisions` → decision, many | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `pinned_in` → capability, many |
 | capability | `shop` → shop, `gist` | `narrator`, `rests_on` → decision, many | Purpose; an `Implementation, may change` section may follow | `behaviour`: `title`, `says` (one EARS line); `not_yet`: `title`, `defers`, `trigger` |
-| decision | `statement`, `date`, `supersedes` → decision | `number`, `shop` → shop, `revisit_when`, `extends` → decision, many | Purpose, Rationale | |
+| decision | `statement`, `date`, `supersedes` → decision | `number`, `revisit_when`, `extends` → decision, many | Purpose, Rationale | |
 | feature | `formulates` → capability | `background`: steps | | `scenarios`: `title`, `description`, `formulates` → a capability's behaviour line, `uses` → capability, many, `labels` (Gherkin tags), `steps`, `examples` |
 
 - Every section listed for a type is required, save the capability's `Implementation, may change`, which may follow: a product requires Purpose; a shop, Purpose, Order of building and Testing; a capability, Purpose; a decision, Purpose and Rationale; a feature has no sections. A missing required section is refused as a change that does not fit its type (record-an-artifact).
@@ -75,14 +75,15 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
   - product: `gist`;
   - shop: `product`, `gist`;
   - capability: `shop`, `gist`, `narrator`;
-  - decision: `statement`, `date`, `number`, `shop`;
+  - decision: `statement`, `date`, `number`;
   - feature: `formulates`;
   - a `behaviour` item: `title`, `says`;
   - a `not_yet` item: `title`, `defers`, `trigger`;
   - a `constraints` item: `title`, `says`;
   - a scenario: `title`, `formulates`, `steps`;
   - a step: `keyword`, `text`.
-- Every other field is optional: a shop's `narrator` and `reading_order`; a capability's `rests_on`; a decision's `supersedes`, `extends` and `revisit_when`; a constraint's `pinned_in`; a scenario's `description`, `uses`, `labels` and `examples`; a step's `table` and `docstring`.
+- Every other field is optional: a shop's `narrator`, `reading_order` and `decisions`; a capability's `rests_on`; a decision's `supersedes`, `extends` and `revisit_when`; a constraint's `pinned_in`; a scenario's `description`, `uses`, `labels` and `examples`; a step's `table` and `docstring`.
+- A decision carries no link to a shop. A shop names its decisions through its `decisions` field; the shop's decisions are those it names.
 - A decision's `date` is a day, `YYYY-MM-DD`. Its `number` is a whole number, given by whoever records it as the shop's next; it is the number its ADR file carries.
 - A scenario's step is `keyword` (Given, When, Then, And or But), `text`, and optionally a `table` (rows of cells, the first row the header) or a `docstring`. `examples` is a table, the first row the header.
 - `labels` are plain words such as `@slice-55.3`.
