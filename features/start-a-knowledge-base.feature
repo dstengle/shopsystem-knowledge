@@ -100,6 +100,18 @@ Feature: Start a knowledge base
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
+  Scenario Outline: Naming a directory that sits inside a knowledge base but holds none of its own is refused
+    Pins that naming a place never reaches past it: the knowledge base above the named directory is neither furnished nor named, whatever it holds.
+    Given the user is working in one directory, and another directory sits inside a knowledge base <holding> but holds none of its own
+    When the user starts a shop knowledge base in the other directory by naming it, saying who they are
+    Then starting the knowledge base is rejected because that directory is inside a knowledge base
+    And nothing changes
+
+    Examples:
+      | holding                         |
+      | kb's operator started empty     |
+      | holding the shop's types        |
+
   @slice-55.1
   Scenario Outline: Starting where the knowledge base to furnish already holds the shop's types is refused
     Pins that furnishing never runs twice: a knowledge base that already has the shop's types is left exactly as it was, whether it was found or named.
