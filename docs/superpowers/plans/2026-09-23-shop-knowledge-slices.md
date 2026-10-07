@@ -179,6 +179,8 @@ only.
 - 2026-10-07 If the session guard refuses in the xdist workers only, each worker shows a "node down" traceback and the run exits 5 instead of one line and exit 4 (session_guard.py pytest_sessionstart). Reproduction: a scratch plugin pointing only the workers' guard at a store, then `make test` (slice 52.1's log). From batch 15's review.
 - 2026-10-07 The served-store fixture's serve() does not forward kb.testing.served's clock, so a scenario that sets the day (driver.at) and writes through a server would be stamped with the machine's day. No scenario does today. From batch 15's review.
 - 2026-10-07 tests/start_not_empty.py's _noted does not check the exit code of the journal read it records, so a failed before-read makes "nothing changes" compare empty with empty for the KB_ROOT and named-directory rows. From batch 15's review.
+- 2026-10-07 init._reached_at compares where().root with the named root even when where() found nothing (root "" resolves to the process's working directory); harmless today since the List is refused and kb.init's refusal re-raised, but the intent is obscure: return False when where() carries faults. Reproduction: `shop-knol init <dir>` with a garbage connection in <dir>, naming `.` versus another path. From batch 15's fix-wave re-review.
+- 2026-10-07 Probe stores from earlier batches sit inside the checkout under .superpowers/ (batch4 to batch14, r5): a shop-knol run started inside one finds it, and the suite's guard looks upward only. Clean them up, or keep probes in the test temp dir. From batch 15's fix-wave re-review.
 
 ## Log
 
@@ -292,3 +294,4 @@ only.
   Surprised by: the existing 'inside a knowledge base' Then asked kb about where the user works only; it now asks kb about the directory named (a fixture named_inside the Given fills), from where the user works. CLAUDE.md rule 1 now names what takes a clock outright (connect, kb.init and kb.testing.served). Scratch probe stores under .superpowers/batch15/probe* removed.
   Open questions: none. Next: the batch's branch review.
 - 2026-10-07 Suite: 134 passed, 0 failed at 09bc387 in 10.7 s
+- 2026-10-07 Batch 15 fix wave re-reviewed (opus): both findings addressed (init._named stops at the named directory through where().root, kb.init's inside refusal re-raised; CLAUDE.md rule 1 names what takes a clock); no new breakage. Suite 134 passed, 0 failed at 09bc387.
