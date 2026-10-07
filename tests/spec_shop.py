@@ -70,13 +70,13 @@ def _feature(env, tmp_path, capability, name):
         "formulates": name,
         "scenarios": [{
             "title": f"{capability['title']}, as the user does it",
-            "formulates": f"{name}#behaviour/{_handle(capability['behaviour'][0]['title'])}",
+            "formulates": f"{name}#behaviour/{handle(capability['behaviour'][0]['title'])}",
             "steps": [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text": "the shelf is in order"}],
         }],
     }, f"Formulate {capability['title']}")
 
 
-def _handle(title):
+def handle(title):
     return title.lower().replace(" ", "-")
 
 
@@ -169,6 +169,11 @@ def _rewritten(env, tmp_path, name, **changed):
     path.write_text(dumps({**complete, **changed}))
     result = knol(env, "write", name, "--from", str(path), "-m", f"Rewrite {name}")
     assert result.returncode == 0, result.stderr
+
+
+def reading_order(env, tmp_path, shop, capabilities):
+    """`shop` made to order `capabilities`, which link to it and so were recorded after it."""
+    _rewritten(env, tmp_path, shop, reading_order=capabilities)
 
 
 def numbered_decision(env, tmp_path, shop, number, title):

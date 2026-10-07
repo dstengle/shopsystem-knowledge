@@ -117,6 +117,9 @@ def command_parser() -> argparse.ArgumentParser:
     render.add_argument("locator", type=_named("artifact"))
     render.add_argument("--to", type=_named("directory", Path), required=True, metavar="DIR")
 
+    coverage = commands.add_parser("coverage", help="see which of a shop's Behaviour lines no scenario formulates, and which more than one does")
+    coverage.add_argument("shop", type=_named("shop"))
+
     delete = commands.add_parser("delete", help="retire an artifact nothing points at")
     delete.add_argument("locator", type=_named("artifact"))
     delete.add_argument("-m", dest="message", help="why")

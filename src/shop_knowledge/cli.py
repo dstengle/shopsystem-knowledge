@@ -12,7 +12,7 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, document, init, kb_requests
+from shop_knowledge import answers, arguments, bootstrap, coverage, document, init, kb_requests
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -206,6 +206,11 @@ def _render(args) -> int:
     return 0
 
 
+def _coverage(args) -> int:
+    _show(coverage.of(_client(), args.shop))
+    return 0
+
+
 def _write(files: dict[str, str], directory: Path) -> None:
     """The files a renderer gave back, each written at its path under the directory asked for."""
     for relative, content in files.items():
@@ -230,4 +235,5 @@ _HANDLERS = {
     "render": _render,
     "delete": _delete,
     "snapshot": _snapshot,
+    "coverage": _coverage,
 }
