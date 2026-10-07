@@ -68,7 +68,7 @@ only.
 - Observable: the user publishes a shop and finds one file per capability, named from its title, with frontmatter, Purpose, Behaviour, Implementation and Not yet
 - Unknown: whether a capability page can keep its frontmatter first and lay out its sections with the layout the markdown and agent publishers share
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 64: Publish a shop's decisions
 - Kind: capability
@@ -149,3 +149,7 @@ only.
 - 2026-10-07 slice 62 green. Someone can now: record a product, shop, capability, decision or feature and be refused when a gist or statement runs past 200 characters, a part title past 80, or either holds a line break, read it at a glance as short lines and links, and record scenarios linking to one Behaviour line. Surprised by: nothing; the limits were the only change under src/ and the uses scenario was already enforced by the link's target. Open questions: a pattern ^[^\n]*$ lets one trailing line break through where the matcher's $ stops before it; no scenario asks. Next: slice 63.
 - 2026-10-07 Suite: 154 passed, 30 failed at 0cc0361 in 245 s; failing: the 30 publish-a-shops-spec scenarios still red at the start
 - 2026-10-07 slice 62 open question ruled: a trailing line break is a defect; the pattern is now ^[^\n]*(?!\n)$, probed against kb v0.6.0 (abc kept; abc+newline and a+newline+b refused as rule pattern).
+- 2026-10-07 slice 63 green. Someone can now: publish a shop's spec and find one page for each capability in its reading order under spec/capabilities, named from its title, with frontmatter, Purpose, Behaviour, other sections and Not yet.
+  Surprised by: the outline's Then for the feature file cannot see the file (slice 65 writes it), so it reads the capability page's formulated_as naming features/<name>.feature; the Given adds its capability to the Background's shop and its reading order; names.from_title already held the whole rule; List filters on the link field formulates. Review Focus 1: a title leaving no name (such as a lone registered-sign) is refused by kb at record, so no empty file name reaches the publisher; 'Café ®' publishes as caf.md. Review Focus 3: publishing over an older spec writes the files over; a removed capability's page stays in the directory (no line says otherwise, recorded, not changed).
+  Open questions: should publishing remove pages of capabilities no longer in the shop (no line says)? Next: slice 64.
+- 2026-10-07 Suite: 162 passed, 22 failed at 5bbb681 in 18 s; failing: the 22 publish-a-shops-spec scenarios of slices 64 to 67
