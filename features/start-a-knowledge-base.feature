@@ -100,6 +100,7 @@ Feature: Start a knowledge base
     Then starting the knowledge base is rejected because that directory is inside a knowledge base
     And everything the shop already knows is still there, unchanged
 
+  @slice-55.3
   Scenario Outline: Naming a directory that sits inside a knowledge base but holds none of its own is refused
     Pins that naming a place never reaches past it: the knowledge base above the named directory is neither furnished nor named, whatever it holds.
     Given the user is working in one directory, and another directory sits inside a knowledge base <holding> but holds none of its own

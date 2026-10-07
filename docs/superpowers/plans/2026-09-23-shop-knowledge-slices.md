@@ -110,6 +110,14 @@ only.
 - Needs: slice 53's server
 - Status: green
 
+## Slice 55.3: init never reaches past a directory the user names
+- Kind: capability
+- Scenarios: start-a-knowledge-base / Naming a directory that sits inside a knowledge base but holds none of its own is refused (both rows)
+- Observable: a user who names a directory inside a knowledge base is refused because it is inside one, and the knowledge base above is neither furnished nor named
+- Unknown: how init tells, through the contract, that the knowledge base kb reaches from a named root sits above it rather than at it
+- Needs: none
+- Status: planned
+
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
 - Kind: capability
 - Scenarios: make-several-changes-at-once / The user makes several changes at once; make-several-changes-at-once / A link written with a key a create in the batch carries names that create's artifact (both rows); make-several-changes-at-once / A link written with a key no create in the batch carries leaves the shop untouched; make-several-changes-at-once / Two creates carrying the same key leave the shop untouched; make-several-changes-at-once / One bad change in a batch leaves the shop untouched; make-several-changes-at-once / A batch whose prose the shop cannot keep leaves the shop untouched
@@ -168,6 +176,9 @@ only.
 - 2026-10-06 KB_ROOT naming the knowledge base the user works inside is refused "it already holds the shop's knowledge" (a ruling under the person's delegation), where the "inside" line could also apply: for the person to confirm, with an Examples row (from Task 5.1's review).
 - 2026-10-07 init with nothing named, where kb finds a connection to a server hosting a store holding types other than the shop's, is refused as not empty but names no knowledge base: stderr is 'it is not empty: it holds the types recipe, supplier' (the Fault's artifact empty), while the already-holds refusal of a served store names its address. Reproduction: .superpowers/batch15/probe55-1/scripts/probe.py <empty scratch dir> (kb.init a store, the operator creates schema Recipe and Supplier, kb.testing.served(store, office), shop-knol init from office with KB_ROOT unset). Whether it should name the address as already-holds does is for the person; the not-empty outline has no server row.
 - 2026-10-07 init over a damaged connection to a server hides the damage behind kb.init's reason: a garbage kb/server.yaml in the working directory, then `shop-knol init` prints 'a store goes in a place of its own, and <dir> already holds something in that place' where `list --type schema --ids` prints that the connection cannot be read or names no address. Same class as the damaged-store entry. (slice 55.2's Review Focus 4 probe)
+- 2026-10-07 If the session guard refuses in the xdist workers only, each worker shows a "node down" traceback and the run exits 5 instead of one line and exit 4 (session_guard.py pytest_sessionstart). Reproduction: a scratch plugin pointing only the workers' guard at a store, then `make test` (slice 52.1's log). From batch 15's review.
+- 2026-10-07 The served-store fixture's serve() does not forward kb.testing.served's clock, so a scenario that sets the day (driver.at) and writes through a server would be stamped with the machine's day. No scenario does today. From batch 15's review.
+- 2026-10-07 tests/start_not_empty.py's _noted does not check the exit code of the journal read it records, so a failed before-read makes "nothing changes" compare empty with empty for the KB_ROOT and named-directory rows. From batch 15's review.
 
 ## Log
 
@@ -276,3 +287,4 @@ only.
   Surprised by: nothing; the Given (tests/start_furnished.py) was the only change, nothing under src/ changed (the scenario was red on its undefined Given per the record at 892a70a). Review Focus 4: with a hand-written garbage connection (.superpowers/batch15/probe55/kb/server.yaml), `init` prints one line 'a store goes in a place of its own, and <dir> already holds something in that place', exit 1, no traceback, nothing written; `list` there prints 'the connection to a server cannot be read or names no address host:port: <path>', exit 1.
   Open questions: none. Next: slice 56.
 - 2026-10-07 Suite: 132 passed, 0 failed at b98965b in 10.9 s
+- 2026-10-07 Batch 15 branch review (opus, 414cf0f..d1dfa17): suite 132 passed, 0 failed at d1dfa17 in 10.98 s. Ready with fixes. Important: since kb v0.6.0 searches upward from a root given to connect, `init <dir>` naming a directory inside a knowledge base furnishes the one above (empty) or refuses as already holding the shop's knowledge naming <dir> (furnished); on v0.5.0 both ended in kb.init's inside refusal. Settled by principle (adrs/0044): spec c26c605 adds the Behaviour line under the person's delegation, formulated in 95c7166 as a two-row outline, cut as slice 55.3 for the fix wave. Minor: CLAUDE.md rule 1's "the clock those two take" ambiguous since where() was named. Task 2's plan text named the upward search but its check was the suite alone (plan defect).
