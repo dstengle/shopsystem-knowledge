@@ -2,6 +2,7 @@
 Feature: Start a knowledge base
   Narrator: the user, setting up the shop's knowledge base
 
+  @slice-60
   Scenario: The user starts a knowledge base and the shop's types are ready
     Pins that a new knowledge base arrives furnished with the shop's ten kinds of thing, so nobody has to define a type before recording anything.
     Given the user is working in an empty directory for the shop's knowledge

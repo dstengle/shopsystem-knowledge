@@ -2,7 +2,7 @@
 Feature: Use the shop's types
   Narrator: the user, working with the shop's kinds of thing
 
-  @slice-58
+  @slice-60
   Scenario: The user asks which types the shop holds
     Pins that the shop's kinds of thing can be seen through a command of their own, all of them at once.
     Given a shop knowledge base
@@ -16,7 +16,7 @@ Feature: Use the shop's types
     When the user reads the role type by its name
     Then the user is shown the role type as the shop holds it
 
-  @slice-58
+  @slice-60
   Scenario Outline: Every artifact of the shop's ten types can carry an owner, a status and tags
     Pins that owner, status and tags are common to every kind of thing the shop holds, not a feature of some kinds only.
     Given a shop knowledge base holding a tag "pricing"
@@ -64,6 +64,7 @@ Feature: Use the shop's types
       | describes what to do in place                    | as described, in place                             |
       | uses "check the stock" with settings of its own  | as a use of "check the stock" with those settings  |
 
+  @slice-62
   Scenario Outline: The user reads a product, a shop, a capability, a decision or a feature at a glance
     Pins that a glance at one of the spec's kinds of thing shows only short lines and links, each just as the user recorded it.
     Given a shop knowledge base holding a product "shopsystem", a shop "knowledge" of "shopsystem", a capability "checkout" of "knowledge" and a decision "prices-include-tax" of "knowledge"
@@ -79,18 +80,21 @@ Feature: Use the shop's types
       | decision   | prices-exclude-tax  | with the statement "Prices are shown before tax", the date 2026-10-07, superseding "prices-include-tax" |
       | feature    | checkout            | formulating the capability "checkout"                                                                 |
 
+  @slice-62
   Scenario: The user reads an artifact holding parts at a glance
     Pins that a glance names an artifact's parts by their titles, so the user sees what it holds without reading each part.
     Given a shop knowledge base holding a capability "checkout" with Behaviour lines titled "Show the price" and "Apply a code"
     When the user reads the capability "checkout" at a glance
     Then each of its Behaviour lines is shown by its title
 
+  @slice-62
   Scenario: The user records an artifact holding parts
     Pins that the user gives a part a title and the shop gives it its name, so no part's name is chosen by hand.
     Given a shop knowledge base
     When the user records a capability with a Behaviour line titled "Show the price", saying who they are and why
     Then the Behaviour line's name is minted from its title "Show the price"
 
+  @slice-62
   Scenario Outline: The user records a gist or a statement longer than 200 characters
     Pins that the one-line summaries a glance shows cannot grow past their limit.
     Given a shop knowledge base
@@ -102,6 +106,7 @@ Feature: Use the shop's types
       | product  | gist      |
       | decision | statement |
 
+  @slice-62
   Scenario Outline: The user records a gist or a statement that holds a line break
     Pins that the one-line summaries a glance shows stay on one line.
     Given a shop knowledge base
@@ -113,18 +118,21 @@ Feature: Use the shop's types
       | product  | gist      |
       | decision | statement |
 
+  @slice-62
   Scenario: The user records a part whose title is longer than 80 characters
     Pins that the title a part is shown and named by cannot grow past its limit.
     Given a shop knowledge base
     When the user records a capability with a Behaviour line whose title is 81 characters long, saying who they are and why
     Then the change is refused because it does not fit its type
 
+  @slice-62
   Scenario: The user records a part whose title holds a line break
     Pins that the title a part is shown and named by stays on one line.
     Given a shop knowledge base
     When the user records a capability with a Behaviour line whose title holds a line break, saying who they are and why
     Then the change is refused because it does not fit its type
 
+  @slice-62
   Scenario: The user records a scenario whose uses points at anything but a capability
     Pins that a scenario can say it uses only capabilities, not other kinds of thing the shop holds.
     Given a shop knowledge base holding a capability "checkout" with a Behaviour line titled "Show the price"
@@ -132,12 +140,14 @@ Feature: Use the shop's types
     When the user records a feature with a scenario that formulates the Behaviour line "Show the price" and uses the decision "prices-include-tax", saying who they are and why
     Then the change is refused because it does not fit its type
 
+  @slice-62
   Scenario: The user records a feature
     Pins that a scenario is tied to the very Behaviour line it formulates, so the line can be found from the scenario.
     Given a shop knowledge base holding a capability "checkout" with a Behaviour line titled "Show the price"
     When the user records a feature with a scenario that formulates the Behaviour line "Show the price", saying who they are and why
     Then the scenario names the Behaviour line "Show the price" as a link into the Behaviour lines of "checkout"
 
+  @slice-62
   Scenario: The user records a scenario with labels
     Pins that a scenario's labels are words of their own, not the shop's tags, even when a tag shares the word.
     Given a shop knowledge base holding a tag "pricing"

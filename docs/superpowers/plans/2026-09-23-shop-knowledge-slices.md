@@ -38,6 +38,70 @@ its place by its unknown among the slices not yet begun, and those slices
 are renumbered and their tags rewritten to match, within this repository
 only.
 
+## Slice 60: The shop's ten types
+- Kind: capability
+- Scenarios: start-a-knowledge-base / The user starts a knowledge base and the shop's types are ready; use-the-shops-types / The user asks which types the shop holds; use-the-shops-types / Every artifact of the shop's ten types can carry an owner, a status and tags (all rows)
+- Observable: a new knowledge base holds products, shops, capabilities, the reshaped decision and the new feature beside the five kept types, and each of the ten carries an owner, a status and tags
+- Unknown: whether the reshaped decision, whose required shop needs a shop and a product, can stand in for every decision today's scenarios record without changing what any of them says
+- Needs: every existing scenario that records a decision gives it the reshaped decision's required fields (statement, date, number, shop) as step data only, per integration answer 2; no Given, When or Then changes
+- Status: planned
+
+## Slice 61: Publish a shop's index
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and the directory holds its index
+- Observable: the user publishes a shop into a directory and finds spec/index.md laid out from the shop, its constraints and its reading order, with the knowledge base unchanged
+- Unknown: whether a publisher made from a shop can read the shop's other artifacts through the contract and give back files in more than one directory
+- Needs: none
+- Status: planned
+
+## Slice 62: Short fields and links into Behaviour lines
+- Kind: capability
+- Scenarios: use-the-shops-types / The user reads a product, a shop, a capability, a decision or a feature at a glance (all rows); The user reads an artifact holding parts at a glance; The user records an artifact holding parts; The user records a gist or a statement longer than 200 characters (all rows); The user records a gist or a statement that holds a line break (all rows); The user records a part whose title is longer than 80 characters; The user records a part whose title holds a line break; The user records a scenario whose uses points at anything but a capability; The user records a feature; The user records a scenario with labels
+- Observable: the user records a feature whose scenarios link into a capability's Behaviour lines, sees parts by title at a glance, and is refused a gist, statement or part title that is too long or breaks a line
+- Unknown: whether a link into a capability's Behaviour line, given in a file the user records, is kept and shown back through shop-knol as the link it was given
+- Needs: none
+- Status: planned
+
+## Slice 63: Publish a shop's capabilities
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and the directory holds a file for each capability; The user publishes a shop's spec and a capability's file is named from its title (all rows)
+- Observable: the user publishes a shop and finds one file per capability, named from its title, with frontmatter, Purpose, Behaviour, Implementation and Not yet
+- Unknown: whether a capability page can keep its frontmatter first and lay out its sections with the layout the markdown and agent publishers share
+- Needs: none
+- Status: planned
+
+## Slice 64: Publish a shop's decisions
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and the directory holds its ledger; The user publishes a shop's spec and the directory holds a record for each decision; The user publishes a shop's spec and a decision's record is named from its number and title (all rows); The user publishes a shop's spec and every ledger entry is a decision the knowledge base holds; The user publishes a shop's spec whose capabilities rest on a decision of another shop
+- Observable: the user publishes a shop and finds its ledger, listing its own decisions and then those of other shops its capabilities rest on, and one numbered record per decision of its own
+- Unknown: how a publisher finds the decisions of other shops that a shop's capabilities rest on, and those shops' names, through the contract
+- Needs: none
+- Status: planned
+
+## Slice 65: Publish a shop's feature files
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and the directory holds a feature file for each formulated capability
+- Observable: the user publishes a shop and finds a Gherkin feature file for each formulated capability, its scenarios, labels, steps, tables and examples laid out as the shop writes them
+- Unknown: whether a feature's scenarios, as parts holding steps, tables, docstrings and examples, lay out as Gherkin the shop's own feature files would accept as written
+- Needs: none
+- Status: planned
+
+## Slice 66: See what is formulated
+- Kind: capability
+- Scenarios: see-what-is-formulated / The user asks what is formulated in a shop, and is shown each line no scenario formulates; The user asks what is formulated in a shop, and is shown each line more than one scenario formulates; Where some of the shop's lines have no scenario, the user asks what is formulated and is answered, not refused; Every one of the shop's lines is formulated by exactly one scenario, and the user is shown none unformulated and none formulated twice; The user asks what is formulated in a shop the knowledge base does not hold
+- Observable: the user asks shop-knol coverage for a shop and is shown the Behaviour lines no scenario formulates and those more than one does
+- Unknown: how to count the scenarios that formulate each of a shop's Behaviour lines through the contract, given a link into a part counts as a link into its artifact
+- Needs: none
+- Status: planned
+
+## Slice 67: The published-from line and publishing refusals
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and every file it writes carries the published-from line (all rows); Publishing is refused when a capability names the shop but is not in the shop's reading order; Publishing is refused when a capability in the shop's reading order names another shop; Publishing is refused when two of the shop's capabilities would be published under one file name; Publishing is refused when two of the shop's decisions would be published under one file name; Publishing is refused when two of the shop's decisions carry one number; Publishing is refused when two features formulate one of the shop's capabilities; Publishing is refused when a scenario's uses points at a capability of its own shop
+- Observable: every file a publish writes says it was published from the knowledge base and must not be edited, and a shop whose spec would publish inconsistently is refused with nothing written
+- Unknown: none
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
@@ -65,3 +129,10 @@ only.
 ## Log
 - 2026-10-07 Batch batch15 archived to archive/2026-09-23-shop-knowledge-slices-batch15.md; last 2026-10-07 Suite: 134 passed, 0 failed at 09bc387 in 10.7 s
 - 2026-10-07 Suite: 134 passed, 0 failed at 09bc387 in 10.7 s
+- 2026-10-07 Suite: 132 passed, 21 failed at f965ec0 in 12.8 s; failing: the new and changed scenarios of use-the-shops-types and start-a-knowledge-base (publish-a-shops-spec and see-what-is-formulated not yet collected)
+- 2026-10-07 Probe: kb v0.6.0, a schema with maxLength 200 and pattern ^[^\n]*$ on gist -> a 201-character gist refused (rule maxLength, place gist), a gist holding a line break refused (rule pattern)
+- 2026-10-07 Probe: kb v0.6.0, a feature scenario's formulates ref with parts: true -> capability/checkout#behaviour/show-the-price accepted; #behaviour/nope refused (rule ref, place scenarios/0/formulates); a glance at the capability shows the part's title and counts the feature inbound
+- 2026-10-07 Probe: kb v0.6.0, Read whole at locator place behaviour/show-the-price -> the whole capability comes back, not the one item (no scenario relies on reading one part)
+- 2026-10-07 Probe: kb v0.6.0 BatchCreateRequest and BatchReplaceRequest fields -> items, signature only: no validate-only mode
+- 2026-10-07 REQUEST kb: a validate-only mode on BatchCreate and BatchReplace, checking a batch as it would land and landing nothing (adrs/0053; spec/capabilities/make-several-changes-at-once.md Not yet). No slice of batch 16 waits on it.
+- 2026-10-07 REQUEST shopsystem-bdd: capability-writer and feature-formulator read kb through a read-only shop-knol allowlist (read, list, refs, search, types) and draft shop-knol apply batch files; integrating-a-proposal's and formulating-features' apply steps validate, gate, apply creates then writes, publish with render spec, and commit; the capability format notes the published-from line (adrs/0052, 0053). Moving a shop's real spec into kb waits on it.
