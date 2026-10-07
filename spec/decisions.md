@@ -473,3 +473,8 @@ A scenario that needs a kb server gets it from a served-store double kb publishe
 date: 2026-10-06
 supersedes: decision/shop-knol-reaches-kb-wherever-kb-finds-it
 source: the person, 2026-10-06 ("I'd prefer that this start using a mock provided by kb")
+
+## decision/naming-a-directory-inside-a-knowledge-base-is-refused
+Naming a directory that sits inside a knowledge base but holds none of its own is refused because that directory is inside a knowledge base, and nothing changes: init neither furnishes nor names the knowledge base above it. Settled by principle (a-case-a-spec-principle-answers-is-settled): start-a-knowledge-base's Purpose (init refuses rather than nest the shop's knowledge) and its Implementation (kb.init's refusal for a directory inside a store reaches the user in kb's words). Found by batch 15's branch review, after kb v0.6.0 began searching upward from a root given to `connect`.
+date: 2026-10-07
+source: the person's delegation, 2026-10-07 ("Please proceed and work independently")
