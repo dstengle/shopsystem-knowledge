@@ -1,0 +1,15 @@
+title: Product
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    gist:
+      type: string
+  required: [title, gist]
+  sections:
+    - title: Purpose
+  summary: [gist]

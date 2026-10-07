@@ -1,16 +1,24 @@
-"""The steps of use-the-shops-types.feature that record each of the shop's seven types with the fields every shop
+"""The steps of use-the-shops-types.feature that record each of the shop's ten types with the fields every shop
 artifact carries, and those of a process's steps. The feature's test module star-imports this and no other does."""
 from kb.content import dumps
 from pytest_bdd import given, parsers, then, when
 
+from decision_fields import decided
 from driver import knol, record, start, whole
 
-SECTIONS = [{"title": "Purpose", "body": "Why.\n"}, {"title": "Rationale", "body": "Because.\n"}]
+PURPOSE = [{"title": "Purpose", "body": "Why.\n"}]
+SECTIONS = [*PURPOSE, {"title": "Rationale", "body": "Because.\n"}]
+SHOP_SECTIONS = [*PURPOSE, {"title": "Order of building", "body": "In order.\n"}, {"title": "Testing", "body": "Tested.\n"}]
 OWNER, STATUS = "role/shopkeeper", "active"
 
 BY_KIND = {
-    "decision": ("decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}),
-    "feature": ("feature", {"title": "Pricing", "story": "As a shopkeeper I set prices."}),
+    "product": ("product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": PURPOSE}),
+    "shop": ("shop", {"title": "Shelves", "gist": "Keeps the shelves.", "sections": SHOP_SECTIONS}),
+    "capability": ("capability", {
+        "title": "Set prices", "gist": "Prices are set.", "narrator": "the shopkeeper", "sections": PURPOSE,
+    }),
+    "decision": ("decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}),
+    "feature": ("feature", {"title": "Pricing"}),
     "work item": ("work-item", {"title": "Reprice the shelves"}),
     "role": ("role", {
         "title": "Stock keeper",
@@ -21,6 +29,23 @@ BY_KIND = {
     "step": ("step", {"title": "Check the stock", "does": "Count what is on the shelf."}),
     "tag": ("tag", {"title": "Seasonal", "description": "Sold only some of the year.\n"}),
 }
+
+
+def _a_product(env, tmp_path):
+    return record(env, tmp_path, "product", BY_KIND["product"][1], "Record the product")
+
+
+def _a_shop(env, tmp_path):
+    return record(env, tmp_path, "shop", {**BY_KIND["shop"][1], "product": _a_product(env, tmp_path)}, "Record the shop")
+
+
+def _a_capability(env, tmp_path):
+    shop = _a_shop(env, tmp_path)
+    return record(env, tmp_path, "capability", {**BY_KIND["capability"][1], "shop": shop}, "Record the capability")
+
+
+LINKED = {"shop": ("product", _a_product), "capability": ("shop", _a_shop), "feature": ("formulates", _a_capability)}
+"""The kinds whose required link needs an artifact the shop holds first: the field, and how that artifact is recorded."""
 
 
 @given('a shop knowledge base holding a tag "pricing"', target_fixture="tag")
@@ -35,6 +60,9 @@ def _a_base_holding_a_tag(env, shop, tmp_path):
 )
 def _records_with_owner_status_tag(env, tmp_path, tag, kind):
     type_name, content = BY_KIND[kind]
+    if kind in LINKED:
+        field, recorded = LINKED[kind]
+        content = {**content, field: recorded(env, tmp_path)}
     path = tmp_path / "artifact.yaml"
     path.write_text(dumps({**content, "owner": OWNER, "status": STATUS, "tags": [tag]}))
     return knol(env, "create", type_name, "--from", str(path), "-m", f"Record a {kind}")

@@ -1,6 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, whole
 from record_refused_files import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from record_refused_files import SAYING_WHY
@@ -9,6 +10,7 @@ scenarios("record-an-artifact.feature")
 
 OLDER = {
     "title": "Prices are reviewed monthly",
+    **decided(1),
     "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},
@@ -16,6 +18,7 @@ OLDER = {
 }
 WEEKLY = {
     "title": "Price reviews happen weekly",
+    **decided(2),
     "supersedes": "decision/prices-are-reviewed-monthly",
     "sections": [
         {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
@@ -97,7 +100,8 @@ def _decision_in_a_file_titled(tmp_path, title):
     path = tmp_path / "titled.yaml"
     path.write_text(
         f"title: {title}\n"
-        "sections:\n"
+        + dumps(decided(1))
+        + "sections:\n"
         "  - title: Purpose\n    body: Keep prices in step with costs.\n"
         "  - title: Rationale\n    body: Costs move weekly.\n"
     )
@@ -158,7 +162,7 @@ TAKEN = "decision/prices-are-reviewed-monthly"
 )
 def _decision_in_a_file_with_a_taken_title(env, tmp_path):
     record(env, tmp_path, "decision", OLDER, "Record the monthly review")
-    again = {**OLDER, "sections": [
+    again = {**OLDER, **decided(2), "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "A second reason for the same title.\n"},
     ]}

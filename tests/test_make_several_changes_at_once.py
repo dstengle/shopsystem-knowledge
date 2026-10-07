@@ -4,6 +4,7 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 from batch_writes import *  # noqa: F403  this module alone star-imports it (adrs/0035)
@@ -34,7 +35,7 @@ def _shop_with_a_work_item(env, shop, tmp_path):
 def _linked_creates(work_item_first: bool = False, link: str = KEY) -> list:
     """A decision carrying KEY, and a new work item whose link is written with `link`, in the order asked."""
     decision = {
-        "create": "decision", "key": KEY, "content": {"title": "Price reviews happen weekly", "sections": SECTIONS},
+        "create": "decision", "key": KEY, "content": {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS},
     }
     work_item = {"create": "work-item", "content": {"title": NEW_ITEM_TITLE, "decisions": [f"@{link}"]}}
     return [work_item, decision] if work_item_first else [decision, work_item]
@@ -120,7 +121,7 @@ def _one_change(env, result):
 def _a_batch_with_a_bad_second_change(tmp_path):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"create": "decision", "content": {"title": "Price reviews happen weekly", "sections": SECTIONS}},
+        {"create": "decision", "content": {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}},
         {"create": "work-item", "content": {"title": NEW_ITEM_TITLE, "owner": 3, "status": 3}},
     ]}))
     return path
@@ -199,7 +200,8 @@ def _a_batch_with_unkept_prose(tmp_path):
         f"    key: {KEY}\n"
         "    content:\n"
         "      title: Price reviews happen weekly\n"
-        "      sections:\n"
+        + "".join(f"      {field}: {json.dumps(value)}\n" for field, value in decided(1).items())
+        + "      sections:\n"
         "        - title: Purpose\n"
         "          body: Keep prices in step with costs.\n"
         "        - title: Rationale\n"

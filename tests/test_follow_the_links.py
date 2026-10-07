@@ -1,5 +1,6 @@
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start
 
 scenarios("follow-the-links.feature")
@@ -16,6 +17,7 @@ def _shop_with_a_decision_over_an_older_one(env, shop, tmp_path):
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
+        **decided(1),
         "tags": [TAG],
         "sections": [
             {"title": "Purpose", "body": "Keep prices current.\n"},
@@ -24,6 +26,7 @@ def _shop_with_a_decision_over_an_older_one(env, shop, tmp_path):
     }, "Record the monthly review")
     return record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
+        **decided(2),
         "supersedes": OLDER,
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},

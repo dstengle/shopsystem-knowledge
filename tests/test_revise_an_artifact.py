@@ -4,6 +4,7 @@ import pytest
 from kb.content import dumps
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start, whole
 from kb_oracle import UNKEPT, refused_as_unkept
 
@@ -23,6 +24,7 @@ def _shop_with_a_decision(env, shop, tmp_path):
     start(env, shop)
     return record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
+        **decided(1),
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
             {"title": "Rationale", "body": "Costs move weekly.\n"},
@@ -39,7 +41,7 @@ def before(env, decision_id):
 @when("the user replaces the decision from a file, saying who they are and why", target_fixture="result")
 def _replace_the_decision(env, decision_id, tmp_path, before):
     path = tmp_path / "new-wording.yaml"
-    path.write_text(dumps({"sections": NEW_SECTIONS}))
+    path.write_text(dumps({**decided(1), "sections": NEW_SECTIONS}))
     return knol(env, "write", decision_id, "--from", str(path), "-m", "Costs now move daily")
 
 
@@ -89,7 +91,8 @@ def _files_with_unkept_prose(tmp_path):
     as a quoted scalar, and the place in the file where it is. Which one the user gives is the When's to say."""
     whole_file, section_file = tmp_path / "unkept-decision.yaml", tmp_path / "unkept-rationale.yaml"
     whole_file.write_text(
-        "sections:\n"
+        dumps(decided(1))
+        + "sections:\n"
         "  - title: Purpose\n    body: Keep prices in step with what the shop pays.\n"
         f"  - title: Rationale\n    body: {json.dumps(UNKEPT)}\n"
     )

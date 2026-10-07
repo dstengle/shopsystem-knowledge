@@ -4,6 +4,7 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import answering, knol, record
 from kb_oracle import printed
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
@@ -24,6 +25,7 @@ def _shop_with_a_linked_decision(env, started_shop, tmp_path):
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
+        **decided(1),
         "sections": [
             {"title": "Purpose", "body": "Keep prices current.\n"},
             {"title": "Rationale", "body": "Monthly was enough once.\n"},
@@ -31,6 +33,7 @@ def _shop_with_a_linked_decision(env, started_shop, tmp_path):
     }, "Record the monthly review")
     decision_id = record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
+        **decided(2),
         "supersedes": OLDER,
         "tags": ["tag/pricing"],
         "sections": [
@@ -160,7 +163,7 @@ def _older_decision_tagged_seasonal(env, tmp_path):
     # a batch lands creates or writes, never both (kb contract v1).
     tag = record(env, tmp_path, "tag", {"title": "seasonal", "description": "Changes with the season.\n"}, "Add a tag")
     path = tmp_path / "tag-the-older-decision.yaml"
-    path.write_text(dumps({"tags": [tag], "sections": [
+    path.write_text(dumps({**decided(1), "tags": [tag], "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},
     ]}))

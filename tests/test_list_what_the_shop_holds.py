@@ -1,13 +1,15 @@
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start
 
 scenarios("list-what-the-shop-holds.feature")
 
 
-def _decision(title, **fields):
+def _decision(title, number, **fields):
     return {
         "title": title,
+        **decided(number),
         **fields,
         "sections": [
             {"title": "Purpose", "body": f"{title}: why it is wanted.\n"},
@@ -20,12 +22,12 @@ def _decision(title, **fields):
 def _three_decisions(env, shop, tmp_path):
     """The names and titles recorded, in the order recorded: the superseded one, the one superseding it, an unrelated one."""
     start(env, shop)
-    monthly = _decision("Prices are reviewed monthly", status="superseded")
+    monthly = _decision("Prices are reviewed monthly", 1, status="superseded")
     ids = {}
     ids[monthly["title"]] = record(env, tmp_path, "decision", monthly, "Record the monthly review")
-    weekly = _decision("Price reviews happen weekly", supersedes=ids[monthly["title"]])
+    weekly = _decision("Price reviews happen weekly", 2, supersedes=ids[monthly["title"]])
     ids[weekly["title"]] = record(env, tmp_path, "decision", weekly, "Move price reviews to weekly")
-    opening = _decision("The shop opens at nine")
+    opening = _decision("The shop opens at nine", 3)
     ids[opening["title"]] = record(env, tmp_path, "decision", opening, "Record the opening hour")
     return {"ids": ids, "superseded": ids["Prices are reviewed monthly"]}
 

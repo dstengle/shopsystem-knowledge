@@ -1,6 +1,7 @@
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start
 
 scenarios("record-what-a-piece-of-work-read.feature")
@@ -8,6 +9,7 @@ scenarios("record-what-a-piece-of-work-read.feature")
 PIECE_OF_WORK = "restock-the-shelves"
 DECISION = {
     "title": "Prices are reviewed monthly",
+    **decided(1),
     "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},

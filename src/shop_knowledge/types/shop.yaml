@@ -1,0 +1,63 @@
+title: Shop
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    product:
+      type: string
+      ref:
+        targets: [product]
+        cardinality: one
+        parts: false
+        on_delete: refuse
+    gist:
+      type: string
+    narrator:
+      type: string
+    reading_order:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [capability]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+    decisions:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [decision]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title, product, gist]
+  sections:
+    - title: Purpose
+    - title: Order of building
+    - title: Testing
+  summary: [product, gist]
+  parts:
+    constraints:
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          says:
+            type: string
+          pinned_in:
+            type: array
+            items:
+              type: string
+            ref:
+              targets: [capability]
+              cardinality: many
+              parts: false
+              on_delete: refuse
+        required: [title, says]

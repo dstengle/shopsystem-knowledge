@@ -2,6 +2,7 @@ import pytest
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, store_in, unnamed
 from start_furnished import THE_SHOPS_TYPES
 from start_furnished import *  # noqa: F403  pytest-bdd registers steps only through a star import
@@ -35,12 +36,24 @@ def _init(env, directory):
     return knol(unnamed(env), "init", cwd=directory)
 
 
-@then("the shop can hold decisions, features, work items, roles, processes, steps and tags")
-def _holds_the_seven(env, tmp_path, result):
+@then("the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags")
+def _holds_the_ten(env, tmp_path, result):
     assert result.returncode == 0, result.stderr
     record(env, tmp_path, "tag", {"title": "Pricing", "description": "How the shop sets its prices.\n"}, "Tag pricing")
+    purpose = {"title": "Purpose", "body": "Keep the shelves full.\n"}
+    record(env, tmp_path, "product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": [purpose]},
+           "Record the product")
+    record(env, tmp_path, "shop", {
+        "title": "Shelves", "product": "product/corner-shop", "gist": "Keeps the shelves.",
+        "sections": [purpose, {"title": "Order of building", "body": "Stock first.\n"}, {"title": "Testing", "body": "Count.\n"}],
+    }, "Record the shop")
+    record(env, tmp_path, "capability", {
+        "title": "Restock", "shop": "shop/shelves", "gist": "Shelves are restocked.", "narrator": "the shopkeeper",
+        "sections": [purpose], "behaviour": [{"title": "Short shelf", "says": "When a shelf is short, it is filled."}],
+    }, "Record restocking")
     record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
+        **decided(1),
         "tags": ["tag/pricing"],
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
@@ -52,8 +65,12 @@ def _holds_the_seven(env, tmp_path, result):
     }, "Open the repricing")
     record(env, tmp_path, "feature", {
         "title": "Restock the shelves",
-        "story": "So that nothing runs out, the shopkeeper restocks the shelves.\n",
-        "scenarios": [{"title": "A short shelf is restocked", "pins": "A shelf below its level is filled.\n"}],
+        "formulates": "capability/restock",
+        "scenarios": [{
+            "title": "A short shelf is restocked",
+            "formulates": "capability/restock#behaviour/short-shelf",
+            "steps": [{"keyword": "When", "text": "a shelf is short"}, {"keyword": "Then", "text": "it is filled"}],
+        }],
     }, "Describe restocking")
     record(env, tmp_path, "role", {
         "title": "Stock keeper",

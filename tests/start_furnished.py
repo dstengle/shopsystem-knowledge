@@ -8,7 +8,9 @@ from pytest_bdd import given, then, when
 from driver import knol, store_in
 from kb_oracle import operator_started
 
-THE_SHOPS_TYPES = {"shop-artifact", "decision", "feature", "work-item", "role", "process", "step", "tag"}
+THE_SHOPS_TYPES = {
+    "shop-artifact", "product", "shop", "capability", "decision", "feature", "work-item", "role", "process", "step", "tag",
+}
 
 
 @pytest.fixture

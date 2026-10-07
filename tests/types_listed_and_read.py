@@ -7,7 +7,7 @@ from pytest_bdd import then, when
 
 from driver import knol
 
-THE_SEVEN = {"decision", "feature", "work-item", "role", "process", "step", "tag"}
+THE_TEN = {"product", "shop", "capability", "decision", "feature", "work-item", "role", "process", "step", "tag"}
 
 
 @when("the user asks which types the shop holds", target_fixture="result")
@@ -15,9 +15,9 @@ def _asks_which_types(env):
     return knol(env, "types")
 
 
-@then("the user is shown each of the shop's seven types")
-def _each_of_the_seven(shown):
-    assert {entry["name"] for entry in shown} == THE_SEVEN
+@then("the user is shown each of the shop's ten types")
+def _each_of_the_ten(shown):
+    assert {entry["name"] for entry in shown} == THE_TEN
     assert all(entry["title"] for entry in shown)
 
 

@@ -2,6 +2,7 @@ from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import answering, knol, record, start, whole
 from kb_oracle import printed
 
@@ -50,8 +51,8 @@ def _shop_with_a_file_mangled_by_hand(env, shop, tmp_path):
     """Two decisions recorded, then edited by hand: one left unreadable, one left readable but without the body of its
     purpose; the check's answer for that comes from the stand-in."""
     start(env, shop)
-    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
-    record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", "sections": SECTIONS}, "Record monthly")
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}, "Record weekly")
+    record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", **decided(2), "sections": SECTIONS}, "Record monthly")
     _checked_as(env, tmp_path, UNREADABLE, NO_BODY)
 
 
@@ -76,7 +77,7 @@ def _the_rest_listed(result):
 @given("a shop knowledge base where everything fits its type")
 def _shop_where_everything_fits(env, shop, tmp_path):
     start(env, shop)
-    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}, "Record weekly")
     return shop
 
 
@@ -94,7 +95,7 @@ def _shop_with_two_faults(env, shop, tmp_path):
     """Both are recorded through shop-knol, then their files edited by hand; the check's answer for that comes from
     the stand-in."""
     start(env, shop)
-    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}, "Record weekly")
     record(env, tmp_path, "work-item", {"title": "Reprice the dairy shelf"}, "Open the repricing")
     _checked_as(env, tmp_path, _without_its_rationale(WEEKLY), DANGLING)
 
@@ -113,7 +114,7 @@ def _both_listed(result):
 def _shop_with_a_decision_behind_its_type(env, shop, tmp_path):
     """The decision recorded before the decision type is brought to version 2 is behind it."""
     start(env, shop)
-    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", "sections": SECTIONS}, "Record weekly")
+    record(env, tmp_path, "decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}, "Record weekly")
     held = whole(env, "schema/decision")
     for identity in ("id", "type", "schema_version", "revision", "title"):
         del held[identity]  # a write carries content alone
@@ -133,7 +134,7 @@ def _shop_with_a_fault_and_a_decision_behind(env, shop, tmp_path):
     """Recorded after the decision type is at version 2, so only the first decision is behind it, which the real check
     finds; the second is then left unfit by hand, which the stand-in answers for."""
     decisions = _shop_with_a_decision_behind_its_type(env, shop, tmp_path)
-    record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", "sections": SECTIONS}, "Record monthly")
+    record(env, tmp_path, "decision", {"title": "Prices are reviewed monthly", **decided(2), "sections": SECTIONS}, "Record monthly")
     _checked_as(env, tmp_path, _without_its_rationale(MONTHLY))
     return {**decisions, "at_fault": _without_its_rationale(MONTHLY)}
 

@@ -2,6 +2,7 @@ from kb.content import loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
+from decision_fields import decided
 from driver import knol, record, start
 from kb_oracle import kb_answer, printed, signature
 
@@ -24,6 +25,7 @@ def _tag_a_decision_carries(env, tmp_path):
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
+        **decided(1),
         "tags": [PRICING],
         "sections": [
             {"title": "Purpose", "body": "Keep prices current.\n"},

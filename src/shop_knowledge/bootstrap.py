@@ -4,9 +4,11 @@ from importlib import resources
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
-TYPES = ("shop-artifact", "tag", "decision", "work-item", "feature", "role", "step", "process")
+TYPES = (
+    "shop-artifact", "tag", "product", "shop", "capability", "decision", "work-item", "feature", "role", "step", "process",
+)
 BASE = "shop-artifact"
-"""The one entry of TYPES that is no type of the shop's: the common fields the seven build on."""
+"""The one entry of TYPES that is no type of the shop's: the common fields the ten build on."""
 SHOP_TYPES = tuple(name for name in TYPES if name != BASE)
 
 

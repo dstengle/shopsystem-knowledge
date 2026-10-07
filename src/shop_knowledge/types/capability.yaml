@@ -1,0 +1,54 @@
+title: Capability
+version: 1
+schema:
+  allOf:
+    - $ref: kb:schema/shop-artifact
+  type: object
+  properties:
+    title:
+      type: string
+    shop:
+      type: string
+      ref:
+        targets: [shop]
+        cardinality: one
+        parts: false
+        on_delete: refuse
+    gist:
+      type: string
+    narrator:
+      type: string
+    rests_on:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [decision]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title, shop, gist, narrator]
+  sections:
+    - title: Purpose
+  summary: [shop, gist]
+  parts:
+    behaviour:
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          says:
+            type: string
+        required: [title, says]
+    not_yet:
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          defers:
+            type: string
+          trigger:
+            type: string
+        required: [title, defers, trigger]

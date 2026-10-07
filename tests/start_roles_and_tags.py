@@ -3,6 +3,7 @@ test module star-imports this and no other does."""
 from kb.content import dumps
 from pytest_bdd import given, then, when
 
+from decision_fields import decided
 from driver import knol, record, start, whole
 
 
@@ -60,6 +61,7 @@ def _tags_a_decision(env, tmp_path, tag):
     path = tmp_path / "decision.yaml"
     path.write_text(dumps({
         "title": "Price reviews happen weekly",
+        **decided(1),
         "tags": [tag],
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},

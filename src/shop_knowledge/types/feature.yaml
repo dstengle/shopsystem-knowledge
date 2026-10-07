@@ -7,9 +7,19 @@ schema:
   properties:
     title:
       type: string
-    story:
+    formulates:
       type: string
-  required: [title, story]
+      ref:
+        targets: [capability]
+        cardinality: one
+        parts: false
+        on_delete: refuse
+    background:
+      type: array
+      items:
+        $ref: "#/$defs/step"
+  required: [title, formulates]
+  summary: [formulates]
   parts:
     scenarios:
       items:
@@ -17,6 +27,51 @@ schema:
         properties:
           title:
             type: string
-          pins:
+          description:
             type: string
-        required: [title, pins]
+          formulates:
+            type: string
+            ref:
+              targets: [capability]
+              cardinality: one
+              parts: true
+              on_delete: refuse
+          uses:
+            type: array
+            items:
+              type: string
+            ref:
+              targets: [capability]
+              cardinality: many
+              parts: false
+              on_delete: refuse
+          labels:
+            type: array
+            items:
+              type: string
+          steps:
+            type: array
+            items:
+              $ref: "#/$defs/step"
+          examples:
+            $ref: "#/$defs/table"
+        required: [title, formulates, steps]
+  $defs:
+    step:
+      type: object
+      properties:
+        keyword:
+          enum: [Given, When, Then, And, But]
+        text:
+          type: string
+        table:
+          $ref: "#/$defs/table"
+        docstring:
+          type: string
+      required: [keyword, text]
+    table:
+      type: array
+      items:
+        type: array
+        items:
+          type: string

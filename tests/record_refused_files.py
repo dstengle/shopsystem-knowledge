@@ -8,6 +8,7 @@ from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
+from decision_fields import decided
 from driver import knol
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 
@@ -21,6 +22,7 @@ def _file_missing_a_section(tmp_path):
     path = tmp_path / "unfinished.yaml"
     path.write_text(dumps({
         "title": "Prices are reviewed monthly",
+        **decided(1),
         "sections": [{"title": "Purpose", "body": "Keep prices current.\n"}],
     }))
     return path
@@ -58,7 +60,8 @@ def _decision_in_a_file_naming_an_entry_twice(tmp_path):
     path = tmp_path / "twice.yaml"
     path.write_text(
         "title: Price reviews happen weekly\n"
-        "sections:\n"
+        + dumps(decided(1))
+        + "sections:\n"
         "  - title: Purpose\n"
         "    body: Keep prices in step with costs.\n"
         "    body: Keep prices low.\n"
@@ -101,7 +104,8 @@ def _decision_in_a_file_with_unkept_prose(tmp_path):
     path = tmp_path / "unkept.yaml"
     path.write_text(
         "title: Price reviews happen weekly\n"
-        "sections:\n"
+        + dumps(decided(1))
+        + "sections:\n"
         "  - title: Purpose\n"
         "    body: Keep prices in step with costs.\n"
         "  - title: Rationale\n"

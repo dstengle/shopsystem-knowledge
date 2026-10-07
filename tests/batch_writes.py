@@ -4,6 +4,7 @@ from kb.content import dumps
 from kb.contract import kb_pb2
 from pytest_bdd import given, then
 
+from decision_fields import decided
 from driver import knol, record, whole
 from kb_oracle import printed
 
@@ -23,6 +24,7 @@ ONLY_A_CREATE = "only a create carries a key"
 def _the_shop_holds_a_decision(env, tmp_path):
     record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
+        **decided(1),
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
             {"title": "Rationale", "body": "Costs move weekly.\n"},
@@ -34,7 +36,7 @@ def _the_shop_holds_a_decision(env, tmp_path):
 def _a_batch_of_writes(tmp_path):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"write": DECISION, "content": {"sections": NEW_SECTIONS}},
+        {"write": DECISION, "content": {**decided(1), "sections": NEW_SECTIONS}},
         {"write": WORK_ITEM, "content": {"owner": NEW_OWNER}},
     ]}))
     return path
@@ -66,7 +68,7 @@ def _rejected_for_a_keyed_write(result, batch_file):
 def _a_batch_of_mixed_kinds(tmp_path):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"create": "decision", "content": {"title": "Price reviews happen weekly", "sections": NEW_SECTIONS}},
+        {"create": "decision", "content": {"title": "Price reviews happen weekly", **decided(1), "sections": NEW_SECTIONS}},
         {"write": WORK_ITEM, "content": {"owner": NEW_OWNER}},
     ]}))
     return path

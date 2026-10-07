@@ -7,6 +7,14 @@ schema:
   properties:
     title:
       type: string
+    statement:
+      type: string
+    date:
+      type: string
+      pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    number:
+      type: integer
+      minimum: 1
     supersedes:
       type: string
       ref:
@@ -14,8 +22,19 @@ schema:
         cardinality: one
         parts: false
         on_delete: refuse
-  required: [title]
+    revisit_when:
+      type: string
+    extends:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [decision]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title, statement, date, number]
   sections:
     - title: Purpose
     - title: Rationale
-  summary: [supersedes]
+  summary: [statement, date, supersedes]
