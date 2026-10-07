@@ -27,6 +27,8 @@ schema:
         properties:
           title:
             type: string
+            maxLength: 80
+            pattern: '^[^\n]*$'
           description:
             type: string
           formulates:

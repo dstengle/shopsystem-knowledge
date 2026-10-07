@@ -16,6 +16,8 @@ schema:
         on_delete: refuse
     gist:
       type: string
+      maxLength: 200
+      pattern: '^[^\n]*$'
     narrator:
       type: string
     rests_on:
@@ -38,6 +40,8 @@ schema:
         properties:
           title:
             type: string
+            maxLength: 80
+            pattern: '^[^\n]*$'
           says:
             type: string
         required: [title, says]
@@ -47,6 +51,8 @@ schema:
         properties:
           title:
             type: string
+            maxLength: 80
+            pattern: '^[^\n]*$'
           defers:
             type: string
           trigger:

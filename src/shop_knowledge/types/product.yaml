@@ -9,6 +9,8 @@ schema:
       type: string
     gist:
       type: string
+      maxLength: 200
+      pattern: '^[^\n]*$'
   required: [title, gist]
   sections:
     - title: Purpose

@@ -101,3 +101,36 @@ def build(env, tmp_path) -> Built:
     result = knol(env, "write", shop, "--from", str(path), "-m", "Order the shop's capabilities")
     assert result.returncode == 0, result.stderr
     return Built(product, shop, capabilities, decisions, features)
+
+
+KIND_DEFAULTS = {
+    "product": {"sections": [PURPOSE]},
+    "shop": {"sections": SHOP_SECTIONS},
+    "capability": {"narrator": "the shopkeeper", "sections": [PURPOSE]},
+    "decision": {**decided(1), "sections": [PURPOSE, {"title": "Rationale", "body": "The shop runs better so.\n"}]},
+}
+"""What each kind needs beside its title and the fields a scenario gives: its sections, and a capability's narrator."""
+
+
+def put(env, tmp_path, kind, title, **fields):
+    """Record one product, shop, capability or decision of `title` with `fields` over the kind's defaults, as the
+    user does, and return the name kb minted. A feature has no defaults: its caller gives every field."""
+    content = {"title": title, **KIND_DEFAULTS.get(kind, {}), **fields}
+    return record(env, tmp_path, kind, content, f"Record {title}")
+
+
+def capability_with(env, tmp_path, title, behaviour_titles):
+    """A product, a shop and, of that shop, a capability of `title` with a Behaviour line for each of `behaviour_titles`,
+    recorded as the user does; return the capability's name."""
+    product = put(env, tmp_path, "product", "Corner shop", gist="A shop on the corner.")
+    shop = put(env, tmp_path, "shop", "Shelves", product=product, gist="Keeps the shelves.")
+    lines = [{"title": each, "says": f"When asked, {each.lower()}."} for each in behaviour_titles]
+    return put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines)
+
+
+def capability_content(env, tmp_path, lines):
+    """What a capability of a new product and shop is recorded with, `lines` its Behaviour items, to be given to
+    `create` by the caller; the product and the shop are recorded here."""
+    product = put(env, tmp_path, "product", "Corner shop", gist="A shop on the corner.")
+    shop = put(env, tmp_path, "shop", "Shelves", product=product, gist="Keeps the shelves.")
+    return {"title": "Checkout", "shop": shop, "gist": "A capability.", "behaviour": lines, **KIND_DEFAULTS["capability"]}
