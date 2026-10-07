@@ -60,7 +60,7 @@ only.
 - Observable: the user records a feature whose scenarios link into a capability's Behaviour lines, sees parts by title at a glance, and is refused a gist, statement or part title that is too long or breaks a line
 - Unknown: whether a link into a capability's Behaviour line, given in a file the user records, is kept and shown back through shop-knol as the link it was given
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 63: Publish a shop's capabilities
 - Kind: capability
@@ -146,3 +146,5 @@ only.
 - 2026-10-07 slice 61 green. Someone can now: run shop-knol render spec <shop> --to <dir> and get spec/index.md from the shop, with the shared test shop built by tests/spec_shop.py. Surprised by: a shop's complete content (reading order, constraints) can only be written after its capabilities exist, since they link both ways, and a write refuses the title in content. Open questions: a constraint pinned in no capability is unhandled (no scenario covers it; the index code would raise); the published-from line is not yet written (slice with that scenario). Next: slice 62.
 - 2026-10-07 Suite: 138 passed, 46 failed at f4f1826 in 221 s; failing: slice 62's 16 rows of use-the-shops-types and 30 other rows of publish-a-shops-spec
 - 2026-10-07 slice 61 open question ruled by the controller: a constraint with no pinned_in (absent or empty) is laid out without a Pinned-in clause; fixed at 1359d57, probed by hand, no new scenario.
+- 2026-10-07 slice 62 green. Someone can now: record a product, shop, capability, decision or feature and be refused when a gist or statement runs past 200 characters, a part title past 80, or either holds a line break, read it at a glance as short lines and links, and record scenarios linking to one Behaviour line. Surprised by: nothing; the limits were the only change under src/ and the uses scenario was already enforced by the link's target. Open questions: a pattern ^[^\n]*$ lets one trailing line break through where the matcher's $ stops before it; no scenario asks. Next: slice 63.
+- 2026-10-07 Suite: 154 passed, 30 failed at 0cc0361 in 245 s; failing: the 30 publish-a-shops-spec scenarios still red at the start
