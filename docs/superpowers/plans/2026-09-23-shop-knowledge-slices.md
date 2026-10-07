@@ -84,7 +84,7 @@ only.
 - Observable: the user publishes a shop and finds a Gherkin feature file for each formulated capability, its scenarios, labels, steps, tables and examples laid out as the shop writes them
 - Unknown: whether a feature's scenarios, as parts holding steps, tables, docstrings and examples, lay out as Gherkin the shop's own feature files would accept as written
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 66: See what is formulated
 - Kind: capability
@@ -125,6 +125,7 @@ only.
 - 2026-10-07 tests/start_not_empty.py's _noted does not check the exit code of the journal read it records, so a failed before-read makes "nothing changes" compare empty with empty for the KB_ROOT and named-directory rows. From batch 15's review.
 - 2026-10-07 init._reached_at compares where().root with the named root even when where() found nothing (root "" resolves to the process's working directory); harmless today since the List is refused and kb.init's refusal re-raised, but the intent is obscure: return False when where() carries faults. Reproduction: `shop-knol init <dir>` with a garbage connection in <dir>, naming `.` versus another path. From batch 15's fix-wave re-review.
 - 2026-10-07 Probe stores from earlier batches sit inside the checkout under .superpowers/ (batch4 to batch14, r5): a shop-knol run started inside one finds it, and the suite's guard looks upward only. Clean them up, or keep probes in the test temp dir. From batch 15's fix-wave re-review.
+- 2026-10-07 A feature file publishes unparseable where a docstring line holds three double quotes, where a table cell holds a pipe, or where one step has both a table and a docstring (renderers/gherkin.py writes them verbatim). Reproduce: gherkin.feature_file with a step docstring 'a\n"""\nb' or table cell 'a|b', parse with pytest_bdd.parser.FeatureParser: TokenError / inconsistent cell count.
 
 ## Log
 - 2026-10-07 Batch batch15 archived to archive/2026-09-23-shop-knowledge-slices-batch15.md; last 2026-10-07 Suite: 134 passed, 0 failed at 09bc387 in 10.7 s
@@ -155,3 +156,5 @@ only.
 - 2026-10-07 Suite: 162 passed, 22 failed at 5bbb681 in 18 s; failing: the 22 publish-a-shops-spec scenarios of slices 64 to 67
 - 2026-10-07 slice 64 green. Someone can now: publish a shop's ledger and one ADR record per decision with shop-knol render spec. Surprised by: the brief carried no Review Focus 2 text, so it was not probed; a decision a capability rests on that no shop names raises IndexError in spec_decisions._others (Task 8 turns it into the refusal); spec_shop gained supersedes/extends/revisit_when on its second decision so the ledger and record cover them. Open questions: a foreign decision's source names the shop by its kb name (shop/<slug>), not its title. Next: slice 65.
 - 2026-10-07 Suite: 170 passed, 14 failed at 1f28dbb in 273 s; failing: the 14 publish-a-shops-spec scenarios of slices 65 to 67
+- 2026-10-07 slice 65 green. Someone can now: publish a feature file per formulated capability with render spec, parseable by the Gherkin parser with the scenario count and titles of the feature. Surprised by: nothing; the feature file is laid out in renderers/gherkin.py (new row in the module map) and the Task 4 outline Then now checks the file exists. Open questions: none (Review Focus 5: docstring with triple quotes, a pipe in a cell, and a step with table and docstring all publish unparseable files; logged as Backlog). Next: slice 66.
+- 2026-10-07 Suite: 171 passed, 13 failed at 2f2c7c6 in 268 s; failing: the 13 publish-a-shops-spec scenarios of slices 66 and 67
