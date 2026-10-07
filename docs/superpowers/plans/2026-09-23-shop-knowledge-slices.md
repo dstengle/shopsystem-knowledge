@@ -52,7 +52,7 @@ only.
 - Observable: the user publishes a shop into a directory and finds spec/index.md laid out from the shop, its constraints and its reading order, with the knowledge base unchanged
 - Unknown: whether a publisher made from a shop can read the shop's other artifacts through the contract and give back files in more than one directory
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 62: Short fields and links into Behaviour lines
 - Kind: capability
@@ -143,3 +143,5 @@ only.
   Surprised by: kb's Replace takes a decision's whole content, so the four steps that write a whole decision (batch_writes, review-who-changed-what, revise-an-artifact, read-an-artifact's tagging of the older decision) give statement, date and number too, beside the creates. Type-order probe (.superpowers/batch16/slice60/probe_order.py, fresh v0.6.0 stores): kb accepts a link whose targets name a kind not yet defined, so shop and capability load in either order; TYPES is shop-artifact, tag, product, shop, capability, decision, work-item, feature, role, step, process. 16 test modules gained decision fields, all from tests/decision_fields.py (decided(n)). Needing nothing but data: every existing scenario that records a decision, and the decision and feature rows of the ten-types outline (the work item, role, process, step and tag rows needed nothing); the two Thens that count the types needed new step text. Types carry title as required beside the listed fields, as every existing type does; no length or line-break limits yet (slice 62).
   Open questions: none. Next: slice 61.
 - 2026-10-07 Suite: 137 passed, 16 failed at e6044f0 in 13.7 s; failing: slice 62's 16 rows of use-the-shops-types
+- 2026-10-07 slice 61 green. Someone can now: run shop-knol render spec <shop> --to <dir> and get spec/index.md from the shop, with the shared test shop built by tests/spec_shop.py. Surprised by: a shop's complete content (reading order, constraints) can only be written after its capabilities exist, since they link both ways, and a write refuses the title in content. Open questions: a constraint pinned in no capability is unhandled (no scenario covers it; the index code would raise); the published-from line is not yet written (slice with that scenario). Next: slice 62.
+- 2026-10-07 Suite: 138 passed, 46 failed at f4f1826 in 221 s; failing: slice 62's 16 rows of use-the-shops-types and 30 other rows of publish-a-shops-spec
