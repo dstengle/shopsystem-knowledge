@@ -257,7 +257,7 @@ These are inputs no scenario covers that are most likely to bite. Once its slice
 
 **Where the change lands**
 - A ledger-and-records module, `renderers/spec_decisions.py`. It lays out `spec/decisions.md` and `adrs/<number>-<name>.md` as publish-a-shops-spec's Implementation gives them:
-  - number padding: `str(n).zfill(4)`-like, written in full where longer;
+  - the number padded with zeros to four digits, written in full where longer;
   - `Supersedes` and `Extends` padded the same way.
 - The shop's own decisions are those its `decisions` names, in number order.
 - Decisions of other shops are those its capabilities' `rests_on` name that the shop does not. Each one's shop is the shop whose `decisions` names it. Find it with Follow (IN, via `decisions`, kind `shop`) on the decision, and order by that shop's name, then number.
