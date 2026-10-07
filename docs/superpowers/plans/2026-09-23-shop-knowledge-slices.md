@@ -92,7 +92,7 @@ only.
 - Observable: the user asks shop-knol coverage for a shop and is shown the Behaviour lines no scenario formulates and those more than one does
 - Unknown: how to count the scenarios that formulate each of a shop's Behaviour lines through the contract, given a link into a part counts as a link into its artifact
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 67: The published-from line and publishing refusals
 - Kind: capability
@@ -158,3 +158,7 @@ only.
 - 2026-10-07 Suite: 170 passed, 14 failed at 1f28dbb in 273 s; failing: the 14 publish-a-shops-spec scenarios of slices 65 to 67
 - 2026-10-07 slice 65 green. Someone can now: publish a feature file per formulated capability with render spec, parseable by the Gherkin parser with the scenario count and titles of the feature. Surprised by: nothing; the feature file is laid out in renderers/gherkin.py (new row in the module map) and the Task 4 outline Then now checks the file exists. Open questions: none (Review Focus 5: docstring with triple quotes, a pipe in a cell, and a step with table and docstring all publish unparseable files; logged as Backlog). Next: slice 66.
 - 2026-10-07 Suite: 171 passed, 13 failed at 2f2c7c6 in 268 s; failing: the 13 publish-a-shops-spec scenarios of slices 66 and 67
+- 2026-10-07 slice 66 green. Someone can now: run shop-knol coverage <shop> and see which of the shop's Behaviour lines no scenario formulates and which more than one does.
+  Surprised by: nothing; the line handle is the part id kb already gives, so no renaming rule was needed. Review Focus 4: coverage named a capability gives one line, 'a coverage is made from a shop; this one is a capability', exit 1; a decision or missing shop gives kb's 'holds nothing by the name', exit 1; no traceback, no Backlog line needed.
+  Open questions: none. Next: slice 67.
+- 2026-10-07 Suite: 176 passed, 13 failed at 8e80fe4 in 271 s; failing: the 13 publish-a-shops-spec scenarios of slice 67
