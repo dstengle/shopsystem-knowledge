@@ -143,6 +143,14 @@ Feature: Publish a shop's spec
     And nothing is written to the directory
 
   @slice-67
+  Scenario: Publishing is refused when a capability of the shop rests on a decision no shop names
+    Pins that the ledger never lists a decision that has no shop's record behind it.
+    Given one of the shop's capabilities rests on a decision that no shop names among its decisions
+    When the user publishes the shop's spec into a directory
+    Then publishing is rejected because that decision belongs to no shop, naming it
+    And nothing is written to the directory
+
+  @slice-67
   Scenario: Publishing is refused when two features formulate one of the shop's capabilities
     Pins that a capability has one feature file, never two competing for it.
     Given two features that each formulate the same one of the shop's capabilities
