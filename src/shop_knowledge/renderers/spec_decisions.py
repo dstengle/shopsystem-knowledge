@@ -6,7 +6,7 @@ from typing import NamedTuple
 from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import names, sections, source
+from shop_knowledge.renderers import names, published_from, sections, source
 
 
 class Decision(NamedTuple):
@@ -14,6 +14,7 @@ class Decision(NamedTuple):
     title: str
     content: dict
     shop: str | None = None
+    revision: int = 0
 
     @property
     def number(self) -> str:
@@ -29,18 +30,18 @@ def padded(number: int) -> str:
     return f"{number:04d}"
 
 
-def files(client, shop_content: dict, capabilities: list[dict]):
+def files(client, shop: kb_pb2.Artifact, shop_content: dict, capabilities: list[dict]):
     """The ledger and the records by path, or the faults of the first read that was refused."""
-    own, faults = _read(client, shop_content.get("decisions", []))
+    own, faults = read(client, shop_content.get("decisions", []))
     if faults:
         return {}, faults
-    others, faults = _others(client, _resting_on(capabilities, shop_content.get("decisions", [])))
+    others, faults = _others(client, resting_on(capabilities, shop_content.get("decisions", [])))
     if faults:
         return {}, faults
     records, faults = _records(client, sorted(own, key=_by_number))
     if faults:
         return {}, faults
-    ledger = _ledger(sorted(own, key=_by_number) + sorted(others, key=lambda each: (each.shop, _by_number(each))))
+    ledger = _ledger(shop, sorted(own, key=_by_number) + sorted(others, key=lambda each: (each.shop, _by_number(each))))
     return {"spec/decisions.md": ledger, **records}, []
 
 
@@ -48,39 +49,46 @@ def _by_number(decision: Decision) -> int:
     return decision.content["number"]
 
 
-def _resting_on(capabilities: list[dict], own: list[str]) -> list[str]:
+def resting_on(capabilities: list[dict], own: list[str]) -> list[str]:
     """The decisions the capabilities rest on that the shop does not name, each once."""
     resting = [id for content in capabilities for id in content.get("rests_on", [])]
     return [id for id in dict.fromkeys(resting) if id not in own]
 
 
-def _read(client, ids: list[str]):
+def read(client, ids: list[str]):
+    """Each decision read whole, or the faults of the first read that was refused."""
     decisions = []
     for id in ids:
         read = source.whole(client, id)
         if faults := source.faults(read):
             return [], faults
-        decisions.append(Decision(id, read.result.title, loads(read.result.content)))
+        decisions.append(Decision(id, read.result.title, loads(read.result.content), revision=read.result.revision))
     return decisions, []
 
 
 def _others(client, ids: list[str]):
     """Each decision with the shop whose `decisions` names it."""
-    decisions, faults = _read(client, ids)
+    decisions, faults = read(client, ids)
     if faults:
         return [], faults
     held = []
     for decision in decisions:
-        followed = client.Follow(kb_pb2.FollowRequest(
-            locator=kb_pb2.Locator(id=decision.id), depth=1, direction=kb_pb2.FollowRequest.IN, via="decisions", kind="shop"))
-        if faults := list(followed.refusal.faults):
+        owners, faults = owners_of(client, decision.id)
+        if faults:
             return [], faults
-        held.append(decision._replace(shop=followed.result.reached[0].stub.id))
+        held.append(decision._replace(shop=owners[0]))
     return held, []
 
 
-def _ledger(decisions: list[Decision]) -> str:
-    return "\n\n".join(["# Decisions", *(_entry(each) for each in decisions)]) + "\n"
+def owners_of(client, id: str):
+    """The shops whose `decisions` name the decision, or the faults of the question that was refused."""
+    followed = client.Follow(kb_pb2.FollowRequest(
+        locator=kb_pb2.Locator(id=id), depth=1, direction=kb_pb2.FollowRequest.IN, via="decisions", kind="shop"))
+    return [each.stub.id for each in followed.result.reached], list(followed.refusal.faults)
+
+
+def _ledger(shop: kb_pb2.Artifact, decisions: list[Decision]) -> str:
+    return "\n\n".join([published_from.markdown(shop.id, shop.revision), "# Decisions", *(_entry(each) for each in decisions)]) + "\n"
 
 
 def _entry(decision: Decision) -> str:
@@ -107,14 +115,14 @@ def _records(client, decisions: list[Decision]):
 def _numbers(client, content: dict):
     """The numbers of the decisions this one supersedes and extends, as they are written in its record."""
     named = [*([content["supersedes"]] if "supersedes" in content else []), *content.get("extends", [])]
-    decisions, faults = _read(client, named)
+    decisions, faults = read(client, named)
     return {each.id: each.number for each in decisions}, faults
 
 
 def _record(decision: Decision, numbers: dict[str, str]) -> str:
     content = decision.content
     held = {section["title"]: section.get("body", "").rstrip() for section in content.get("sections", [])}
-    blocks = [sections.heading(1, f"{decision.number} {decision.title}"),
+    blocks = [published_from.markdown(decision.id, decision.revision), sections.heading(1, f"{decision.number} {decision.title}"),
               f"{content['date']}. {held.get('Purpose', '')}", held.get("Rationale", "")]
     links = [f"Supersedes {numbers[content['supersedes']]}."] if "supersedes" in content else []
     links += [f"Extends {numbers[id]}." for id in content.get("extends", [])]

@@ -4,6 +4,7 @@ from pytest_bdd import then, when
 
 import spec_shop
 from driver import knol
+from published_from import markdown
 
 
 @pytest.fixture
@@ -38,7 +39,7 @@ def _joined(names):
     return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
 
 
-def _expected_index(built):
+def _expected_index(env, built):
     names = _names(built)
     constraints = [
         f"- **{each['title']}.** {each['says']} Pinned in {_joined([names[index] for index in each['pinned']])}."
@@ -48,7 +49,7 @@ def _expected_index(built):
         f"{number}. [{name}](capabilities/{name}.md): {each['gist']}"
         for number, (name, each) in enumerate(zip(names, spec_shop.CAPABILITIES), 1)
     ]
-    blocks = ["# Shelves", "## Purpose", spec_shop.PURPOSE["body"].rstrip(), "## Constraints carried", "\n".join(constraints),
+    blocks = [markdown(env, built.shop), "# Shelves", "## Purpose", spec_shop.PURPOSE["body"].rstrip(), "## Constraints carried", "\n".join(constraints),
               "## Composition (reading order)", "\n".join(composition)]
     for section in spec_shop.SHOP_SECTIONS[1:]:
         blocks += [f"## {section['title']}", section["body"].rstrip()]
@@ -56,6 +57,6 @@ def _expected_index(built):
 
 
 @then("that directory holds `spec/index.md` from the shop")
-def _holds_the_index(result, target, built):
+def _holds_the_index(env, result, target, built):
     assert result.returncode == 0, result.stderr
-    assert (target / "spec" / "index.md").read_text() == _expected_index(built)
+    assert (target / "spec" / "index.md").read_text() == _expected_index(env, built)

@@ -1,12 +1,15 @@
 """A capability's page, `spec/capabilities/<name>.md`, laid out from the capability's content: its frontmatter, its
 title, its Purpose, its Behaviour, its other sections, then what it does not yet do."""
 from kb.content import dumps
+from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import sections
+from shop_knowledge.renderers import published_from, sections
 
 
-def page(id: str, title: str, content: dict, formulated_as: str | None) -> str:
-    """The capability as a file: the frontmatter first, naming the feature file only where a feature formulates it."""
+def page(capability: kb_pb2.Artifact, content: dict, formulated_as: str | None) -> str:
+    """The capability as a file: the frontmatter first, naming the feature file only where a feature formulates it, then
+    the published-from line."""
+    id, title = capability.id, capability.title
     held = content.get("sections", [])
     purpose = [section for section in held if section["title"] == "Purpose"]
     others = [section for section in held if section["title"] != "Purpose"]
@@ -15,14 +18,15 @@ def page(id: str, title: str, content: dict, formulated_as: str | None) -> str:
     blocks += sections.laid_out(others, 2)
     if content.get("not_yet"):
         blocks += [sections.heading(2, "Not yet"), _not_yet(content["not_yet"])]
-    return _frontmatter(id, title, content, formulated_as) + "\n\n".join(blocks) + "\n"
+    line = published_from.markdown(id, capability.revision)
+    return _frontmatter(id, title, content, formulated_as) + line + "\n\n" + "\n\n".join(blocks) + "\n"
 
 
 def _frontmatter(id: str, title: str, content: dict, formulated_as: str | None) -> str:
     fields = {"id": id, "title": title, "narrator": content["narrator"], "rests_on": content.get("rests_on", [])}
     if formulated_as:
         fields["formulated_as"] = formulated_as
-    return f"---\n{dumps(fields)}---\n\n"
+    return f"---\n{dumps(fields)}---\n"
 
 
 def _behaviour(lines: list[dict]) -> str:

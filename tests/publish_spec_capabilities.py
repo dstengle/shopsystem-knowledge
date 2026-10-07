@@ -4,6 +4,7 @@ from kb.content import dumps, loads
 from pytest_bdd import given, parsers, then
 
 import spec_shop
+from published_from import markdown
 
 
 def _page(target, name):
@@ -14,7 +15,7 @@ def _page(target, name):
     return loads(frontmatter), body
 
 
-def _expected(name, built, index):
+def _expected(env, name, built, index):
     """The page the shop's `index`th capability is published as, laid out from what spec_shop gave it."""
     each = spec_shop.CAPABILITIES[index]
     frontmatter = {
@@ -26,14 +27,15 @@ def _expected(name, built, index):
     if each["not_yet"]:
         blocks += ["## Not yet", "\n".join(
             f"- **{item['title']}.** {item['defers']} Promoted when {item['trigger']}." for item in each["not_yet"])]
-    return f"---\n{dumps(frontmatter)}---\n\n" + "\n\n".join(blocks) + "\n"
+    line = markdown(env, built.capabilities[index])
+    return f"---\n{dumps(frontmatter)}---\n{line}\n\n" + "\n\n".join(blocks) + "\n"
 
 
 @then("that directory holds `spec/capabilities/<name>.md` for each capability of the shop")
-def _holds_each_capability(result, target, built):
+def _holds_each_capability(env, result, target, built):
     assert result.returncode == 0, result.stderr
     for index, name in enumerate(capability.split("/", 1)[1] for capability in built.capabilities):
-        assert (target / "spec" / "capabilities" / f"{name}.md").read_text() == _expected(name, built, index)
+        assert (target / "spec" / "capabilities" / f"{name}.md").read_text() == _expected(env, name, built, index)
 
 
 @given(parsers.parse('one of the shop\'s capabilities titled "{title}", and a feature formulating it'),

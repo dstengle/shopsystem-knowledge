@@ -4,6 +4,7 @@ from pytest_bdd import given, parsers, then
 
 import spec_shop
 from driver import whole
+from published_from import markdown
 
 
 def _file(number, title):
@@ -11,7 +12,7 @@ def _file(number, title):
     return f"{number:04d}-{title.lower().replace(' ', '-')}.md"
 
 
-def _ledger_of_the_shop(built):
+def _ledger_of_the_shop(env, built):
     """The ledger of the shop built by spec_shop, whose capabilities rest on its own decisions alone."""
     entries = []
     for index, fields in enumerate(spec_shop.DECISIONS):
@@ -22,17 +23,17 @@ def _ledger_of_the_shop(built):
             lines.append(f"supersedes: {built.decisions[fields['supersedes']]}")
         lines.append(f"source: adrs/{_file(fields['number'], fields['title'])}")
         entries.append("\n\n".join([f"## {built.decisions[index]}", fields["statement"], "\n".join(lines)]))
-    return "\n\n".join(["# Decisions", *entries]) + "\n"
+    return "\n\n".join([markdown(env, built.shop), "# Decisions", *entries]) + "\n"
 
 
-def _record(built, index):
+def _record(env, built, index):
     fields = spec_shop.DECISIONS[index]
-    blocks = [f"# {fields['number']:04d} {fields['title']}",
+    blocks = [markdown(env, built.decisions[index]), f"# {fields['number']:04d} {fields['title']}",
               f"{fields['date']}. {fields['title']}, because the shelves need it.", "The shop runs better so."]
     if "supersedes" in fields:
         blocks.append(f"Supersedes {spec_shop.DECISIONS[fields['supersedes']]['number']:04d}.")
     blocks += [f"Extends {spec_shop.DECISIONS[at]['number']:04d}." for at in fields.get("extends", [])]
-    return "\n\n".join(blocks[:3]) + ("\n\n" + "\n".join(blocks[3:]) if blocks[3:] else "") + "\n"
+    return "\n\n".join(blocks[:4]) + ("\n\n" + "\n".join(blocks[4:]) if blocks[4:] else "") + "\n"
 
 
 @then("that directory holds `spec/decisions.md`")
@@ -42,15 +43,15 @@ def _holds_the_ledger(result, target, built):
 
 
 @then("the ledger lists each of the shop's decisions and each decision its capabilities rest on")
-def _lists_each_decision(result, target, built):
-    assert (target / "spec" / "decisions.md").read_text() == _ledger_of_the_shop(built)
+def _lists_each_decision(env, result, target, built):
+    assert (target / "spec" / "decisions.md").read_text() == _ledger_of_the_shop(env, built)
 
 
 @then("that directory holds `adrs/<number>-<name>.md` for each of the shop's decisions")
-def _holds_each_record(result, target, built):
+def _holds_each_record(env, result, target, built):
     assert result.returncode == 0, result.stderr
     for index, fields in enumerate(spec_shop.DECISIONS):
-        assert (target / "adrs" / _file(fields["number"], fields["title"])).read_text() == _record(built, index)
+        assert (target / "adrs" / _file(fields["number"], fields["title"])).read_text() == _record(env, built, index)
 
 
 @given(parsers.parse('one of the shop\'s decisions numbered {number:d}, titled "{title}"'), target_fixture="numbered")
@@ -62,7 +63,8 @@ def _a_numbered_decision(env, tmp_path, built, number, title):
 def _holds_that_record(result, target, numbered, file):
     assert result.returncode == 0, result.stderr
     _, title = numbered
-    assert (target / "adrs" / f"{file}.md").read_text().startswith(f"# {file.split('-')[0]} {title}\n")
+    heading = (target / "adrs" / f"{file}.md").read_text().splitlines()[2]
+    assert heading == f"# {file.split('-')[0]} {title}"
 
 
 @given("the shop's capabilities rest on decisions of the shop")

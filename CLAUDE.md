@@ -30,6 +30,8 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `renderers/spec_decisions.py` | the shop's decisions as files: reading the decisions its `decisions` names and those its capabilities rest on that another shop names (that shop found by Follow), laying out the ledger, `spec/decisions.md`, and a record, `adrs/<number>-<name>.md`, for each of the shop's own | writing files |
 | `renderers/spec_index.py` | the layout of the spec's `spec/index.md` from the shop's content and its capabilities' names and gists | reading, files |
 | `renderers/names.py` | the name a published file is given from a title | reading, files |
+| `renderers/published_from.py` | the line every published spec file carries to say it was published from the knowledge base, naming the artifact and its revision, as an HTML comment or a `#` comment | laying out a page, reading, files |
+| `renderers/spec_faults.py` | what stops a shop's spec being published whole, in plain words, every fault at once: a capability left out of the reading order or belonging to another shop, files two capabilities, decisions or features would share, a number two decisions carry, a decision no shop names, a scenario using its own shop; run before any page is laid out | laying out a page, files |
 | `bootstrap.py` | loading the shop's types through Create when a knowledge base starts, and naming which of them is the base the ten build on | the types themselves |
 | `types/*.yaml` | the shop's types, one file each, as schema artifacts in kb's schema language | code |
 | `shapes/*.yaml` | the shape of each file a user gives, as JSON Schema | code |

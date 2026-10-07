@@ -1,6 +1,8 @@
 """The shop's spec index, `spec/index.md`, laid out from the shop's content: its title, its Purpose, the constraints it
 carries, its capabilities in reading order, then its other sections."""
-from shop_knowledge.renderers import sections
+from kb.contract import kb_pb2
+
+from shop_knowledge.renderers import published_from, sections
 
 
 class Capability:
@@ -10,12 +12,12 @@ class Capability:
         self.name, self.gist = name, gist
 
 
-def page(title: str, content: dict, capabilities: dict[str, Capability]) -> str:
+def page(shop: kb_pb2.Artifact, content: dict, capabilities: dict[str, Capability]) -> str:
     """The index as markdown, the capabilities by the names the shop links them under."""
     held = content.get("sections", [])
     purpose = [section for section in held if section["title"] == "Purpose"]
     others = [section for section in held if section["title"] != "Purpose"]
-    blocks = [sections.heading(1, title), *sections.laid_out(purpose, 2)]
+    blocks = [published_from.markdown(shop.id, shop.revision), sections.heading(1, shop.title), *sections.laid_out(purpose, 2)]
     blocks += [sections.heading(2, "Constraints carried"), _constraints(content.get("constraints", []), capabilities)]
     blocks += [sections.heading(2, "Composition (reading order)"), _composition(content.get("reading_order", []), capabilities)]
     blocks += sections.laid_out(others, 2)
