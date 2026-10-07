@@ -2,12 +2,11 @@
 Feature: Start a knowledge base
   Narrator: the user, setting up the shop's knowledge base
 
-  @slice-4
   Scenario: The user starts a knowledge base and the shop's types are ready
-    Pins that a new knowledge base arrives furnished with the shop's seven kinds of thing, so nobody has to define a type before recording anything.
+    Pins that a new knowledge base arrives furnished with the shop's ten kinds of thing, so nobody has to define a type before recording anything.
     Given the user is working in an empty directory for the shop's knowledge
     When the user starts a shop knowledge base there without naming a directory, saying who they are
-    Then the shop can hold decisions, features, work items, roles, processes, steps and tags
+    Then the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
   @slice-54
