@@ -116,7 +116,7 @@ only.
 - Observable: a user who names a directory inside a knowledge base is refused because it is inside one, and the knowledge base above is neither furnished nor named
 - Unknown: how init tells, through the contract, that the knowledge base kb reaches from a named root sits above it rather than at it
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 56: A batch of creates lands as one, its new artifacts linked by keys
 - Kind: capability
@@ -288,3 +288,7 @@ only.
   Open questions: none. Next: slice 56.
 - 2026-10-07 Suite: 132 passed, 0 failed at b98965b in 10.9 s
 - 2026-10-07 Batch 15 branch review (opus, 414cf0f..d1dfa17): suite 132 passed, 0 failed at d1dfa17 in 10.98 s. Ready with fixes. Important: since kb v0.6.0 searches upward from a root given to connect, `init <dir>` naming a directory inside a knowledge base furnishes the one above (empty) or refuses as already holding the shop's knowledge naming <dir> (furnished); on v0.5.0 both ended in kb.init's inside refusal. Settled by principle (adrs/0044): spec c26c605 adds the Behaviour line under the person's delegation, formulated in 95c7166 as a two-row outline, cut as slice 55.3 for the fix wave. Minor: CLAUDE.md rule 1's "the clock those two take" ambiguous since where() was named. Task 2's plan text named the upward search but its check was the suite alone (plan defect).
+- 2026-10-07 slice 55.3 green. Someone can now: name a directory that sits inside a knowledge base and be refused in kb's own words, the knowledge base above neither furnished nor named, whatever it holds.
+  Surprised by: the existing 'inside a knowledge base' Then asked kb about where the user works only; it now asks kb about the directory named (a fixture named_inside the Given fills), from where the user works. CLAUDE.md rule 1 now names what takes a clock outright (connect, kb.init and kb.testing.served). Scratch probe stores under .superpowers/batch15/probe* removed.
+  Open questions: none. Next: the batch's branch review.
+- 2026-10-07 Suite: 134 passed, 0 failed at 09bc387 in 10.7 s
