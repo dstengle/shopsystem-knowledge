@@ -2,7 +2,8 @@
 it with the shop's types through bootstrap, or starting one with `kb.init`. One found or named that holds something
 other than the shop's types is refused as not empty, naming what it holds; one that holds the shop's types, found
 through KB_ROOT elsewhere, reached through a server (named by its address) or named, as already holding the shop's
-knowledge. Every refusal is raised as `Refused`, a kb answer's through the caller's `answered`; nothing here prints."""
+knowledge; one named that sits inside a knowledge base but holds none of its own, as kb refuses starting one there.
+Every refusal is raised as `Refused`, a kb answer's through the caller's `answered`; nothing here prints."""
 from collections.abc import Callable
 import os
 from pathlib import Path
@@ -74,19 +75,28 @@ def _holds_the_shops_types(listed: kb_pb2.ListResponse) -> bool:
 
 
 def _named(root: Path, signed: kb_pb2.Signature):
-    """A store started at the named root; where kb refuses to start one, the store already there, when it is empty,
-    refused in shop-knol's own words, naming the root, when it holds the shop's types or holds something other than
-    them, and otherwise refused as kb refused it."""
+    """A store started at the named root; where kb refuses to start one, the store kb reaches at the root itself, when
+    it is empty, refused in shop-knol's own words, naming the root, when it holds the shop's types or holds something
+    other than them, and otherwise refused as kb refused it. One kb reaches only by searching above the root is never
+    furnished nor named: kb's refusal is refused as it was."""
     try:
         _started(root, signed)
     except Refused as refused:
-        listed = connect(root).List(kb_requests.init_request())
+        client = connect(root)
+        if not _reached_at(client, root):
+            raise
+        listed = client.List(kb_requests.init_request())
         if _holds_the_shops_types(listed):
             raise Refused([kb_pb2.Fault(artifact=str(root), message=_ALREADY_HOLDS)]) from refused
         if not _empty(listed):
             _refuse_unless_furnished(listed, str(root))
             raise
     return connect(root)
+
+
+def _reached_at(client, root: Path) -> bool:
+    """Whether the knowledge base the client reaches is the root's own, not one kb finds by searching above it."""
+    return Path(client.where().root).resolve() == root.resolve()
 
 
 def _empty(listed: kb_pb2.ListResponse) -> bool:

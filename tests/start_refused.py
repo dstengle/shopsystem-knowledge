@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from kb.contract import kb_pb2
-from pytest_bdd import given, then
+from pytest_bdd import given, parsers, then
 
 from driver import knol, removed, start, store_in
 from kb_oracle import kb_answer, kb_refuses_to_start, operator_started, printed
@@ -49,25 +49,57 @@ def _a_directory_inside_a_started_one(env, shop, known_before):
     return store_in(shop)
 
 
+_ABOVE = {"kb's operator started empty": operator_started, "holding the shop's types": start}
+"""How the knowledge base above the named directory is started: by kb's operator, empty, or by shop-knol's init,
+furnished with the shop's types."""
+
+
+@pytest.fixture
+def named_inside():
+    """The directory the user names to start a knowledge base in, inside one, as the Given made it: filled in by it."""
+    return {}
+
+
+@given(
+    parsers.parse(
+        "the user is working in one directory, and another directory sits inside a knowledge base {holding} but holds "
+        "none of its own"
+    ),
+    target_fixture="elsewhere",
+)
+def _another_directory_inside_one(env, tmp_path, holding, journal_before, named_inside):
+    """A knowledge base started above the named directory, its journal as read before init ran; the named directory
+    is a subdirectory of it with nothing of its own."""
+    above = tmp_path / "above"
+    above.mkdir()
+    _ABOVE[holding](env, above)
+    journal_before["root"] = str(above)
+    journal_before["journal"] = knol({**env, "KB_ROOT": str(above)}, "journal").stdout
+    named_inside["root"] = above / "room"
+    named_inside["root"].mkdir()
+    return named_inside["root"]
+
+
 @then("starting the knowledge base is rejected because that directory already holds a knowledge base")
 def _rejected_already_started(env, result, start_in):
-    _refused_as_kb_refuses_init(env, result, start_in)
+    _refused_as_kb_refuses_init(env, result, start_in, start_in)
 
 
 @then("starting the knowledge base is rejected because that directory is inside a knowledge base")
-def _rejected_inside_one(env, result, start_in):
-    _refused_as_kb_refuses_init(env, result, start_in)
+def _rejected_inside_one(env, result, start_in, named_inside):
+    """kb's refusal to start a store in the directory the user named, or, with none named, where they work."""
+    _refused_as_kb_refuses_init(env, result, start_in, named_inside.get("root", start_in))
 
 
 ROOT = "root"
 """The `rule` kb's contract publishes (kb adrs/0018) for a store refused where it was to be started."""
 
 
-def _refused_as_kb_refuses_init(env, result, start_in):
-    """One line, printed as kb returned it: kb's own refusal to start a store in the same directory is a refusal of
-    the directory given, and the user is shown that fault in kb's words. Which refusal, the Given decides; a refused
-    start changes nothing."""
-    faults = kb_refuses_to_start(env, start_in.resolve(), cwd=start_in)
+def _refused_as_kb_refuses_init(env, result, start_in, root):
+    """One line, printed as kb returned it: kb's own refusal to start a store at the same root, asked from where the
+    user works (`start_in`), is a refusal of the directory given, and the user is shown that fault in kb's words.
+    Which refusal, the Given decides; a refused start changes nothing."""
+    faults = kb_refuses_to_start(env, root.resolve(), cwd=start_in)
     assert [fault.rule for fault in faults] == [ROOT], faults
     assert result.returncode == 1
     assert result.stdout == ""
