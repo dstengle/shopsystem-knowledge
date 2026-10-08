@@ -52,7 +52,7 @@ only.
 - Observable: a publish that meets an unreadable file it may delete is refused naming the file, with nothing written or deleted
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 76: The check finds a scenario using what its capability does not depend on
 - Kind: capability
@@ -114,3 +114,5 @@ only.
 - 2026-10-08 REQUEST shopsystem-bdd: the capability format defines a depends_on frontmatter key (capabilities a capability builds on, in its own context or another) beside rests_on (decisions only); this repository's capabilities use it (adrs/0067).
 - 2026-10-08 slice 74 green. Someone can now: publish a shop whose constraints are tested_in capabilities (Tested in), and be stopped when one is tested in a retired capability of any shop. Surprised by: nothing; the pinned_in to tested_in rename was green on its own before the new steps. Probe: a constraint tested in a deprecated capability publishes as today (Tested in listed). Folded in the ragged-table and linked-directory CLAUDE.md row notes. Open questions: none. Next: slice 75.
 - 2026-10-08 Suite: 218 passed, 5 failed at 2779289 in 35 s; failing: slice 75 (3 rows), slice 76 (2 rows)
+- 2026-10-08 slice 75 green. Someone can now: be told which file publishing could not read, with the directory untouched. Surprised by: the behaviour did not already name the reason (only the OS's 'Permission denied'), so published.py's OSError path got a plain-words Refused naming the file; the shared 'nothing is written' step had to tell an unreadable file from a changed one. Probe: several unreadable files name the first only (in the order spec/capabilities, features, adrs). Backlog: name every unreadable file, not only the first. Open questions: none. Next: slice 76.
+- 2026-10-08 Suite: 221 passed, 2 failed at d1657f5 in 34 s; failing: slice 76 (2 rows)
