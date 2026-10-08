@@ -245,6 +245,22 @@ Feature: Publish a shop's spec
       | active     | the other shop |
       | deprecated | the other shop |
 
+  Scenario Outline: Publishing is refused when a constraint of the shop is tested in a retired capability, in any shop
+    Pins that a constraint the shop carries is never shown as tested in a capability taken out of use, wherever that capability lives, and that a refused publish leaves the directory exactly as it found it.
+    Given another shop of the same product
+    And a capability linking to <owner> whose status is retired
+    And a constraint of the shop tested in that retired capability
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because that capability is retired, naming that constraint and that capability
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+    Examples:
+      | owner          |
+      | the shop       |
+      | the other shop |
+
   @slice-69
   Scenario: Publishing is refused when two features formulate one of the shop's capabilities
     Pins that a capability has one feature file, never two competing for it, and that a refused publish leaves the directory exactly as it found it.
@@ -264,3 +280,20 @@ Feature: Publish a shop's spec
     Then publishing is rejected because a table's rows must each have one cell per column, naming that scenario
     And nothing is written to the directory
     And `adrs/0099-old-rule.md` is still in that directory
+
+  Scenario Outline: Publishing is refused when, among the files publishing may delete, one cannot be read
+    Pins that publishing never deletes around a file it could not read, that the user is told which file it is, and that a refused publish leaves the directory exactly as it found it.
+    Given a directory holding <unreadable file>, which cannot be read
+    And no artifact is published under that name
+    And the directory also holds `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because that file cannot be read, naming <unreadable file>
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+    And <unreadable file> is still in that directory
+
+    Examples:
+      | unreadable file                  |
+      | `spec/capabilities/old-cache.md` |
+      | `features/old-cache.feature`     |
+      | `adrs/0098-old-cache.md`         |

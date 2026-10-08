@@ -59,3 +59,17 @@ Feature: Check the knowledge base
       | outside any knowledge base and nothing names one                                         | no knowledge base was found, neither above where they are working nor named outright                        |
       | outside any knowledge base, with KB_ROOT naming a directory that holds no knowledge base | KB_ROOT names a directory that holds no knowledge base                                                      |
       | inside the shop's knowledge base, with KB_ROOT naming a different one                    | KB_ROOT names a knowledge base other than the one they are working in, and neither of the two is guessed at |
+
+  Scenario Outline: The user checks a knowledge base where a scenario uses a capability its capability does not depend on
+    Pins that a scenario may use only what its own capability depends on, and that the check holds every shop in the knowledge base to it, not only the shop being worked on.
+    Given a knowledge base holding the shop and another shop
+    And a capability of <shop> that does not depend on the capability "find the knowledge base"
+    And a scenario of that capability whose uses names "find the knowledge base"
+    When the user checks the shop's knowledge
+    Then that scenario is listed as a fault
+    And the command reports failure to whatever ran it
+
+    Examples:
+      | shop            |
+      | the shop        |
+      | the other shop  |
