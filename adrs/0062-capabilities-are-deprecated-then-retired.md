@@ -1,0 +1,3 @@
+# 0062 A capability is deprecated, then retired; retiring is the shop's own act
+
+2026-10-08. A capability's status is active, deprecated or retired. Deprecated means its removal from spec and code is under way; retired means it is gone from both and kept in the knowledge base as the record. Removal is not one long operation: each step is short and checked. Retiring is an independent change to the shop's public contract, accepted whatever depends on it elsewhere; other contexts find their dependencies on deprecated or retired capabilities by query and act on their own schedule. The user's decision.
