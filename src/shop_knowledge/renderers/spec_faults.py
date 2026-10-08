@@ -27,7 +27,6 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
         *_borrowed(ordered, {each.id for each in own}),
         *_shared([(each.id, f"features/{names.from_title(capability.title)}.feature")
                   for capability in ordered for each in formulating.get(capability.id, [])], "features-share-a-file"),
-        *_used({each.id for each in ordered}, formulating),
         *_undepended(ordered, formulating),
         *_ragged(formulating),
     ]
@@ -67,15 +66,6 @@ def _borrowed(ordered: list[kb_pb2.Artifact], own: set[str]) -> list[kb_pb2.Faul
     """A fault for each decision a capability rests on that is not one of the shop's own."""
     return [_fault(each.id, "rests-on-its-own-shops-decisions", f"rests on {decision}, a decision of another shop; a capability rests only on its own shop's decisions")
             for each in ordered for decision in loads(each.content).get("rests_on", []) if decision not in own]
-
-
-def _used(shop_capabilities: set[str], formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
-    """A fault for each scenario whose `uses` names a capability of its own shop."""
-    return [
-        _fault(feature.id, "uses-its-own-shop", f"scenario \"{scenario['title']}\" uses {used}, a capability of its own shop; a scenario uses only another shop's capability")
-        for features in formulating.values() for feature in features
-        for scenario in loads(feature.content).get("scenarios", []) for used in scenario.get("uses", []) if used in shop_capabilities
-    ]
 
 
 def _undepended(ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:

@@ -33,10 +33,16 @@ def _write(files: dict[str, str], directory: Path) -> None:
 
 def _stale(cleared: tuple[str, ...], files: dict[str, str], directory: Path) -> list[Path]:
     """The regular files directly in each of the `cleared` directories that carry the published-from line and are not
-    among `files`."""
+    among `files`; a cleared directory that is a link elsewhere, or sits under one, has none considered."""
     written = {directory / relative for relative in files}
-    found = [path for each in cleared for path in sorted((directory / each).glob("*"))]
+    found = [path for each in cleared if _within(directory, each) for path in sorted((directory / each).glob("*"))]
     return [path for path in found if path.is_file() and not path.is_symlink() and path not in written and _published(path)]
+
+
+def _within(directory: Path, cleared: str) -> bool:
+    """Whether the cleared directory, once its links are followed, is the one at its name under the directory asked
+    for, so a link out of the directory never has files elsewhere deleted."""
+    return (directory / cleared).resolve() == directory.resolve() / cleared
 
 
 def _published(path: Path) -> bool:

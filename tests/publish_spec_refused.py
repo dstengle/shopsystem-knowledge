@@ -52,19 +52,6 @@ def _rejected_shared_features(result, refused_for):
     _lines_naming(result, *refused_for)
 
 
-@given("a scenario in a feature formulating one of the shop's capabilities, whose uses points at another of the shop's capabilities",
-       target_fixture="refused_for")
-def _a_scenario_using_its_own_shop(env, tmp_path, built):
-    capability = _capability(env, tmp_path, built.shop, "Mop the floor")
-    feature = _feature_of(env, tmp_path, capability, "Mop the floor", {"uses": [built.capabilities[0]]})
-    return ["uses only another shop's capability", [feature, "Mop the floor, as the user does it"]]
-
-
-@then("publishing is rejected because a scenario uses only another shop's capability, naming that scenario")
-def _rejected_used(result, refused_for):
-    _lines_naming(result, *refused_for)
-
-
 @given("a scenario in a feature formulating one of the shop's capabilities, whose step's table has a row with fewer cells than its header",
        target_fixture="refused_for")
 def _a_scenario_with_a_ragged_table(env, tmp_path, built):
