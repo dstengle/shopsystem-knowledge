@@ -22,10 +22,10 @@ def _a_shop_with_lines(env, started_shop, tmp_path, datatable, shop):
     rows = [dict(zip(datatable[0], row)) for row in datatable[1:]]
     titles = list(dict.fromkeys(row["capability"] for row in rows))
     capabilities = {}
-    for title in titles:
+    for order, title in enumerate(titles, 1):
         lines = [{"title": row["line"], "says": f"When asked, {row['line'].lower()}."} for row in rows if row["capability"] == title]
-        capabilities[title] = spec_shop.put(env, tmp_path, "capability", title, shop=shop_id, gist="A capability.", behaviour=lines)
-    spec_shop.reading_order(env, tmp_path, shop_id, list(capabilities.values()))
+        capabilities[title] = spec_shop.put(env, tmp_path, "capability", title, shop=shop_id, gist="A capability.", behaviour=lines,
+                                              order=str(order))
     ids = {(row["capability"], row["line"]): spec_shop.line_id(env, capabilities[row["capability"]], row["line"]) for row in rows}
     for title, capability in capabilities.items():
         scenarios = [

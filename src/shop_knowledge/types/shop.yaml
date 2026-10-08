@@ -20,15 +20,6 @@ schema:
       pattern: '^[^\n]*(?!\n)$'
     narrator:
       type: string
-    reading_order:
-      type: array
-      items:
-        type: string
-      ref:
-        targets: [capability]
-        cardinality: many
-        parts: false
-        on_delete: refuse
   required: [title, product, gist]
   sections:
     - title: Purpose

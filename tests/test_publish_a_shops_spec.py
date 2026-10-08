@@ -12,8 +12,9 @@ scenarios("publish-a-shops-spec.feature")
 
 
 @given(
-    "a knowledge base holding a product and a shop of that product, with the shop's capabilities in its reading order, "
-    "its decisions, and a feature formulating each capability",
+    "a knowledge base holding a product and a shop of that product, active capabilities linking to the shop each carrying "
+    "an order of its own, decisions linking to the shop each carrying a number of its own, and a feature formulating "
+    "each capability",
     target_fixture="built",
 )
 def _a_shop(env, started_shop, tmp_path):

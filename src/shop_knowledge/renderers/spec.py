@@ -1,9 +1,10 @@
-"""The spec renderer: a shop's spec, published from the shop and, through it, the capabilities it orders and its
-constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
+"""The spec renderer: a shop's spec, published from the shop and, through it, the capabilities linking to it and the
+capabilities its constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
 from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import gherkin, names, source, spec_capabilities, spec_decisions, spec_faults, spec_index
+from shop_knowledge.renderers import (
+    gherkin, names, shop_capabilities, source, spec_capabilities, spec_decisions, spec_faults, spec_index)
 from shop_knowledge.renderers.rendered import Rendered, refused
 
 
@@ -15,10 +16,12 @@ def render(client, name: str) -> Rendered:
         return refused(faults)
     shop = read.result
     content = loads(shop.content)
-    capabilities, faults = _capabilities(client, _wanted(content))
+    ordered, faults = shop_capabilities.of(client, shop.id)
     if faults:
         return refused(faults)
-    ordered = [capabilities[id] for id in content.get("reading_order", [])]
+    capabilities, faults = _capabilities(client, ordered, _pinned(content))
+    if faults:
+        return refused(faults)
     formulating, faults = _formulating(client, ordered)
     if not faults:
         faults = spec_faults.check(client, shop, ordered, formulating)
@@ -27,24 +30,26 @@ def render(client, name: str) -> Rendered:
     decisions, faults = spec_decisions.files(client, shop)
     if faults:
         return refused(faults)
-    index = {"spec/index.md": spec_index.page(shop, content, {id: _described(each) for id, each in capabilities.items()})}
+    index = {"spec/index.md": spec_index.page(
+        shop, content, {id: _described(each) for id, each in capabilities.items()}, [each.id for each in ordered])}
     return Rendered({**index, **_pages(ordered, formulating), **decisions}, [])
 
 
-def _wanted(content: dict) -> list[str]:
-    """The capabilities the index names: those in the reading order, and those a constraint is pinned in."""
-    pinned = [id for constraint in content.get("constraints", []) for id in constraint.get("pinned_in", [])]
-    return list(dict.fromkeys([*content.get("reading_order", []), *pinned]))
+def _pinned(content: dict) -> list[str]:
+    """The capabilities a constraint is pinned in."""
+    return [id for constraint in content.get("constraints", []) for id in constraint.get("pinned_in", [])]
 
 
-def _capabilities(client, ids: list[str]):
-    """Each capability read whole, by its id, or the faults of the first read that was refused."""
-    found = {}
-    for id in ids:
-        read = source.whole(client, id)
-        if faults := source.faults(read):
-            return {}, faults
-        found[id] = read.result
+def _capabilities(client, ordered: list[kb_pb2.Artifact], pinned: list[str]):
+    """The shop's capabilities by id, with each pinned one read whole besides, or the faults of the first read that
+    was refused."""
+    found = {each.id: each for each in ordered}
+    for id in pinned:
+        if id not in found:
+            read = source.whole(client, id)
+            if faults := source.faults(read):
+                return {}, faults
+            found[id] = read.result
     return found, []
 
 

@@ -10,40 +10,24 @@ from shop_knowledge.renderers import names, spec_decisions
 
 
 def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]):
-    """The faults of the capabilities in the shop's reading order, the features formulating them, and the decisions
+    """The faults of the capabilities linking to the shop, the features formulating them, and the decisions
     linking to the shop; or the faults of the read that could not be made."""
-    content = loads(shop.content)
-    listed = client.List(kb_pb2.ListRequest(kind="capability", fields={"shop": shop.id}, form=kb_pb2.ListRequest.IDS))
-    if listed.refusal.faults:
-        return list(listed.refusal.faults)
     own, faults = spec_decisions.of(client, shop.id)
     if faults:
         return faults
     return [
-        *_left_out(list(listed.result.ids), content.get("reading_order", [])),
-        *_foreign(shop.id, ordered),
         *_shared([(each.id, f"spec/capabilities/{names.from_title(each.title)}.md") for each in ordered], "capabilities-share-a-file"),
         *_shared([(each.id, each.path) for each in own], "decisions-share-a-file"),
         *_numbered(own),
         *_shared([(each.id, f"features/{names.from_title(capability.title)}.feature")
                   for capability in ordered for each in formulating.get(capability.id, [])], "features-share-a-file"),
-        *_used(set(listed.result.ids) | set(content.get("reading_order", [])), formulating),
+        *_used({each.id for each in ordered}, formulating),
         *_ragged(formulating),
     ]
 
 
 def _fault(artifact: str, rule: str, message: str) -> kb_pb2.Fault:
     return kb_pb2.Fault(artifact=artifact, rule=rule, message=message)
-
-
-def _left_out(named_for_shop: list[str], reading_order: list[str]) -> list[kb_pb2.Fault]:
-    return [_fault(id, "not-in-reading-order", "names the shop but is not in the shop's reading order")
-            for id in named_for_shop if id not in reading_order]
-
-
-def _foreign(shop: str, ordered: list[kb_pb2.Artifact]) -> list[kb_pb2.Fault]:
-    return [_fault(each.id, "belongs-to-another-shop", f"is in the shop's reading order but belongs to another shop, {loads(each.content).get('shop')}")
-            for each in ordered if loads(each.content).get("shop") != shop]
 
 
 def _grouped(pairs: list[tuple[str, str]]) -> list[tuple[str, list[str]]]:

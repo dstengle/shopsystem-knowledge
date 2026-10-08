@@ -24,6 +24,8 @@ def page(capability: kb_pb2.Artifact, content: dict, formulated_as: str | None) 
 
 def _frontmatter(id: str, title: str, content: dict, formulated_as: str | None) -> str:
     fields = {"id": id, "title": title, "narrator": content["narrator"], "rests_on": content.get("rests_on", [])}
+    if content.get("depends_on"):
+        fields["depends_on"] = content["depends_on"]
     if formulated_as:
         fields["formulated_as"] = formulated_as
     return f"---\n{dumps(fields)}---\n"

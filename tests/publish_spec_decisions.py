@@ -1,5 +1,7 @@
 """The steps of publish-a-shops-spec for the ledger and the decisions' records. Star-imported by the feature's test
 module alone (adrs/0035)."""
+import re
+
 from pytest_bdd import given, parsers, then
 
 import spec_shop
@@ -104,3 +106,32 @@ def _gives_the_other_shops_record(result, target, other):
     text = (target / "spec" / "decisions.md").read_text()
     entry = text[text.index(f"## {other[1]}"):]
     assert entry.endswith(f"source: {other[0]}: adrs/{_file(9, 'Aisles are swept')}\n")
+
+
+@given("the decisions linking to the shop are three, numbered 12, 3 and 7, created in that order")
+def _three_numbered_decisions(env, tmp_path, built):
+    """Beside the two the shop was built with, numbered 1 and 2: the ledger holds all five, in number order."""
+    for number in (12, 3, 7):
+        spec_shop.numbered_decision(env, tmp_path, built.shop, number, f"Decision {number}")
+
+
+@given("another shop of the same product, with a decision linking to it", target_fixture="other")
+def _another_shop_with_a_decision(env, tmp_path, built):
+    return spec_shop.other_shop_decision(env, tmp_path, built.product, 9, "Aisles are swept")
+
+
+def _ledger_numbers(target):
+    """The number of each decision the ledger lists, in the order it lists them, read from the source it gives."""
+    return [int(match) for match in re.findall(r"^source: (?:\S+: )?adrs/(\d+)-", (target / "spec" / "decisions.md").read_text(), re.M)]
+
+
+@then("the ledger lists the decisions numbered 3, 7 and 12, in that order")
+def _lists_in_number_order(target):
+    """Numbers 3, 7 and 12 among the lowest to the highest of all the ledger lists."""
+    numbers = _ledger_numbers(target)
+    assert numbers == sorted(numbers) and [at for at in numbers if at in {3, 7, 12}] == [3, 7, 12], numbers
+
+
+@then("the ledger does not list the other shop's decision")
+def _does_not_list_the_other(target, other):
+    assert f"## {other[1]}\n" not in (target / "spec" / "decisions.md").read_text()

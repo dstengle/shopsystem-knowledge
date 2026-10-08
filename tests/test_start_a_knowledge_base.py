@@ -49,6 +49,7 @@ def _holds_the_ten(env, tmp_path, result):
     }, "Record the shop")
     record(env, tmp_path, "capability", {
         "title": "Restock", "shop": "shop/shelves", "gist": "Shelves are restocked.", "narrator": "the shopkeeper",
+        "order": "1", "status": "active",
         "sections": [purpose], "behaviour": [{"title": "Short shelf", "says": "When a shelf is short, it is filled."}],
     }, "Record restocking")
     record(env, tmp_path, "decision", {

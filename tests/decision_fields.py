@@ -10,9 +10,15 @@ PURPOSE = {"title": "Purpose", "body": "Hold what was decided.\n"}
 SHOP_SECTIONS = [PURPOSE, {"title": "Order of building", "body": "One by one.\n"}, {"title": "Testing", "body": "By hand.\n"}]
 
 
+def without_shop(number: int) -> dict:
+    """A decision's statement, date and number, the number as the step gives it: what a decision requires beside its
+    title, sections and the shop it links to."""
+    return {"statement": STATEMENT, "date": DATE, "number": number}
+
+
 def decided(number: int, shop: str) -> dict:
-    """A decision's statement, date, number and shop, the number as the step gives it, `shop` the name kb minted."""
-    return {"statement": STATEMENT, "date": DATE, "number": number, "shop": shop}
+    """A decision's required fields with its shop, `shop` the name kb minted."""
+    return {**without_shop(number), "shop": shop}
 
 
 def shop_of(env, tmp_path, title: str = "Front counter") -> str:

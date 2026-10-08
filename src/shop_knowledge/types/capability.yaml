@@ -20,6 +20,12 @@ schema:
       pattern: '^[^\n]*(?!\n)$'
     narrator:
       type: string
+    order:
+      type: string
+      pattern: '^[0-9]+(\.[0-9]+)*(?!\n)$'
+    status:
+      type: string
+      enum: [active, deprecated, retired]
     rests_on:
       type: array
       items:
@@ -29,7 +35,16 @@ schema:
         cardinality: many
         parts: false
         on_delete: refuse
-  required: [title, shop, gist, narrator]
+    depends_on:
+      type: array
+      items:
+        type: string
+      ref:
+        targets: [capability]
+        cardinality: many
+        parts: false
+        on_delete: refuse
+  required: [title, shop, gist, narrator, order, status]
   sections:
     - title: Purpose
   summary: [shop, gist]

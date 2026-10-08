@@ -3,7 +3,7 @@ artifact carries, and those of a process's steps. The feature's test module star
 from kb.content import dumps
 from pytest_bdd import given, parsers, then, when
 
-from decision_fields import DATE, STATEMENT
+from decision_fields import without_shop
 from driver import knol, record, start, whole
 
 PURPOSE = [{"title": "Purpose", "body": "Why.\n"}]
@@ -15,10 +15,11 @@ BY_KIND = {
     "product": ("product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": PURPOSE}),
     "shop": ("shop", {"title": "Shelves", "gist": "Keeps the shelves.", "sections": SHOP_SECTIONS}),
     "capability": ("capability", {
-        "title": "Set prices", "gist": "Prices are set.", "narrator": "the shopkeeper", "sections": PURPOSE,
+        "title": "Set prices", "gist": "Prices are set.", "narrator": "the shopkeeper", "order": "1", "status": "active",
+        "sections": PURPOSE,
     }),
     "decision": ("decision", {
-        "title": "Price reviews happen weekly", "statement": STATEMENT, "date": DATE, "number": 1, "sections": SECTIONS,
+        "title": "Price reviews happen weekly", **without_shop(1), "sections": SECTIONS,
     }),
     "feature": ("feature", {"title": "Pricing"}),
     "work item": ("work-item", {"title": "Reprice the shelves"}),

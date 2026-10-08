@@ -1,8 +1,8 @@
 """The small shop that publish-a-shops-spec's scenarios share, built the way a user builds one: a product; a shop with
-constraints, sections and a reading order; decisions linking to the shop; capabilities of the shop with Behaviour and
-Not yet items resting on its decisions; and a feature formulating each capability. Imported plainly, never star-imported. `build` returns the
+constraints and sections; decisions linking to the shop; active capabilities linking to the shop, each with an order
+of its own, Behaviour and Not yet items, resting on its decisions; and a feature formulating each capability. Imported plainly, never star-imported. `build` returns the
 names kb minted, and the content it gave, so a scenario reads what it needs from there instead of spelling it."""
-from decision_fields import DATE, STATEMENT, decided
+from decision_fields import decided, without_shop
 from driver import knol, record, whole
 from kb.content import dumps
 
@@ -20,6 +20,7 @@ CAPABILITIES = [
         "behaviour": [{"title": "Short shelf", "says": "When a shelf is short, it is filled."}],
         "not_yet": [{"title": "Night orders", "defers": "Ordering at night.", "trigger": "the shop opens at night"}],
         "rests_on": [0],
+        "order": "5",
     },
     {
         "title": "Count the stock",
@@ -28,11 +29,12 @@ CAPABILITIES = [
         "behaviour": [{"title": "Counted shelf", "says": "When a shelf is counted, its count is kept."}],
         "not_yet": [],
         "rests_on": [0, 1],
+        "order": "6",
     },
 ]
 DECISIONS = [
-    {"title": "Shelves are filled daily", "statement": STATEMENT, "date": DATE, "number": 1},
-    {"title": "Counts are kept weekly", "statement": STATEMENT, "date": DATE, "number": 2, "revisit_when": "the shop grows", "supersedes": 0, "extends": [0]},
+    {"title": "Shelves are filled daily", **without_shop(1)},
+    {"title": "Counts are kept weekly", **without_shop(2), "revisit_when": "the shop grows", "supersedes": 0, "extends": [0]},
 ]
 CONSTRAINTS = [
     {"title": "Shelves stay full", "says": "No shelf is left empty.", "pinned": [0, 1]},
@@ -82,8 +84,8 @@ def line_id(env, capability, title):
 
 
 def build(env, tmp_path) -> Built:
-    """Record the whole shop in the knowledge base `env` names, the shop's reading order and constraints written once
-    its capabilities exist, since they link to it and it to them; its decisions link to it."""
+    """Record the whole shop in the knowledge base `env` names, the shop's constraints written once its capabilities
+    exist, since they pin to them; its decisions and capabilities link to it."""
     product = record(env, tmp_path, "product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": [PURPOSE]},
                      "Record the product")
     shop_content = {
@@ -97,7 +99,7 @@ def build(env, tmp_path) -> Built:
     capabilities = []
     for each in CAPABILITIES:
         content = {key: value for key, value in each.items() if key not in {"rests_on", "not_yet"}}
-        content |= {"shop": shop, "rests_on": [decisions[index] for index in each["rests_on"]],
+        content |= {"shop": shop, "status": "active", "rests_on": [decisions[index] for index in each["rests_on"]],
                     "not_yet": each["not_yet"], "sections": [PURPOSE]}
         capabilities.append(record(env, tmp_path, "capability", content, f"Record {each['title']}"))
     features = [_feature(env, tmp_path, each, name) for each, name in zip(CAPABILITIES, capabilities)]
@@ -105,10 +107,10 @@ def build(env, tmp_path) -> Built:
         {"title": each["title"], "says": each["says"], "pinned_in": [capabilities[index] for index in each["pinned"]]}
         for each in CONSTRAINTS
     ]
-    complete = {**{key: value for key, value in shop_content.items() if key != "title"}, "reading_order": capabilities, "constraints": constraints}
+    complete = {**{key: value for key, value in shop_content.items() if key != "title"}, "constraints": constraints}
     path = tmp_path / "shop-complete.yaml"
     path.write_text(dumps(complete))
-    result = knol(env, "write", shop, "--from", str(path), "-m", "Order the shop's capabilities")
+    result = knol(env, "write", shop, "--from", str(path), "-m", "Pin the constraints")
     assert result.returncode == 0, result.stderr
     return Built(product, shop, capabilities, decisions, features)
 
@@ -116,7 +118,7 @@ def build(env, tmp_path) -> Built:
 KIND_DEFAULTS = {
     "product": {"sections": [PURPOSE]},
     "shop": {"sections": SHOP_SECTIONS},
-    "capability": {"narrator": "the shopkeeper", "sections": [PURPOSE]},
+    "capability": {"narrator": "the shopkeeper", "order": "1", "status": "active", "sections": [PURPOSE]},
     "decision": {"sections": [PURPOSE, {"title": "Rationale", "body": "The shop runs better so.\n"}]},
 }
 """What each kind needs beside its title and the fields a scenario gives: its sections, and a capability's narrator. A
@@ -147,20 +149,12 @@ def capability_content(env, tmp_path, lines):
     return {"title": "Checkout", "shop": shop, "gist": "A capability.", "behaviour": lines, **KIND_DEFAULTS["capability"]}
 
 
-def ordered_capability(env, tmp_path, shop, title):
-    """A capability of `title` added to `shop`, last in its reading order, and a feature formulating it, recorded as the
+def ordered_capability(env, tmp_path, shop, title, order="3"):
+    """A capability of `title` linking to `shop`, active and at `order`, and a feature formulating it, recorded as the
     user does; return the capability's name and the feature's."""
     lines = [{"title": "Only line", "says": "When asked, it answers."}]
-    capability = put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines)
-    feature = _feature(env, tmp_path, {"title": title, "behaviour": lines}, capability)
-    held = whole(env, shop)
-    complete = {key: value for key, value in held.items() if key not in {"id", "type", "schema_version", "revision", "title"}}
-    complete["reading_order"] = [*held["reading_order"], capability]
-    path = tmp_path / "shop-ordered.yaml"
-    path.write_text(dumps(complete))
-    result = knol(env, "write", shop, "--from", str(path), "-m", "Order the shop's capabilities")
-    assert result.returncode == 0, result.stderr
-    return capability, feature
+    capability = put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines, order=order)
+    return capability, _feature(env, tmp_path, {"title": title, "behaviour": lines}, capability)
 
 
 def _rewritten(env, tmp_path, name, **changed):
@@ -173,11 +167,6 @@ def _rewritten(env, tmp_path, name, **changed):
     assert result.returncode == 0, result.stderr
 
 
-def reading_order(env, tmp_path, shop, capabilities):
-    """`shop` made to order `capabilities`, which link to it and so were recorded after it."""
-    _rewritten(env, tmp_path, shop, reading_order=capabilities)
-
-
 def numbered_decision(env, tmp_path, shop, number, title):
     """A decision of `number` and `title` linking to `shop`; return its name."""
     return put(env, tmp_path, "decision", title, **decided(number, shop))
@@ -187,6 +176,11 @@ def other_shop_decision(env, tmp_path, product, number, title):
     """Another shop of `product` and a decision of `number` and `title` linking to it; return the shop's name and the decision's."""
     shop = put(env, tmp_path, "shop", "Aisles", product=product, gist="Keeps the aisles.")
     return shop, numbered_decision(env, tmp_path, shop, number, title)
+
+
+def deprecate(env, tmp_path, capability):
+    """`capability` made deprecated, still in use."""
+    _rewritten(env, tmp_path, capability, status="deprecated")
 
 
 def rest_on(env, tmp_path, capability, decision):

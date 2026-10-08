@@ -4,6 +4,7 @@ from kb.content import dumps, loads
 from pytest_bdd import given, parsers, then
 
 import spec_shop
+from driver import whole
 from published_from import markdown
 
 
@@ -31,11 +32,21 @@ def _expected(env, name, built, index):
     return f"---\n{dumps(frontmatter)}---\n{line}\n\n" + "\n\n".join(blocks) + "\n"
 
 
-@then("that directory holds `spec/capabilities/<name>.md` for each capability of the shop")
+@given("one of the capabilities linking to the shop is deprecated")
+def _one_is_deprecated(env, tmp_path, built):
+    spec_shop.deprecate(env, tmp_path, built.capabilities[1])
+
+
+@then("that directory holds `spec/capabilities/<name>.md` for each capability linking to the shop whose status is active or deprecated")
 def _holds_each_capability(env, result, target, built):
+    """An active capability's page is laid out whole; a deprecated one's is there."""
     assert result.returncode == 0, result.stderr
     for index, name in enumerate(capability.split("/", 1)[1] for capability in built.capabilities):
-        assert (target / "spec" / "capabilities" / f"{name}.md").read_text() == _expected(env, name, built, index)
+        page = target / "spec" / "capabilities" / f"{name}.md"
+        if whole(env, built.capabilities[index])["status"] == "active":
+            assert page.read_text() == _expected(env, name, built, index)
+        else:
+            assert page.is_file()
 
 
 @given(parsers.parse('one of the shop\'s capabilities titled "{title}", and a feature formulating it'),

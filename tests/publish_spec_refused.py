@@ -5,6 +5,7 @@ from pytest_bdd import given, parsers, then
 
 import spec_shop
 from driver import record
+from published_from import markdown
 
 
 def _lines_naming(result, reason, names):
@@ -14,19 +15,9 @@ def _lines_naming(result, reason, names):
     assert any(all(name in line for name in names) for line in lines), result.stderr
 
 
-def _capability(env, tmp_path, shop, title):
+def _capability(env, tmp_path, shop, title, order=3):
     line = {"title": "Only line", "says": "When asked, it answers."}
-    return spec_shop.put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=[line])
-
-
-@given("a capability that names the shop but is not in the shop's reading order", target_fixture="refused_for")
-def _a_capability_left_out(env, tmp_path, built):
-    return ["is not in the shop's reading order", [_capability(env, tmp_path, built.shop, "Count the bags")]]
-
-
-@then("publishing is rejected because that capability is not in the shop's reading order, naming that capability")
-def _rejected_left_out(result, refused_for):
-    _lines_naming(result, *refused_for)
+    return spec_shop.put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=[line], order=str(order))
 
 
 @given("another shop of the same product", target_fixture="other_shop")
@@ -34,22 +25,10 @@ def _another_shop(env, tmp_path, built):
     return spec_shop.put(env, tmp_path, "shop", "Aisles", product=built.product, gist="Keeps the aisles.")
 
 
-@given("a capability that names the other shop is in the shop's reading order", target_fixture="refused_for")
-def _a_foreign_capability_in_order(env, tmp_path, built, other_shop):
-    foreign = _capability(env, tmp_path, other_shop, "Sweep the aisles")
-    spec_shop.reading_order(env, tmp_path, built.shop, [*built.capabilities, foreign])
-    return ["belongs to another shop", [foreign]]
-
-
-@then("publishing is rejected because that capability belongs to another shop, naming that capability")
-def _rejected_foreign(result, refused_for):
-    _lines_naming(result, *refused_for)
-
-
-@given(parsers.parse('two of the shop\'s capabilities titled "{first}" and "{second}"'), target_fixture="refused_for")
+@given(parsers.parse('two of the shop\'s capabilities, each with an order of its own, titled "{first}" and "{second}"'),
+       target_fixture="refused_for")
 def _two_capabilities(env, tmp_path, built, first, second):
-    both = [_capability(env, tmp_path, built.shop, first), _capability(env, tmp_path, built.shop, second)]
-    spec_shop.reading_order(env, tmp_path, built.shop, [*built.capabilities, *both])
+    both = [_capability(env, tmp_path, built.shop, title, order) for order, title in ((3, first), (4, second))]
     return ["would share", both]
 
 
@@ -96,7 +75,6 @@ def _rejected_shared_features(result, refused_for):
        target_fixture="refused_for")
 def _a_scenario_using_its_own_shop(env, tmp_path, built):
     capability = _capability(env, tmp_path, built.shop, "Mop the floor")
-    spec_shop.reading_order(env, tmp_path, built.shop, [*built.capabilities, capability])
     feature = _feature_of(env, tmp_path, capability, "Mop the floor", {"uses": [built.capabilities[0]]})
     return ["uses only another shop's capability", [feature, "Mop the floor, as the user does it"]]
 
@@ -110,7 +88,6 @@ def _rejected_used(result, refused_for):
        target_fixture="refused_for")
 def _a_scenario_with_a_ragged_table(env, tmp_path, built):
     capability = _capability(env, tmp_path, built.shop, "Shelve the tins")
-    spec_shop.reading_order(env, tmp_path, built.shop, [*built.capabilities, capability])
     steps = [{"keyword": "When", "text": "the user acts", "table": [["tin", "shelf"], ["beans"]]},
              {"keyword": "Then", "text": "the shelf is in order"}]
     feature = _feature_of(env, tmp_path, capability, "Shelve the tins", {"steps": steps})
@@ -122,6 +99,30 @@ def _rejected_ragged(result, refused_for):
     _lines_naming(result, *refused_for)
 
 
+@given(
+    "a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product"
+)
+def _a_directory_holding_an_old_record(env, tmp_path, built, target, kept):
+    """The directory is the published one, which holds the old record: a file carrying the published-from line of a
+    decision of another shop."""
+    _, decision = spec_shop.other_shop_decision(env, tmp_path, built.product, 99, "Old rule")
+    file = target / "adrs" / "0099-old-rule.md"
+    file.parent.mkdir()
+    file.write_text(f"{markdown(env, decision)}\n\n# 0099 Old rule\n")
+    kept[file] = file.read_text()
+
+
+def _files(target):
+    return {file: file.read_text() for file in target.rglob("*") if file.is_file()}
+
+
 @then("nothing is written to the directory")
-def _nothing_written(target):
-    assert list(target.iterdir()) == []
+def _nothing_written(target, kept):
+    """The directory holds what it held before the publish: nothing, or the files the scenario put there."""
+    assert _files(target) == kept
+
+
+@then("`adrs/0099-old-rule.md` is still in that directory")
+def _the_old_record_is_still_there(target, kept):
+    file = target / "adrs" / "0099-old-rule.md"
+    assert file.is_file() and file.read_text() == kept[file]
