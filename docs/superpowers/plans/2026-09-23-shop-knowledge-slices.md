@@ -52,7 +52,7 @@ only.
 - Observable: a shop's capabilities are the capabilities linking to it, published and counted in their dotted order, each carrying a status and the capabilities it depends on
 - Unknown: how publishing and coverage find a shop's capabilities through the links pointing at it and sort dotted orders part by part
 - Needs: shop.reading_order and shop.decisions leave the types; coverage reads capabilities the same way publishing does
-- Status: planned
+- Status: green
 
 ## Slice 70: Publishing deletes the files it no longer writes
 - Kind: capability
@@ -131,3 +131,5 @@ only.
   Surprised by: making the link required reached every step recording a decision (tests/decision_fields.shop_of records a product and a shop first); the no-shop check (spec_faults._unowned) and its unbound steps went with shop.decisions, since a decision's shop is now required.
   Open questions: none. Next: slice 69.
 - 2026-10-08 Suite: 158 passed, 54 failed at 390424a in 17 s; failing: publish-a-shops-spec through its changed Background (43), the slice 69-73 rows of use-the-shops-types (9), follow-the-links into a capability, see-what-is-formulated's retired capability
+- 2026-10-08 slice 69 green. Someone can now: link a capability to its shop with a dotted order, a status and the capabilities it depends on, and publish and cover a shop's capabilities found through those links in their order. Surprised by: the depends_on row passed once the step existed, since kb keeps an undeclared field, so its Then reads the field as a link at a glance; the ledger and index scenarios add to the Background's two decisions and two capabilities (orders 5 and 6), so their Thens read the relative order. Open questions: none. Next: slice 70.
+- 2026-10-08 Suite: 191 passed, 21 failed at 5218efb in 27 s; failing: publish-a-shops-spec slice 70-73 rows (deletion, deprecated and retired pages, refusals), the slice 71 retired rows of use-the-shops-types, follow-the-links into a capability, see-what-is-formulated's retired capability
