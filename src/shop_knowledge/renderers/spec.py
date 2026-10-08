@@ -54,7 +54,8 @@ def _capabilities(client, ordered: list[kb_pb2.Artifact], pinned: list[str]):
 
 
 def _described(capability: kb_pb2.Artifact) -> spec_index.Capability:
-    return spec_index.Capability(names.from_title(capability.title), loads(capability.content)["gist"])
+    content = loads(capability.content)
+    return spec_index.Capability(names.from_title(capability.title), content["gist"], content["status"] == "deprecated")
 
 
 def _formulating(client, capabilities: list[kb_pb2.Artifact]):

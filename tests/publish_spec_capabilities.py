@@ -32,9 +32,29 @@ def _expected(env, name, built, index):
     return f"---\n{dumps(frontmatter)}---\n{line}\n\n" + "\n\n".join(blocks) + "\n"
 
 
-@given("one of the capabilities linking to the shop is deprecated")
+@given("one of the capabilities linking to the shop is deprecated", target_fixture="deprecated")
 def _one_is_deprecated(env, tmp_path, built):
     spec_shop.deprecate(env, tmp_path, built.capabilities[1])
+    return built.capabilities[1]
+
+
+@then("that directory holds that capability's page")
+def _holds_the_deprecated_page(result, target, deprecated):
+    assert result.returncode == 0, result.stderr
+    assert (target / "spec" / "capabilities" / f"{deprecated.split('/', 1)[1]}.md").is_file()
+
+
+@then("that page says the capability is deprecated")
+def _page_says_deprecated(result, target, deprecated):
+    frontmatter, _ = _page(target, deprecated.split("/", 1)[1])
+    assert frontmatter["status"] == "deprecated"
+
+
+@then("that capability's line in the index says it is deprecated")
+def _index_says_deprecated(result, target, deprecated):
+    name = deprecated.split("/", 1)[1]
+    lines = [line for line in (target / "spec" / "index.md").read_text().splitlines() if f"[{name}](" in line]
+    assert len(lines) == 1 and lines[0].endswith(" (deprecated)"), lines
 
 
 @then("that directory holds `spec/capabilities/<name>.md` for each capability linking to the shop whose status is active or deprecated")
@@ -69,3 +89,25 @@ def _names_that_feature(result, target, formulated, name):
     frontmatter, _ = _page(target, name)
     assert frontmatter["formulated_as"] == f"features/{name}.feature"
     assert (target / "features" / f"{name}.feature").is_file()
+
+
+@given("a capability linking to the shop whose status is retired, and a feature formulating it", target_fixture="retired")
+def _a_retired_capability(env, tmp_path, built):
+    return spec_shop.retired_capability(env, tmp_path, built.shop, "Old cache")
+
+
+@then("that directory holds no page for that capability")
+def _holds_no_page(result, target, retired):
+    assert result.returncode == 0, result.stderr
+    assert not (target / "spec" / "capabilities" / "old-cache.md").exists()
+
+
+@then("that directory holds no feature file for it")
+def _holds_no_feature(result, target, retired):
+    assert result.returncode == 0, result.stderr
+    assert not (target / "features" / "old-cache.feature").exists()
+
+
+@then("the index does not list it")
+def _index_lists_not(result, target, retired):
+    assert "old-cache" not in (target / "spec" / "index.md").read_text()

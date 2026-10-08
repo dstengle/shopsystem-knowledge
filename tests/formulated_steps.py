@@ -5,23 +5,41 @@ import spec_shop
 from driver import knol, record
 
 
+def _a_shop(env, tmp_path, shop):
+    product = spec_shop.put(env, tmp_path, "product", "Corner shop", gist="A shop on the corner.")
+    return spec_shop.put(env, tmp_path, "shop", shop, product=product, gist="Keeps the shop.")
+
+
 @given(
     parsers.parse('a shop knowledge base holding the shop "{shop}" with these Behaviour lines, formulated by these scenarios'),
     target_fixture="held",
 )
 def _a_shop_with_lines(env, started_shop, tmp_path, datatable, shop):
-    """The shop and its capabilities, in the order the table first names them, each with its lines; a feature formulating
-    the capability holds a scenario for each time the table says a line is formulated. Returns each line's link, by
-    capability title and line title."""
-    product = spec_shop.put(env, tmp_path, "product", "Corner shop", gist="A shop on the corner.")
-    shop_id = spec_shop.put(env, tmp_path, "shop", shop, product=product, gist="Keeps the shop.")
+    return _with_lines(env, tmp_path, _a_shop(env, tmp_path, shop), datatable, {})
+
+
+@given(parsers.parse('a shop knowledge base holding the shop "{shop}" with these capabilities linking to it'), target_fixture="held")
+def _a_shop_with_capabilities(env, started_shop, tmp_path, datatable, shop):
+    """The shop, and the status each capability will be recorded with, which the Behaviour lines given next complete."""
+    return {"shop": _a_shop(env, tmp_path, shop), "status": {row[0]: row[1] for row in datatable[1:]}}
+
+
+@given("these Behaviour lines, formulated by these scenarios", target_fixture="held")
+def _lines_of_the_capabilities(env, tmp_path, held, datatable):
+    return _with_lines(env, tmp_path, held["shop"], datatable, held["status"])
+
+
+def _with_lines(env, tmp_path, shop_id, datatable, status):
+    """The shop's capabilities, in the order the table first names them, each with its lines and its status (active where
+    none is given); a feature formulating the capability holds a scenario for each time the table says a line is
+    formulated. Returns each line's link, by capability title and line title."""
     rows = [dict(zip(datatable[0], row)) for row in datatable[1:]]
     titles = list(dict.fromkeys(row["capability"] for row in rows))
     capabilities = {}
     for order, title in enumerate(titles, 1):
         lines = [{"title": row["line"], "says": f"When asked, {row['line'].lower()}."} for row in rows if row["capability"] == title]
         capabilities[title] = spec_shop.put(env, tmp_path, "capability", title, shop=shop_id, gist="A capability.", behaviour=lines,
-                                              order=str(order))
+                                              order=str(order), status=status.get(title, "active"))
     ids = {(row["capability"], row["line"]): spec_shop.line_id(env, capabilities[row["capability"]], row["line"]) for row in rows}
     for title, capability in capabilities.items():
         scenarios = [

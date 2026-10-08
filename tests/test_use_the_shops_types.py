@@ -8,5 +8,6 @@ from types_spec_kinds import *  # noqa: F403
 from types_spec_limits import *  # noqa: F403
 from types_capability_links import *  # noqa: F403
 from types_spec_scenarios import *  # noqa: F403
+from types_retiring import *  # noqa: F403
 
 scenarios("use-the-shops-types.feature")

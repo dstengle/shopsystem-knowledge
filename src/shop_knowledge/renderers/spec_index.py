@@ -6,10 +6,10 @@ from shop_knowledge.renderers import published_from, sections
 
 
 class Capability:
-    """What the index says of a capability: the name its file is given and its gist."""
+    """What the index says of a capability: the name its file is given, its gist, and whether it is deprecated."""
 
-    def __init__(self, name: str, gist: str):
-        self.name, self.gist = name, gist
+    def __init__(self, name: str, gist: str, deprecated: bool = False):
+        self.name, self.gist, self.deprecated = name, gist, deprecated
 
 
 def page(shop: kb_pb2.Artifact, content: dict, capabilities: dict[str, Capability], order: list[str]) -> str:
@@ -37,10 +37,12 @@ def _constraint(constraint: dict, capabilities: dict[str, Capability]) -> str:
 
 
 def _composition(order: list[str], capabilities: dict[str, Capability]) -> str:
-    return "\n".join(
-        f"{number}. [{capabilities[id].name}](capabilities/{capabilities[id].name}.md): {capabilities[id].gist}"
-        for number, id in enumerate(order, 1)
-    )
+    return "\n".join(_entry(number, capabilities[id]) for number, id in enumerate(order, 1))
+
+
+def _entry(number: int, capability: Capability) -> str:
+    line = f"{number}. [{capability.name}](capabilities/{capability.name}.md): {capability.gist}"
+    return line + " (deprecated)" if capability.deprecated else line
 
 
 def _joined(names: list[str]) -> str:

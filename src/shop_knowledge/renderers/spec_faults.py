@@ -6,7 +6,7 @@ from collections import defaultdict
 from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge.renderers import names, spec_decisions
+from shop_knowledge.renderers import names, source, spec_decisions
 
 
 def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]):
@@ -15,7 +15,11 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
     own, faults = spec_decisions.of(client, shop.id)
     if faults:
         return faults
+    depended, faults = _retired_dependencies(client, ordered)
+    if faults:
+        return faults
     return [
+        *depended,
         *_shared([(each.id, f"spec/capabilities/{names.from_title(each.title)}.md") for each in ordered], "capabilities-share-a-file"),
         *_shared([(each.id, each.path) for each in own], "decisions-share-a-file"),
         *_numbered(own),
@@ -56,6 +60,24 @@ def _used(shop_capabilities: set[str], formulating: dict[str, list[kb_pb2.Artifa
         for features in formulating.values() for feature in features
         for scenario in loads(feature.content).get("scenarios", []) for used in scenario.get("uses", []) if used in shop_capabilities
     ]
+
+
+def _retired_dependencies(client, ordered: list[kb_pb2.Artifact]):
+    """A fault for each published capability whose `depends_on` names a retired capability, in any shop, each named
+    read whole for its status; or the faults of the first read that was refused."""
+    status = {}
+    faults = []
+    for each in ordered:
+        for name in loads(each.content).get("depends_on", []):
+            if name not in status:
+                read = source.whole(client, name)
+                if refused := source.faults(read):
+                    return [], refused
+                status[name] = loads(read.result.content)["status"]
+            if status[name] == "retired":
+                faults.append(_fault(each.id, "depends-on-a-retired-capability",
+                                     f"depends on {name}, a retired capability; a published capability depends only on one in use"))
+    return faults, []
 
 
 def _ragged(formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:

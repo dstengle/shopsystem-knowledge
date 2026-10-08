@@ -106,6 +106,16 @@ def _a_directory_holding_an_old_record(env, tmp_path, built, target, kept):
     """The directory is the published one, which holds the old record: a file carrying the published-from line of a
     decision of another shop."""
     _, decision = spec_shop.other_shop_decision(env, tmp_path, built.product, 99, "Old rule")
+    _old_record(env, target, kept, decision)
+
+
+@given("a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop")
+def _a_directory_holding_the_other_shops_old_record(env, tmp_path, built, target, kept, other_shop):
+    """The same, the decision linking to the other shop the scenario already made."""
+    _old_record(env, target, kept, spec_shop.numbered_decision(env, tmp_path, other_shop, 99, "Old rule"))
+
+
+def _old_record(env, target, kept, decision):
     file = target / "adrs" / "0099-old-rule.md"
     file.parent.mkdir()
     file.write_text(f"{markdown(env, decision)}\n\n# 0099 Old rule\n")
@@ -126,3 +136,24 @@ def _nothing_written(target, kept):
 def _the_old_record_is_still_there(target, kept):
     file = target / "adrs" / "0099-old-rule.md"
     assert file.is_file() and file.read_text() == kept[file]
+
+
+@given(parsers.re(r"a capability linking to (?P<owner>the shop|the other shop) whose status is retired"), target_fixture="retiree")
+def _a_retired_capability_of(env, tmp_path, built, request, owner):
+    shop = request.getfixturevalue("other_shop") if owner == "the other shop" else built.shop
+    return spec_shop.retired_capability(env, tmp_path, shop, "Old cache")[0]
+
+
+@given(parsers.parse("a capability linking to the shop whose status is {status} depends on that retired capability"),
+       target_fixture="refused_for")
+def _a_capability_depending_on_it(env, tmp_path, built, retiree, status):
+    lines = [{"title": "Only line", "says": "When asked, it answers."}]
+    dependent = spec_shop.put(env, tmp_path, "capability", "Sweep the floor", shop=built.shop, gist="A capability.",
+                              behaviour=lines, order="3", status=status)
+    spec_shop.depend_on(env, tmp_path, dependent, [retiree])
+    return ["a retired capability", [dependent, retiree]]
+
+
+@then("publishing is rejected because it depends on a retired capability, naming both capabilities")
+def _rejected_depending_on_retired(result, refused_for):
+    _lines_naming(result, *refused_for)
