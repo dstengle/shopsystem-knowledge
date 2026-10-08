@@ -60,7 +60,7 @@ only.
 - Observable: shop-knol validate lists, across every shop, each scenario whose uses names a capability its capability does not depend on, as a fault
 - Unknown: how validate adds a check of shop-knowledge's own to kb's Check answer while still showing what is behind its type
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -116,3 +116,5 @@ only.
 - 2026-10-08 Suite: 218 passed, 5 failed at 2779289 in 35 s; failing: slice 75 (3 rows), slice 76 (2 rows)
 - 2026-10-08 slice 75 green. Someone can now: be told which file publishing could not read, with the directory untouched. Surprised by: the behaviour did not already name the reason (only the OS's 'Permission denied'), so published.py's OSError path got a plain-words Refused naming the file; the shared 'nothing is written' step had to tell an unreadable file from a changed one. Probe: several unreadable files name the first only (in the order spec/capabilities, features, adrs). Backlog: name every unreadable file, not only the first. Open questions: none. Next: slice 76.
 - 2026-10-08 Suite: 221 passed, 2 failed at d1657f5 in 34 s; failing: slice 76 (2 rows)
+- 2026-10-08 slice 76 green. Someone can now: run shop-knol validate and be told of every scenario, in any shop, using a capability its capability does not depend on, with sound false and exit 1. Surprised by: nothing; the rule's one function (consistency.undepended) now serves the publishing check too, which gained a place on its fault. Probe: kb's Check clean and one uses fault gives sound false, the fault listed, exit 1. Open questions: none. Next: none.
+- 2026-10-08 Suite: 223 passed, 0 failed at 9097d50 in 34 s
