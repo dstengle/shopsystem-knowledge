@@ -79,11 +79,9 @@ def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):
     """A fault for each published capability whose `depends_on`, and for each constraint of the shop whose
     `tested_in`, names a retired capability, in any shop, each named read whole for its status; or the faults of the
     first read that was refused."""
-    asks = [(each.id, "depends-on-a-retired-capability", name,
-             "depends on {}, a retired capability; a published capability depends only on one in use")
+    asks = [(each.id, "depends-on-a-retired-capability", name, _depends_on_retired)
             for each in ordered for name in loads(each.content).get("depends_on", [])]
-    asks += [(shop.id, "tested-in-a-retired-capability", name,
-              f"carries the constraint \"{constraint['title']}\", tested in " + "{}, a retired capability; a constraint is tested only in one in use")
+    asks += [(shop.id, "tested-in-a-retired-capability", name, _tested_in_retired(constraint["title"]))
              for constraint in loads(shop.content).get("constraints", []) for name in constraint.get("tested_in", [])]
     status = {}
     faults = []
@@ -94,8 +92,18 @@ def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):
                 return [], refused
             status[name] = loads(read.result.content)["status"]
         if status[name] == "retired":
-            faults.append(_fault(artifact, rule, message.format(name)))
+            faults.append(_fault(artifact, rule, message(name)))
     return faults, []
+
+
+def _depends_on_retired(name: str) -> str:
+    return f"depends on {name}, a retired capability; a published capability depends only on one in use"
+
+
+def _tested_in_retired(title: str):
+    """The wording of a constraint of `title` tested in a retired capability, as a function of that capability's name,
+    so neither the title nor the name is read as a format."""
+    return lambda name: f"carries the constraint \"{title}\", tested in {name}, a retired capability; a constraint is tested only in one in use"
 
 
 def _ragged(formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
