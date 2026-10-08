@@ -84,7 +84,7 @@ only.
 - Observable: a shop whose capabilities share an order, rest on another shop's decision, or whose scenarios use what their capability does not depend on is refused with nothing written or deleted
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -148,3 +148,5 @@ only.
 - 2026-10-08 Suite: 200 passed, 16 failed at 3602d0c in 33 s; failing: publish-a-shops-spec slice 72-73 rows, the slice 72 retired rows of use-the-shops-types, see-what-is-formulated's retired capability
 - 2026-10-08 slice 72 green. Someone can now: deprecate or retire a capability and see publishing and coverage honour it, the publish refused where a published capability depends on a retired one. Surprised by: the use-the-shops-types retiring scenario needed steps only, kb accepts the status change, so it went green on its step definitions alone; the formulated retired scenario went green with the same shop_capabilities filter as the retired publish (red seen by briefly disabling it). Open questions: none. Next: slice 73.
 - 2026-10-08 Suite: 213 passed, 3 failed at d7bf510 in 34 s; failing: publish-a-shops-spec slice 73 rows (two capabilities one order, a scenario's uses not depended on, a capability resting on another shop's decision)
+- 2026-10-08 slice 73 green. Someone can now: publish a shop's spec and have it refused for two capabilities at one order (3 and 3.0 are one), a capability resting on another shop's decision, or a scenario using what its capability does not depend on. Surprised by: position() needed trailing zeros dropped for 3 and 3.0 to be one order; two Givens already existed in publish_spec_decisions (reused); shared refusal helpers moved to tests/publish_refusals.py. Open questions: none. Next: none (batch 17's last slice).
+- 2026-10-08 Suite: 216 passed, 0 failed at c2849ba in 34 s
