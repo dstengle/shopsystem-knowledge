@@ -38,6 +38,30 @@ its place by its unknown among the slices not yet begun, and those slices
 are renumbered and their tags rewritten to match, within this repository
 only.
 
+## Slice 74: A constraint is tested in capabilities
+- Kind: capability
+- Scenarios: publish-a-shops-spec / Publishing is refused when a constraint of the shop is tested in a retired capability, in any shop (all rows)
+- Observable: a shop's constraints name the capabilities they are tested in, published as 'Tested in', and a constraint tested in a retired capability stops the publish
+- Unknown: none
+- Needs: pinned_in renamed tested_in in the shop type, the publisher and the test helpers; the published index says 'Tested in' (the index scenario's expected text, step data)
+- Status: planned
+
+## Slice 75: A file publishing cannot read stops the publish
+- Kind: capability
+- Scenarios: publish-a-shops-spec / Publishing is refused when, among the files publishing may delete, one cannot be read (all rows)
+- Observable: a publish that meets an unreadable file it may delete is refused naming the file, with nothing written or deleted
+- Unknown: none
+- Needs: none
+- Status: planned
+
+## Slice 76: The check finds a scenario using what its capability does not depend on
+- Kind: capability
+- Scenarios: check-the-knowledge-base / The user checks a knowledge base where a scenario uses a capability its capability does not depend on (all rows)
+- Observable: shop-knol validate lists, across every shop, each scenario whose uses names a capability its capability does not depend on, as a fault
+- Unknown: how validate adds a check of shop-knowledge's own to kb's Check answer while still showing what is behind its type
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
@@ -86,3 +110,5 @@ only.
 - 2026-10-08 QUESTION FOR THE SPEC: publish-a-shops-spec, no scenario pins that a scenario whose uses names a capability of its own shop, among its capability's depends_on, is published; and the index's 'Pinned in' names a retired capability that has no page (keep, drop, or refuse?). For the person. (batch 17's branch review)
 - 2026-10-08 Batch batch17 archived to archive/2026-09-23-shop-knowledge-slices-batch17.md; last 2026-10-08 Suite: 216 passed, 0 failed at e01f9b1 in 33 s (batch 17's fix-wave re-review, make test at HEAD)
 - 2026-10-08 Suite: 216 passed, 0 failed at e01f9b1 in 33 s (batch 17's fix-wave re-review, make test at HEAD)
+- 2026-10-08 Suite: 216 passed, 7 failed at 2d05fb1 in 33 s; failing: batch 18's new scenarios
+- 2026-10-08 REQUEST shopsystem-bdd: the capability format defines a depends_on frontmatter key (capabilities a capability builds on, in its own context or another) beside rests_on (decisions only); this repository's capabilities use it (adrs/0067).
