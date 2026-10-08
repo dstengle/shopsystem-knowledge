@@ -2,7 +2,8 @@
 id: capability/list-what-the-shop-holds
 title: List what the shop holds
 narrator: the user, who knows the kind of thing but no name
-rests_on:
+rests_on: []
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/list-what-the-shop-holds.feature
 ---

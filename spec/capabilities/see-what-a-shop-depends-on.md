@@ -5,6 +5,7 @@ narrator: the user, checking whether a shop's capabilities lean on capabilities 
 rests_on:
   - decision/capabilities-depend-on-capabilities
   - decision/capabilities-are-deprecated-then-retired
+depends_on:
   - capability/use-the-shops-types
   - capability/find-the-knowledge-base
 formulated_as: features/see-what-a-shop-depends-on.feature
@@ -36,4 +37,4 @@ This capability covers seeing which of a shop's published capabilities depend on
 
 ## Not yet
 
-Nothing deferred.
+- **Checking a shop's declared dependencies against what its code calls.** Whether a shop's code calls a capability its capabilities do not declare under `depends_on`. Promoted when a shop's code is found to call a capability it does not declare.

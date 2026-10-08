@@ -5,6 +5,7 @@ narrator: the user, reading back one artifact by its name
 rests_on:
   - decision/read-levels-and-json
   - decision/json-where-a-command-offers-it
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/read-an-artifact.feature
 ---

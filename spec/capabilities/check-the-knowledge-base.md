@@ -4,6 +4,8 @@ title: Check the knowledge base
 narrator: the user, or a script, checking the shop's knowledge is sound
 rests_on:
   - decision/a-failing-check-still-shows-what-is-behind
+  - decision/uses-is-kept-and-checked-for-consistency
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/check-the-knowledge-base.feature
 ---
@@ -12,7 +14,7 @@ formulated_as: features/check-the-knowledge-base.feature
 
 ## Purpose
 
-This capability covers one check over the whole knowledge base. It names every fault at once, each with where it is. It reports what is behind its type separately from faults. Only faults make the shop unsound. A check with no single knowledge base to check gives no answer at all. Fixing what the check finds is not part of this capability.
+This capability covers one check over the whole knowledge base. It names every fault at once, each with where it is, and whether each scenario uses only what its capability depends on. It reports what is behind its type separately from faults. Only faults make the shop unsound. A check with no single knowledge base to check gives no answer at all. Fixing what the check finds is not part of this capability.
 
 ## Behaviour
 
@@ -22,17 +24,19 @@ This capability covers one check over the whole knowledge base. It names every f
 - If the check finds faults while another artifact is behind its type, the faults are listed, and the other artifact is listed as behind its type and not as a fault.
 - If a stored file in the knowledge base cannot be read, that file is listed as a fault naming the file, and everything else the shop knows is checked and listed alongside it.
 - If no single knowledge base can be found to check, the check is refused for the reason finding the knowledge base gives, and the user is shown no answer from a check: neither that nothing is wrong, nor anything as behind its type.
+- If a scenario's `uses` names a capability that is not among its capability's dependencies, whichever shop the scenario is in, the check lists that scenario as a fault.
 
 ## Implementation, may change
 
 | command | maps to |
 |---|---|
-| `shop-knol validate` | Check |
+| `shop-knol validate` | Check, then Read, List and Follow over every feature's scenarios and the capabilities they formulate |
 
 - A check that finds no fault shows `sound: true` and `behind:` on stdout, and exits 0.
 - A check that finds faults prints them on stderr, one line each, and exits 1. It also shows `sound: false` and `behind:` on stdout.
 - `behind:` lists each artifact kb reports as stale, under kb's own field names: `artifact`, `schema_version` and `current`. It is empty when nothing is behind.
 - An artifact behind its type is never a fault and never on stderr.
+- A scenario whose `uses` is not among its capability's `depends_on` is shop-knol's own fault, beside kb's: its artifact is the feature, its place the scenario, its rule `uses-not-depended-on`, and it names the capability used.
 
 ## Not yet
 

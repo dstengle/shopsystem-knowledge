@@ -5,6 +5,7 @@ narrator: the user, seeing how the shop's knowledge hangs together
 rests_on:
   - decision/follow-and-search
   - decision/capabilities-depend-on-capabilities
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/follow-the-links.feature
 ---

@@ -4,6 +4,7 @@ title: Search what the shop knows
 narrator: the user, finding knowledge without knowing where it lives
 rests_on:
   - decision/follow-and-search
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/search-what-the-shop-knows.feature
 ---

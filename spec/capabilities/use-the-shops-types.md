@@ -73,7 +73,7 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 | type | glance fields | other fields | sections | parts |
 |---|---|---|---|---|
 | product | `gist` | | Purpose | |
-| shop | `product` → product, `gist` | `narrator` | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `pinned_in` → capability, many |
+| shop | `product` → product, `gist` | `narrator` | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `tested_in` → capability, many |
 | capability | `shop` → shop, `gist` | `narrator`, `order`, `rests_on` → decision, many, `depends_on` → capability, many | Purpose; an `Implementation, may change` section may follow | `behaviour`: `title`, `says` (one EARS line); `not_yet`: `title`, `defers`, `trigger` |
 | decision | `statement`, `date`, `supersedes` → decision, `shop` → shop | `number`, `revisit_when`, `extends` → decision, many | Purpose, Rationale | |
 | feature | `formulates` → capability | `background`: steps | | `scenarios`: `title`, `description`, `formulates` → a capability's behaviour line, `uses` → capability, many, `labels` (Gherkin tags), `steps`, `examples` |
@@ -90,12 +90,13 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
   - a `constraints` item: `title`, `says`;
   - a scenario: `title`, `formulates`, `steps`;
   - a step: `keyword`, `text`.
-- Every other field is optional: a shop's `narrator`; a capability's `rests_on` and `depends_on`; a decision's `supersedes`, `extends` and `revisit_when`; a constraint's `pinned_in`; a scenario's `description`, `uses`, `labels` and `examples`; a step's `table` and `docstring`.
+- Every other field is optional: a shop's `narrator`; a capability's `rests_on` and `depends_on`; a decision's `supersedes`, `extends` and `revisit_when`; a constraint's `tested_in`; a scenario's `description`, `uses`, `labels` and `examples`; a step's `table` and `docstring`.
+- A constraint's `tested_in` names the capabilities whose scenarios show its promise holds. It replaces `pinned_in`.
 - Each link is held in one direction only, and kb answers it from either end. A shop holds no list of its decisions or of its capabilities.
 - A decision's `shop` is one link, to the one shop it belongs to. A shop's decisions are the decisions linking to it.
 - A capability's `order` is a dotted number (`3`, `3.1`, `3.1.2`), sorted numerically part by part. A shop's capabilities are the capabilities linking to it, in `order`.
 - A capability's `depends_on` names the capabilities it builds on, in its own shop or any other. It is kept apart from `rests_on`, which holds decisions only.
-- A scenario is part of its capability. Its `uses` names the dependencies that scenario exercises, in the scenario's own shop or another; that each is among its capability's `depends_on` is checked when the shop's spec is published (publish-a-shops-spec).
+- A scenario is part of its capability. Its `uses` names the dependencies that scenario exercises, in the scenario's own shop or another; that each is among its capability's `depends_on` is checked when the shop's spec is published (publish-a-shops-spec) and when the knowledge base is checked (check-the-knowledge-base).
 - A capability's `status` is one of `active`, `deprecated` or `retired`:
   - `active`: part of the shop's contract;
   - `deprecated`: its removal from spec and code is under way in its own shop;
@@ -109,7 +110,7 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 ## Not yet
 
 - **Defining or changing a type.** This would be product-local or user-local extensions: additional schema and renderer sets that shop-knowledge loads, which kb never learns of. When it comes, it belongs to the shop's types command, not to `create` or `write`. Promoted when a product or a user wants types or renderers of its own.
-- **Validation that kb's schema language cannot express.** If needed, it would run client-side before the call and would not be binding. Promoted when such a validation is needed.
+- **Validation that kb's schema language cannot express.** Beyond the `uses`/`depends_on` check `validate` makes (check-the-knowledge-base), if needed, it would run client-side before the call and would not be binding. Promoted when such a validation is needed.
 - **Scenario status over time.** It will be a ledger, modelled later; it will not be a field on the scenario or on a work item. Promoted when assignment cannot be tracked without one, or at the crossover.
 - **The slice plan as types.** Slices, the backlog and the log, held as artifacts that point at scenarios; the spec's types do not change when they come. Promoted when the slice plan is to be held in the knowledge base.
 - **The product's own concerns.** A lead shop holds the product's own concerns; beyond the `product` artifact itself, none is modelled. Promoted when a product's own concerns are to be held in the knowledge base.

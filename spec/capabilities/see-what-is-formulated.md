@@ -6,6 +6,7 @@ rests_on:
   - decision/the-shops-types-model-the-bdd-spec
   - decision/a-capability-carries-its-reading-order
   - decision/capabilities-are-deprecated-then-retired
+depends_on:
   - capability/use-the-shops-types
   - capability/find-the-knowledge-base
 formulated_as: features/see-what-is-formulated.feature

@@ -13,6 +13,9 @@ rests_on:
   - decision/capabilities-depend-on-capabilities
   - decision/a-capability-carries-its-reading-order
   - decision/capabilities-are-deprecated-then-retired
+  - decision/a-constraint-is-tested-in-capabilities
+  - decision/an-unreadable-file-stops-the-publish
+depends_on:
   - capability/use-the-shops-types
   - capability/publish-an-artifact
 formulated_as: features/publish-a-shops-spec.feature
@@ -47,8 +50,10 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - If a capability of the shop rests on a decision of another shop, publishing is refused because a capability rests only on its own shop's decisions, naming the capability and the decision, and nothing is written or deleted.
 - If a scenario's `uses` names a capability that is not among its capability's dependencies, publishing is refused because a scenario uses only what its capability depends on, naming the scenario and the capability it uses, and nothing is written or deleted.
 - If an active or deprecated capability of the shop depends on a retired capability, in any shop, publishing is refused because it depends on a retired capability, naming both, and nothing is written or deleted.
+- If a constraint of the shop is tested in a retired capability, publishing is refused because that capability is retired, naming the constraint and the capability, and nothing is written or deleted.
 - If two features formulate one of the shop's capabilities, publishing is refused because they would share a file, naming both, and nothing is written or deleted.
 - If a table in a feature formulating one of the shop's capabilities has rows of different widths, publishing is refused because a table's rows must each have one cell per column, naming the scenario, and nothing is written or deleted.
+- If, among the files publishing may delete, one cannot be read, publishing is refused because that file cannot be read, naming the file, and nothing is written or deleted.
 
 ## Implementation, may change
 
@@ -69,15 +74,16 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - The shop's capabilities are those linking to it whose status is `active` or `deprecated`, in `order`. The shop's decisions are those linking to it. They are the ledger's entries, the decisions published as ADR records, and the decisions whose numbers are judged for collisions.
 - The published-from line is an HTML comment in markdown, and a `#` comment in a feature file, ahead of the `# formulated from` line.
 - A capability's frontmatter `id`, its `rests_on`, its `depends_on`, and a ledger entry's heading are the names the knowledge base holds (`capability/<slug>`, `decision/<slug>`). The `<name>` made from a title names files only.
-- `spec/index.md`: `# <shop title>`; `## Purpose`; `## Constraints carried`, one bullet per constraint, `- **<title>.** <says> Pinned in <names>.`, the names joined with commas and a final "and"; `## Composition (reading order)`, a numbered line per capability in `order`, `<n>. [<name>](capabilities/<name>.md): <gist>`, ending ` (deprecated)` where the capability is deprecated; then the shop's other sections in order.
+- `spec/index.md`: `# <shop title>`; `## Purpose`; `## Constraints carried`, one bullet per constraint, `- **<title>.** <says> Tested in <names>.`, the names those of its `tested_in`, joined with commas and a final "and"; `## Composition (reading order)`, a numbered line per capability in `order`, `<n>. [<name>](capabilities/<name>.md): <gist>`, ending ` (deprecated)` where the capability is deprecated; then the shop's other sections in order.
 - `spec/capabilities/<name>.md`: frontmatter `id`, `title`, `narrator`, `status: deprecated` where the capability is deprecated, `rests_on` (a list of decision names), `depends_on` (a list of capability names) after `rests_on`, `formulated_as` (`features/<name>.feature`, where a feature formulates it); `# <title>`; `## Purpose`; `## Behaviour`, one bullet per line's `says`, in the order the capability holds them; `## Implementation, may change` where the capability has it; `## Not yet`, one bullet per deferral, `- **<title>.** <defers> Promoted when <trigger>.`
 - `spec/decisions.md`: `# Decisions`, then one entry per decision of the shop, in number order. Each entry is `## <decision name>`, the statement, then `date:`, `revisit_when:` where it has one, `supersedes:` where it has one, and `source: adrs/<number>-<name>.md`.
 - `adrs/<number>-<name>.md`: `# <number> <title>`, `<number>` padded as in the file name; a paragraph `<date>. <Purpose>`; the Rationale as the next paragraph; then `Supersedes <number>.` and `Extends <number>.` lines, padded the same way, where it has them.
 - `features/<name>.feature`: `# formulated from spec/capabilities/<name>.md`; `Feature: <title>`; `  Narrator: <the capability's narrator>`; a `Background:` where it has steps; then each scenario in order: its labels on one line, `Scenario:` (or `Scenario Outline:` where it has examples) and its title, its description, its steps, a step's table with its columns padded to one width, a docstring between `"""` lines, and `Examples:` with its table padded the same way. Two-space indentation, as the shop's feature files are written today.
-- Deleting reads the published-from line of each file under `spec/capabilities/`, `features/` and `adrs/` in the directory. Files elsewhere in the directory are not deleted; `spec/index.md` and `spec/decisions.md` are written over.
+- Deleting reads the published-from line of each file under `spec/capabilities/`, `features/` and `adrs/` in the directory. Files elsewhere in the directory are not deleted; `spec/index.md` and `spec/decisions.md` are written over. A file there that cannot be read is a fault on that file, as an operating-system error on a path is.
 
 ## Not yet
 
 - **Moving a shop's real spec into the knowledge base.** An agent drafts each shop's create batches from its files (handles for Behaviour lines included, and an ADR drafted for every decision that has none, from its source), and publishing the shop reproduces its files but for differences the person approves once. Promoted when kb publishes a validate-only mode on its batch calls and the pin is bumped to it, and shopsystem-bdd releases its writer agents' tools and draft form, integrating-a-proposal's apply step, formulating-features' apply step, and the capability format's note of the published-from line.
 - **Checking that a shop's committed files match a fresh publish.** A make target in each shop's repository can do it with `render spec`. Promoted when a shop's committed files are found to differ from a fresh publish.
 - **Product-level decisions in a shop's ledger.** The lead shop's decisions, listed in another shop's ledger. Promoted when a shop needs one in practice.
+- **`depends_on` in shopsystem-bdd's capability format.** A request to shopsystem-bdd: the capability format defines `depends_on` (the capabilities a capability builds on, in its own context or another) beside `rests_on` (decisions). Promoted when shopsystem-bdd releases a capability format that defines it.

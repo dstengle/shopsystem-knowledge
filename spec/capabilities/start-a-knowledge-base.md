@@ -15,6 +15,7 @@ rests_on:
   - decision/init-edge-cases-settled-by-principle
   - decision/ten-types-on-a-shop-artifact-base
   - decision/old-feature-and-decision-artifacts-are-not-converted
+depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/start-a-knowledge-base.feature
 ---

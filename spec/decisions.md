@@ -551,3 +551,23 @@ source: adrs/0061-a-capability-carries-its-reading-order.md
 A capability's status is active, deprecated or retired. Removing one is three checked steps: deprecate it, remove its spec and code through the shop's normal work, retire it. Retiring is the shop's own act on its public contract, accepted whatever depends on it elsewhere; other shops find out when they publish or ask, and act on their own schedule.
 date: 2026-10-08
 source: adrs/0062-capabilities-are-deprecated-then-retired.md
+
+## decision/uses-is-kept-and-checked-for-consistency
+A scenario's `uses` is kept, and `shop-knol validate` reports as a fault every scenario whose `uses` names a capability not among its capability's `depends_on`, across the whole knowledge base, whichever shop it is in.
+date: 2026-10-08
+source: adrs/0064-uses-is-kept-and-checked-for-consistency.md
+
+## decision/a-constraint-is-tested-in-capabilities
+A shop's constraint names the capabilities whose scenarios show its promise holds through `tested_in`, replacing `pinned_in`, and the published index writes `Tested in <names>.`; a constraint tested in a retired capability stops the publish.
+date: 2026-10-08
+source: adrs/0065-a-constraint-is-tested-in-capabilities.md
+
+## decision/an-unreadable-file-stops-the-publish
+When publishing a shop's spec finds, among the files it may delete, one it cannot read, the publish is refused naming the file, and nothing is written or deleted.
+date: 2026-10-08
+source: adrs/0066-an-unreadable-file-stops-the-publish.md
+
+## decision/this-repositorys-capabilities-declare-depends-on
+Every capability of this repository's `spec/` lists the capabilities it builds on under a `depends_on` frontmatter key after `rests_on`, and `rests_on` keeps decisions only.
+date: 2026-10-08
+source: adrs/0067-this-repositorys-capabilities-declare-depends-on.md
