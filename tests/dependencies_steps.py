@@ -72,11 +72,10 @@ def _shown_each(shown, held, datatable):
 
 @then("the user is shown, with each of those capabilities, these of its scenarios using what it depends on, and no other")
 def _shown_scenarios(shown, held, datatable):
-    wanted = {}
-    for row in _rows(datatable):
-        wanted.setdefault(held["capabilities"][row["capability"]], set()).add(row["scenario"])
-    assert {entry["capability"]: set(entry["scenarios"]) for entry in shown} == wanted, shown
-    assert sum(len(entry["scenarios"]) for entry in shown) == sum(len(each) for each in wanted.values()), shown
+    wanted = {(held["capabilities"][row["capability"]], row["scenario"]) for row in _rows(datatable)}
+    found = [(entry["capability"], scenario) for entry in shown for scenario in entry["scenarios"]]
+    assert set(found) == wanted, shown
+    assert all(len(entry["scenarios"]) == len(set(entry["scenarios"])) for entry in shown), shown
 
 
 @then("the user is shown no capability depending on a deprecated or retired capability")

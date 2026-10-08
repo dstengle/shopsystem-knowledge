@@ -7,7 +7,6 @@ from kb.contract import kb_pb2
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import shop_capabilities, source
 
-PUBLISHED = {"active", "deprecated"}
 LEAVING = {"deprecated", "retired"}
 
 
@@ -31,8 +30,6 @@ def of(client, shop: str) -> list[dict]:
     entries = []
     for held in capabilities:
         content = loads(held.content)
-        if content["status"] not in PUBLISHED:
-            continue
         for name in dict.fromkeys(content.get("depends_on", [])):
             target = _read(client, name)
             if loads(target.content)["status"] in LEAVING:
