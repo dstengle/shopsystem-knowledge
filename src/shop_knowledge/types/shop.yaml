@@ -29,15 +29,6 @@ schema:
         cardinality: many
         parts: false
         on_delete: refuse
-    decisions:
-      type: array
-      items:
-        type: string
-      ref:
-        targets: [decision]
-        cardinality: many
-        parts: false
-        on_delete: refuse
   required: [title, product, gist]
   sections:
     - title: Purpose

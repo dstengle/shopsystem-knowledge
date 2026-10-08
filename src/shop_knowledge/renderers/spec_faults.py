@@ -10,16 +10,13 @@ from shop_knowledge.renderers import names, spec_decisions
 
 
 def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]):
-    """The faults of the capabilities in the shop's reading order, the features formulating them, and the decisions the
-    shop names and its capabilities rest on; or the faults of the read that could not be made."""
+    """The faults of the capabilities in the shop's reading order, the features formulating them, and the decisions
+    linking to the shop; or the faults of the read that could not be made."""
     content = loads(shop.content)
     listed = client.List(kb_pb2.ListRequest(kind="capability", fields={"shop": shop.id}, form=kb_pb2.ListRequest.IDS))
     if listed.refusal.faults:
         return list(listed.refusal.faults)
-    own, faults = spec_decisions.read(client, content.get("decisions", []))
-    if faults:
-        return faults
-    unowned, faults = _unowned(client, [loads(each.content) for each in ordered], content.get("decisions", []))
+    own, faults = spec_decisions.of(client, shop.id)
     if faults:
         return faults
     return [
@@ -28,7 +25,6 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
         *_shared([(each.id, f"spec/capabilities/{names.from_title(each.title)}.md") for each in ordered], "capabilities-share-a-file"),
         *_shared([(each.id, each.path) for each in own], "decisions-share-a-file"),
         *_numbered(own),
-        *[_unowned_fault(id) for id in unowned],
         *_shared([(each.id, f"features/{names.from_title(capability.title)}.feature")
                   for capability in ordered for each in formulating.get(capability.id, [])], "features-share-a-file"),
         *_used(set(listed.result.ids) | set(content.get("reading_order", [])), formulating),
@@ -67,22 +63,6 @@ def _numbered(decisions: list[spec_decisions.Decision]) -> list[kb_pb2.Fault]:
     pairs = [(each.id, str(each.content["number"])) for each in decisions]
     return [_fault(ids[0], "number-names-one-decision", f"carries number {key}, and a number names one decision; {' and '.join(ids[1:])} carries it too")
             for key, ids in _grouped(pairs)]
-
-
-def _unowned(client, capabilities: list[dict], own: list[str]):
-    """The decisions the capabilities rest on that no shop names, or the faults of the question that was refused."""
-    found = []
-    for id in spec_decisions.resting_on(capabilities, own):
-        owners, faults = spec_decisions.owners_of(client, id)
-        if faults:
-            return [], faults
-        if not owners:
-            found.append(id)
-    return found, []
-
-
-def _unowned_fault(id: str) -> kb_pb2.Fault:
-    return _fault(id, "decision-belongs-to-no-shop", "belongs to no shop: no shop names it among its decisions")
 
 
 def _used(shop_capabilities: set[str], formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:

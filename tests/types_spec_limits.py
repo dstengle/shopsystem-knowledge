@@ -4,6 +4,7 @@ step spells kb's wording. The feature's test module star-imports this and no oth
 import pytest
 from pytest_bdd import parsers, then, when
 
+from decision_fields import decided, shop_of
 from spec_attempt import create, refused_as_unfit
 from spec_shop import KIND_DEFAULTS, capability_content
 LONG, BREAK = "x" * 201, "one\ntwo"
@@ -30,7 +31,7 @@ def _long_or_broken(how):
 def _records_a_bad_summary(env, tmp_path, attempted, kind, field, how):
     base = {"title": "Corner shop", "gist": "A shop on the corner.", **KIND_DEFAULTS["product"]}
     if kind == "decision":
-        base = {"title": "Prices are shown", **KIND_DEFAULTS["decision"]}
+        base = {"title": "Prices are shown", **decided(1, shop_of(env, tmp_path)), **KIND_DEFAULTS["decision"]}
     return create(env, tmp_path, attempted, kind, {**base, field: _long_or_broken(how)})
 
 

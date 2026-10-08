@@ -1,10 +1,11 @@
 import json
 
+import pytest
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol, record, start
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 from batch_writes import *  # noqa: F403  this module alone star-imports it (adrs/0035)
@@ -26,25 +27,33 @@ SECTIONS = [
 ]
 
 
+@pytest.fixture
+def held():
+    """The name kb minted for the shop the scenario's decisions link to, as the Background records it."""
+    return {}
+
+
 @given("a shop knowledge base holding the shop's types and a work item")
-def _shop_with_a_work_item(env, shop, tmp_path):
+def _shop_with_a_work_item(env, shop, tmp_path, held):
     start(env, shop)
+    held["shop"] = shop_of(env, tmp_path)
     record(env, tmp_path, "work-item", {"title": "Reprice the dairy shelf"}, "Open the repricing")
 
 
-def _linked_creates(work_item_first: bool = False, link: str = KEY) -> list:
-    """A decision carrying KEY, and a new work item whose link is written with `link`, in the order asked."""
+def _linked_creates(held, work_item_first: bool = False, link: str = KEY) -> list:
+    """A decision of the scenario's shop carrying KEY, and a new work item whose link is written with `link`, in the order asked."""
     decision = {
-        "create": "decision", "key": KEY, "content": {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS},
+        "create": "decision", "key": KEY,
+        "content": {"title": "Price reviews happen weekly", **decided(1, held["shop"]), "sections": SECTIONS},
     }
     work_item = {"create": "work-item", "content": {"title": NEW_ITEM_TITLE, "decisions": [f"@{link}"]}}
     return [work_item, decision] if work_item_first else [decision, work_item]
 
 
 @given("a batch that records a decision and a work item pointing at it", target_fixture="batch_file")
-def _a_batch_of_linked_creates(tmp_path):
+def _a_batch_of_linked_creates(tmp_path, held):
     path = tmp_path / "batch.yaml"
-    path.write_text(dumps({"changes": _linked_creates()}))
+    path.write_text(dumps({"changes": _linked_creates(held)}))
     return path
 
 
@@ -55,9 +64,9 @@ def _a_batch_of_linked_creates(tmp_path):
     ),
     target_fixture="batch_file",
 )
-def _a_batch_ordered(tmp_path, order):
+def _a_batch_ordered(tmp_path, held, order):
     path = tmp_path / "batch.yaml"
-    path.write_text(dumps({"changes": _linked_creates(work_item_first=order == "before")}))
+    path.write_text(dumps({"changes": _linked_creates(held, work_item_first=order == "before")}))
     return path
 
 
@@ -65,15 +74,15 @@ def _a_batch_ordered(tmp_path, order):
     "a batch that records a decision and a work item whose link is written with a key no create in the batch carries",
     target_fixture="batch_file",
 )
-def _a_batch_linking_to_no_key(tmp_path):
+def _a_batch_linking_to_no_key(tmp_path, held):
     path = tmp_path / "batch.yaml"
-    path.write_text(dumps({"changes": _linked_creates(link=UNCARRIED)}))
+    path.write_text(dumps({"changes": _linked_creates(held, link=UNCARRIED)}))
     return path
 
 
 @given("a batch that records a decision and a work item, both carrying the same key", target_fixture="batch_file")
-def _a_batch_sharing_a_key(tmp_path):
-    decision, _ = _linked_creates()
+def _a_batch_sharing_a_key(tmp_path, held):
+    decision, _ = _linked_creates(held)
     work_item = {"create": "work-item", "key": KEY, "content": {"title": NEW_ITEM_TITLE}}
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [decision, work_item]}))
@@ -118,10 +127,11 @@ def _one_change(env, result):
 
 
 @given("a batch whose second change does not fit its type", target_fixture="batch_file")
-def _a_batch_with_a_bad_second_change(tmp_path):
+def _a_batch_with_a_bad_second_change(tmp_path, held):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"create": "decision", "content": {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}},
+        {"create": "decision",
+         "content": {"title": "Price reviews happen weekly", **decided(1, held["shop"]), "sections": SECTIONS}},
         {"create": "work-item", "content": {"title": NEW_ITEM_TITLE, "owner": 3, "status": 3}},
     ]}))
     return path
@@ -191,7 +201,7 @@ def _every_fault(result):
     "space before its last line",
     target_fixture="batch_file",
 )
-def _a_batch_with_unkept_prose(tmp_path):
+def _a_batch_with_unkept_prose(tmp_path, held):
     """The decision's rationale, its first line ending in a space, written as a quoted scalar."""
     path = tmp_path / "batch.yaml"
     path.write_text(
@@ -200,7 +210,7 @@ def _a_batch_with_unkept_prose(tmp_path):
         f"    key: {KEY}\n"
         "    content:\n"
         "      title: Price reviews happen weekly\n"
-        + "".join(f"      {field}: {json.dumps(value)}\n" for field, value in decided(1).items())
+        + "".join(f"      {field}: {json.dumps(value)}\n" for field, value in decided(1, held["shop"]).items())
         + "      sections:\n"
         "        - title: Purpose\n"
         "          body: Keep prices in step with costs.\n"

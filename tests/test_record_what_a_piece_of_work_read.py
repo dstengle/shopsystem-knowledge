@@ -1,7 +1,7 @@
 from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol, record, start
 
 scenarios("record-what-a-piece-of-work-read.feature")
@@ -9,7 +9,6 @@ scenarios("record-what-a-piece-of-work-read.feature")
 PIECE_OF_WORK = "restock-the-shelves"
 DECISION = {
     "title": "Prices are reviewed monthly",
-    **decided(1),
     "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},
@@ -26,7 +25,7 @@ PROCESS = {
 def _holding_a_decision_and_a_process(env, shop, tmp_path):
     start(env, shop)
     return [
-        record(env, tmp_path, "decision", DECISION, "Record the monthly review"),
+        record(env, tmp_path, "decision", {**DECISION, **decided(1, shop_of(env, tmp_path))}, "Record the monthly review"),
         record(env, tmp_path, "process", PROCESS, "Describe closing up"),
     ]
 

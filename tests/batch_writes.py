@@ -21,10 +21,10 @@ ONLY_A_CREATE = "only a create carries a key"
 
 
 @given("the shop also holds a decision")
-def _the_shop_holds_a_decision(env, tmp_path):
+def _the_shop_holds_a_decision(env, tmp_path, held):
     record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
-        **decided(1),
+        **decided(1, held["shop"]),
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
             {"title": "Rationale", "body": "Costs move weekly.\n"},
@@ -33,10 +33,10 @@ def _the_shop_holds_a_decision(env, tmp_path):
 
 
 @given("a batch that rewrites the decision and the work item", target_fixture="batch_file")
-def _a_batch_of_writes(tmp_path):
+def _a_batch_of_writes(tmp_path, held):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"write": DECISION, "content": {**decided(1), "sections": NEW_SECTIONS}},
+        {"write": DECISION, "content": {**decided(1, held["shop"]), "sections": NEW_SECTIONS}},
         {"write": WORK_ITEM, "content": {"owner": NEW_OWNER}},
     ]}))
     return path
@@ -65,10 +65,11 @@ def _rejected_for_a_keyed_write(result, batch_file):
 
 
 @given("a batch that records a decision and rewrites the work item", target_fixture="batch_file")
-def _a_batch_of_mixed_kinds(tmp_path):
+def _a_batch_of_mixed_kinds(tmp_path, held):
     path = tmp_path / "batch.yaml"
     path.write_text(dumps({"changes": [
-        {"create": "decision", "content": {"title": "Price reviews happen weekly", **decided(1), "sections": NEW_SECTIONS}},
+        {"create": "decision",
+         "content": {"title": "Price reviews happen weekly", **decided(1, held["shop"]), "sections": NEW_SECTIONS}},
         {"write": WORK_ITEM, "content": {"owner": NEW_OWNER}},
     ]}))
     return path

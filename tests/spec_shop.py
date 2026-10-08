@@ -1,8 +1,8 @@
 """The small shop that publish-a-shops-spec's scenarios share, built the way a user builds one: a product; a shop with
-constraints, sections, a reading order and decisions; capabilities of the shop with Behaviour and Not yet items resting
-on its decisions; and a feature formulating each capability. Imported plainly, never star-imported. `build` returns the
+constraints, sections and a reading order; decisions linking to the shop; capabilities of the shop with Behaviour and
+Not yet items resting on its decisions; and a feature formulating each capability. Imported plainly, never star-imported. `build` returns the
 names kb minted, and the content it gave, so a scenario reads what it needs from there instead of spelling it."""
-from decision_fields import decided
+from decision_fields import DATE, STATEMENT, decided
 from driver import knol, record, whole
 from kb.content import dumps
 
@@ -31,8 +31,8 @@ CAPABILITIES = [
     },
 ]
 DECISIONS = [
-    {"title": "Shelves are filled daily", **decided(1)},
-    {"title": "Counts are kept weekly", **decided(2), "revisit_when": "the shop grows", "supersedes": 0, "extends": [0]},
+    {"title": "Shelves are filled daily", "statement": STATEMENT, "date": DATE, "number": 1},
+    {"title": "Counts are kept weekly", "statement": STATEMENT, "date": DATE, "number": 2, "revisit_when": "the shop grows", "supersedes": 0, "extends": [0]},
 ]
 CONSTRAINTS = [
     {"title": "Shelves stay full", "says": "No shelf is left empty.", "pinned": [0, 1]},
@@ -49,9 +49,9 @@ class Built:
         self.capabilities, self.decisions, self.features = capabilities, decisions, features
 
 
-def _decision(env, tmp_path, fields, earlier=()):
-    """Record a decision; `supersedes` and `extends`, where it has them, are indexes into the `earlier` names."""
-    given = {key: value for key, value in fields.items() if key not in {"supersedes", "extends"}}
+def _decision(env, tmp_path, shop, fields, earlier=()):
+    """Record a decision of `shop`; `supersedes` and `extends`, where it has them, are indexes into the `earlier` names."""
+    given = {key: value for key, value in fields.items() if key not in {"supersedes", "extends"}} | {"shop": shop}
     if "supersedes" in fields:
         given["supersedes"] = earlier[fields["supersedes"]]
     if "extends" in fields:
@@ -83,17 +83,17 @@ def line_id(env, capability, title):
 
 def build(env, tmp_path) -> Built:
     """Record the whole shop in the knowledge base `env` names, the shop's reading order and constraints written once
-    its capabilities exist, since they link to it and it to them."""
+    its capabilities exist, since they link to it and it to them; its decisions link to it."""
     product = record(env, tmp_path, "product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": [PURPOSE]},
                      "Record the product")
-    decisions = []
-    for fields in DECISIONS:
-        decisions.append(_decision(env, tmp_path, fields, decisions))
     shop_content = {
         "title": "Shelves", "product": product, "gist": "Keeps the shelves.", "narrator": "the shopkeeper",
-        "decisions": decisions, "sections": SHOP_SECTIONS,
+        "sections": SHOP_SECTIONS,
     }
     shop = record(env, tmp_path, "shop", shop_content, "Record the shop")
+    decisions = []
+    for fields in DECISIONS:
+        decisions.append(_decision(env, tmp_path, shop, fields, decisions))
     capabilities = []
     for each in CAPABILITIES:
         content = {key: value for key, value in each.items() if key not in {"rests_on", "not_yet"}}
@@ -117,9 +117,10 @@ KIND_DEFAULTS = {
     "product": {"sections": [PURPOSE]},
     "shop": {"sections": SHOP_SECTIONS},
     "capability": {"narrator": "the shopkeeper", "sections": [PURPOSE]},
-    "decision": {**decided(1), "sections": [PURPOSE, {"title": "Rationale", "body": "The shop runs better so.\n"}]},
+    "decision": {"sections": [PURPOSE, {"title": "Rationale", "body": "The shop runs better so.\n"}]},
 }
-"""What each kind needs beside its title and the fields a scenario gives: its sections, and a capability's narrator."""
+"""What each kind needs beside its title and the fields a scenario gives: its sections, and a capability's narrator. A
+decision's own fields, its shop among them, are the caller's (`decision_fields.decided`)."""
 
 
 def put(env, tmp_path, kind, title, **fields):
@@ -178,14 +179,12 @@ def reading_order(env, tmp_path, shop, capabilities):
 
 
 def numbered_decision(env, tmp_path, shop, number, title):
-    """A decision of `number` and `title` added to the decisions `shop` names; return its name."""
-    decision = put(env, tmp_path, "decision", title, **decided(number))
-    _rewritten(env, tmp_path, shop, decisions=[*whole(env, shop).get("decisions", []), decision])
-    return decision
+    """A decision of `number` and `title` linking to `shop`; return its name."""
+    return put(env, tmp_path, "decision", title, **decided(number, shop))
 
 
 def other_shop_decision(env, tmp_path, product, number, title):
-    """Another shop of `product` that names a decision of `number` and `title`; return the shop's name and the decision's."""
+    """Another shop of `product` and a decision of `number` and `title` linking to it; return the shop's name and the decision's."""
     shop = put(env, tmp_path, "shop", "Aisles", product=product, gist="Keeps the aisles.")
     return shop, numbered_decision(env, tmp_path, shop, number, title)
 

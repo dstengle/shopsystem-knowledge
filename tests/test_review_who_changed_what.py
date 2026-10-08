@@ -1,7 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import at, knol, record
 
 scenarios("review-who-changed-what.feature")
@@ -25,14 +25,16 @@ def _today(day):
 )
 def _recorded_then_revised(env, shop, tmp_path, today):
     # The Background does not say who started the store; a role of its own keeps the start out of the shopkeeper's
-    # history (adrs/0027).
-    started = knol({**at(env, "2026-09-21T09:00:00"), "KB_ACTOR": "founder"}, "init", str(shop))
+    # history (adrs/0027), and so too the product and shop the decision links to.
+    founder = {**at(env, "2026-09-21T09:00:00"), "KB_ACTOR": "founder"}
+    started = knol(founder, "init", str(shop))
     assert started.returncode == 0, started.stderr
+    of = shop_of(founder, tmp_path)
     record(at(env, "2026-09-21T10:00:00"), tmp_path, "decision",
-           {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}, "Record weekly reviews")
+           {"title": "Price reviews happen weekly", **decided(1, of), "sections": SECTIONS}, "Record weekly reviews")
     revision = tmp_path / "revision.yaml"
     revision.write_text(dumps({"changes": [{"write": WEEKLY, "content": {
-        **decided(1), "status": "accepted", "sections": SECTIONS,
+        **decided(1, of), "status": "accepted", "sections": SECTIONS,
     }}]}))
     agent = {**at(env, f"{today}T10:00:00"), "KB_ACTOR": f"agent:{PIECE_OF_WORK}"}
     revised = knol(agent, "apply", "--from", str(revision), "-m", "Accept weekly reviews")

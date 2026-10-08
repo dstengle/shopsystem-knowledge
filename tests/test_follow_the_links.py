@@ -1,7 +1,8 @@
+import pytest
 from pytest_bdd import given, scenarios, then, when
 
-from decision_fields import decided
-from driver import knol, record, start
+from decision_fields import decided, shop_of
+from driver import knol, record, start, whole
 
 scenarios("follow-the-links.feature")
 
@@ -11,13 +12,21 @@ TAG = "tag/pricing"
 WORK_ITEMS = {"work-item/move-the-review-to-mondays", "work-item/tell-the-pricing-team"}
 
 
+@pytest.fixture
+def held():
+    """The names kb minted for the decisions' shop and its product, as the Background records them."""
+    return {}
+
+
 @given("a shop knowledge base where a decision supersedes an older decision", target_fixture="decision_id")
-def _shop_with_a_decision_over_an_older_one(env, shop, tmp_path):
+def _shop_with_a_decision_over_an_older_one(env, shop, tmp_path, held):
     start(env, shop)
+    held["shop"] = shop_of(env, tmp_path)
+    held["product"] = whole(env, held["shop"])["product"]
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
-        **decided(1),
+        **decided(1, held["shop"]),
         "tags": [TAG],
         "sections": [
             {"title": "Purpose", "body": "Keep prices current.\n"},
@@ -26,7 +35,7 @@ def _shop_with_a_decision_over_an_older_one(env, shop, tmp_path):
     }, "Record the monthly review")
     return record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
-        **decided(2),
+        **decided(2, held["shop"]),
         "supersedes": OLDER,
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
@@ -51,9 +60,9 @@ def _follow_out(env, decision_id):
     return knol(env, "refs", decision_id, "--outbound")
 
 
-@then("the user sees the older decision")
-def _sees_the_older_decision(shown):
-    assert [entry["id"] for entry in shown] == [OLDER]
+@then("the user sees the older decision and the decision's shop")
+def _sees_the_older_decision_and_the_shop(shown, held):
+    assert {entry["id"] for entry in shown} == {OLDER, held["shop"]}
 
 
 @when("the user follows the links into the decision", target_fixture="result")
@@ -85,15 +94,17 @@ def _follow_out_two_steps(env, decision_id):
     return knol(env, "refs", decision_id, "--outbound", "--depth", "2")
 
 
-@then('the user sees the older decision and the tag "pricing"')
-def _sees_the_older_decision_and_the_tag(shown):
-    assert [entry["id"] for entry in shown] == [OLDER, TAG]
+@then('the user sees the older decision, the tag "pricing", the decision\'s shop and that shop\'s product')
+def _sees_the_older_decision_the_tag_the_shop_and_its_product(shown, held):
+    assert {entry["id"] for entry in shown} == {OLDER, TAG, held["shop"], held["product"]}
 
 
 @then("the user sees the route taken to each of them")
-def _sees_the_routes(shown):
+def _sees_the_routes(shown, held):
     routes = {entry["id"]: [(hop["field"], hop["id"]) for hop in entry["route"]] for entry in shown}
     assert routes == {
         OLDER: [("supersedes", OLDER)],
         TAG: [("supersedes", OLDER), ("tags", TAG)],
+        held["shop"]: [("shop", held["shop"])],
+        held["product"]: [("shop", held["shop"]), ("product", held["product"])],
     }

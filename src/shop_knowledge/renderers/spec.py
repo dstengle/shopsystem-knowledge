@@ -24,7 +24,7 @@ def render(client, name: str) -> Rendered:
         faults = spec_faults.check(client, shop, ordered, formulating)
     if faults:
         return refused(faults)
-    decisions, faults = spec_decisions.files(client, shop, content, [loads(each.content) for each in ordered])
+    decisions, faults = spec_decisions.files(client, shop)
     if faults:
         return refused(faults)
     index = {"spec/index.md": spec_index.page(shop, content, {id: _described(each) for id, each in capabilities.items()})}

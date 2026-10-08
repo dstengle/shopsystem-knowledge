@@ -1,10 +1,11 @@
 import json
 
+import pytest
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import answering, knol, record
 from kb_oracle import printed
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
@@ -16,16 +17,38 @@ OLDER = "decision/prices-are-reviewed-monthly"
 DECISION = "decision/price-reviews-happen-weekly"
 
 
+@pytest.fixture
+def held():
+    """The name kb minted for the decisions' shop, as the Background records it."""
+    return {}
+
+
 @given(
     'a shop knowledge base holding a decision with a purpose and a rationale, tagged "pricing", '
     "superseding an older decision, and pointed at by two work items",
     target_fixture="decision_id",
 )
-def _shop_with_a_linked_decision(env, started_shop, tmp_path):
+def _shop_with_a_linked_decision(env, started_shop, tmp_path, held):
+    return _linked_decision(env, tmp_path, held, shop_of(env, tmp_path))
+
+
+@given(
+    parsers.parse(
+        'a shop knowledge base holding a decision of the shop "{title}", with a purpose and a rationale, tagged "pricing", '
+        "superseding an older decision, and pointed at by two work items"
+    ),
+    target_fixture="decision_id",
+)
+def _shop_with_a_linked_decision_of_a_shop(env, started_shop, tmp_path, held, title):
+    return _linked_decision(env, tmp_path, held, shop_of(env, tmp_path, title))
+
+
+def _linked_decision(env, tmp_path, held, shop):
+    held["shop"] = shop
     record(env, tmp_path, "tag", {"title": "pricing", "description": "How the shop sets prices.\n"}, "Add the pricing tag")
     record(env, tmp_path, "decision", {
         "title": "Prices are reviewed monthly",
-        **decided(1),
+        **decided(1, shop),
         "sections": [
             {"title": "Purpose", "body": "Keep prices current.\n"},
             {"title": "Rationale", "body": "Monthly was enough once.\n"},
@@ -33,7 +56,7 @@ def _shop_with_a_linked_decision(env, started_shop, tmp_path):
     }, "Record the monthly review")
     decision_id = record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
-        **decided(2),
+        **decided(2, shop),
         "supersedes": OLDER,
         "tags": ["tag/pricing"],
         "sections": [
@@ -58,19 +81,21 @@ def _read_an_empty_name(env):
 
 
 @then("the user sees its name, its title and the few fields the shop shows for a decision")
-def _name_title_and_fields(shown):
+def _name_title_and_fields(shown, held):
     assert shown["id"] == DECISION
+    assert shown["shop"] == held["shop"]
     assert shown["title"] == "Price reviews happen weekly"
     assert shown["supersedes"] == OLDER
     assert shown["tags"] == ["tag/pricing"]
 
 
-@then("the user sees a stub of each thing it points at")
-def _stubs(shown):
+@then(parsers.parse('the user sees a stub of each thing it points at: the older decision, the tag "pricing" and the shop "{title}"'))
+def _stubs(shown, held, title):
     stubs = {(stub["field"], stub["id"], stub["type"], stub["title"]) for stub in shown["references"]}
     assert stubs == {
         ("supersedes", OLDER, "decision", "Prices are reviewed monthly"),
         ("tags", "tag/pricing", "tag", "pricing"),
+        ("shop", held["shop"], "shop", title),
     }
 
 
@@ -158,12 +183,12 @@ def _older_points_by_name(shown):
 
 
 @given('the older decision is tagged "seasonal"')
-def _older_decision_tagged_seasonal(env, tmp_path):
+def _older_decision_tagged_seasonal(env, tmp_path, held):
     # Drives shop-knol as a user does: `create` the tag, then `write` the decision pointing at it. Two commands, since
     # a batch lands creates or writes, never both (kb contract v1).
     tag = record(env, tmp_path, "tag", {"title": "seasonal", "description": "Changes with the season.\n"}, "Add a tag")
     path = tmp_path / "tag-the-older-decision.yaml"
-    path.write_text(dumps({**decided(1), "tags": [tag], "sections": [
+    path.write_text(dumps({**decided(1, held["shop"]), "tags": [tag], "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},
     ]}))

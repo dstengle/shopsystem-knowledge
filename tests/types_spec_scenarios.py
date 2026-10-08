@@ -4,6 +4,7 @@ from kb.content import loads
 
 from pytest_bdd import given, parsers, then, when
 
+from decision_fields import decided
 from driver import knol, whole
 from spec_attempt import create
 from spec_shop import put
@@ -12,8 +13,10 @@ STEPS = [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text
 
 
 @given(parsers.parse('a decision "{name}"'), target_fixture="decided")
-def _a_decision(env, tmp_path, name):
-    return put(env, tmp_path, "decision", name)
+def _a_decision(env, tmp_path, held, name):
+    """A decision of the shop the scenario's capability belongs to."""
+    shop = whole(env, next(iter(held.values())))["shop"]
+    return put(env, tmp_path, "decision", name, **decided(1, shop))
 
 
 def _line(env, held, line_title):

@@ -1,7 +1,7 @@
 from kb.content import dumps, loads
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol, record, whole
 from record_refused_files import *  # noqa: F403  pytest-bdd registers steps only through a star import
 from record_refused_files import SAYING_WHY
@@ -10,7 +10,6 @@ scenarios("record-an-artifact.feature")
 
 OLDER = {
     "title": "Prices are reviewed monthly",
-    **decided(1),
     "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "Monthly was enough once.\n"},
@@ -18,13 +17,17 @@ OLDER = {
 }
 WEEKLY = {
     "title": "Price reviews happen weekly",
-    **decided(2),
     "supersedes": "decision/prices-are-reviewed-monthly",
     "sections": [
         {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
         {"title": "Rationale", "body": "Costs move weekly, so a monthly review lags them.\n"},
     ],
 }
+"""The two decisions' own words; `_of` adds the fields the type requires, the shop the scenario's own."""
+
+
+def _of(content, number, shop):
+    return {**content, **decided(number, shop)}
 
 
 @given(
@@ -32,9 +35,10 @@ WEEKLY = {
     target_fixture="decision_file",
 )
 def _decision_in_a_file(env, tmp_path):
-    record(env, tmp_path, "decision", OLDER, "Record the monthly review")
+    shop = shop_of(env, tmp_path)
+    record(env, tmp_path, "decision", _of(OLDER, 1, shop), "Record the monthly review")
     path = tmp_path / "weekly.yaml"
-    path.write_text(dumps(WEEKLY))
+    path.write_text(dumps(_of(WEEKLY, 2, shop)))
     return path
 
 
@@ -45,9 +49,9 @@ def _record_it(env, decision_file, before):
 
 
 @given("a decision in a file", target_fixture="decision_file")
-def _decision_in_a_file_unrecorded(tmp_path):
+def _decision_in_a_file_unrecorded(env, tmp_path):
     path = tmp_path / "decision.yaml"
-    path.write_text(dumps(OLDER))
+    path.write_text(dumps(_of(OLDER, 1, shop_of(env, tmp_path))))
     return path
 
 
@@ -95,12 +99,12 @@ def _first_version(read_back):
 
 
 @given(parsers.parse('a decision in a file whose title is written "{title}"'), target_fixture="decision_file")
-def _decision_in_a_file_titled(tmp_path, title):
+def _decision_in_a_file_titled(env, tmp_path, title):
     """The title is written bare, as a person types it, so YAML is free to read it as something else."""
     path = tmp_path / "titled.yaml"
     path.write_text(
         f"title: {title}\n"
-        + dumps(decided(1))
+        + dumps(decided(1, shop_of(env, tmp_path)))
         + "sections:\n"
         "  - title: Purpose\n    body: Keep prices in step with costs.\n"
         "  - title: Rationale\n    body: Costs move weekly.\n"
@@ -161,8 +165,9 @@ TAKEN = "decision/prices-are-reviewed-monthly"
     target_fixture="decision_file",
 )
 def _decision_in_a_file_with_a_taken_title(env, tmp_path):
-    record(env, tmp_path, "decision", OLDER, "Record the monthly review")
-    again = {**OLDER, **decided(2), "sections": [
+    shop = shop_of(env, tmp_path)
+    record(env, tmp_path, "decision", _of(OLDER, 1, shop), "Record the monthly review")
+    again = {**_of(OLDER, 2, shop), "sections": [
         {"title": "Purpose", "body": "Keep prices current.\n"},
         {"title": "Rationale", "body": "A second reason for the same title.\n"},
     ]}
@@ -186,9 +191,9 @@ def _earlier_still_reads_back(env):
 
 
 @given("a decision produced by another command", target_fixture="piped_decision")
-def _decision_from_another_command():
+def _decision_from_another_command(env, tmp_path):
     """What another command printed, as text: the suite pipes it in rather than naming a file."""
-    return dumps(OLDER)
+    return dumps(_of(OLDER, 1, shop_of(env, tmp_path)))
 
 
 @when("the user records it by piping it in, saying who they are and why", target_fixture="result")

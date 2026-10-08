@@ -1,6 +1,6 @@
 from pytest_bdd import given, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol, record, start
 
 scenarios("search-what-the-shop-knows.feature")
@@ -14,9 +14,10 @@ TITLE_DECISION = "decision/who-owns-restocking"
 def _shop_where_restocking_is_mentioned(env, shop, tmp_path):
     """The fourth artifact is the decision whose title alone carries the word, which the fields scenario finds."""
     start(env, shop)
+    of = shop_of(env, tmp_path)
     record(env, tmp_path, "decision", {
         "title": "Restocking is weekly",
-        **decided(1),
+        **decided(1, of),
         "sections": [{
             "title": "Purpose",
             "body": "Restocking happens every week. Restocking on Mondays, restocking again on Thursdays.\n",
@@ -24,7 +25,7 @@ def _shop_where_restocking_is_mentioned(env, shop, tmp_path):
     }, "Record the weekly restocking")
     record(env, tmp_path, "decision", {
         "title": "Shelves are counted first",
-        **decided(2),
+        **decided(2, of),
         "sections": [
             {"title": "Purpose", "body": "Count the shelves before restocking.\n"},
             {"title": "Rationale", "body": "A count shows what is short.\n"},
@@ -37,7 +38,7 @@ def _shop_where_restocking_is_mentioned(env, shop, tmp_path):
     }, "Describe closing up")
     record(env, tmp_path, "decision", {
         "title": "Who owns restocking",
-        **decided(3),
+        **decided(3, of),
         "sections": [
             {"title": "Purpose", "body": "The shift lead decides.\n"},
             {"title": "Rationale", "body": "One person answers for the shelves.\n"},

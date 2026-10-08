@@ -43,7 +43,7 @@ def _holds_the_ten(env, tmp_path, result):
     purpose = {"title": "Purpose", "body": "Keep the shelves full.\n"}
     record(env, tmp_path, "product", {"title": "Corner shop", "gist": "A shop on the corner.", "sections": [purpose]},
            "Record the product")
-    record(env, tmp_path, "shop", {
+    shop = record(env, tmp_path, "shop", {
         "title": "Shelves", "product": "product/corner-shop", "gist": "Keeps the shelves.",
         "sections": [purpose, {"title": "Order of building", "body": "Stock first.\n"}, {"title": "Testing", "body": "Count.\n"}],
     }, "Record the shop")
@@ -53,7 +53,7 @@ def _holds_the_ten(env, tmp_path, result):
     }, "Record restocking")
     record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
-        **decided(1),
+        **decided(1, shop),
         "tags": ["tag/pricing"],
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},

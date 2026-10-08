@@ -24,6 +24,13 @@ schema:
         cardinality: one
         parts: false
         on_delete: refuse
+    shop:
+      type: string
+      ref:
+        targets: [shop]
+        cardinality: one
+        parts: false
+        on_delete: refuse
     revisit_when:
       type: string
     extends:
@@ -35,8 +42,8 @@ schema:
         cardinality: many
         parts: false
         on_delete: refuse
-  required: [title, statement, date, number]
+  required: [title, statement, date, number, shop]
   sections:
     - title: Purpose
     - title: Rationale
-  summary: [statement, date, supersedes]
+  summary: [statement, date, supersedes, shop]

@@ -4,6 +4,7 @@ import re
 
 from pytest_bdd import given, parsers, then, when
 
+from decision_fields import decided
 from driver import knol, start, whole
 from kb.content import dumps, loads
 from spec_shop import capability_content, capability_with, put
@@ -23,11 +24,10 @@ def _a_base_holding_the_kinds(env, shop, tmp_path, product, shop_title, capabili
     """The base the glance scenarios start from; every thing is named by its title, and `held` maps each title to the
     name kb minted for it."""
     start(env, shop)
-    decided = put(env, tmp_path, "decision", decision)
     made = {product: put(env, tmp_path, "product", product, gist="A product.")}
-    made[shop_title] = put(env, tmp_path, "shop", shop_title, product=made[product], gist="A shop.", decisions=[decided])
+    made[shop_title] = put(env, tmp_path, "shop", shop_title, product=made[product], gist="A shop.")
     made[capability] = put(env, tmp_path, "capability", capability, shop=made[shop_title], gist="A capability.")
-    made[decision] = decided
+    made[decision] = put(env, tmp_path, "decision", decision, **decided(1, made[shop_title]))
     return made
 
 
@@ -46,7 +46,7 @@ def _given_fields(held, kind, recorded_with):
         fields["supersedes"] = held[_quoted(recorded_with, "superseding")]
     if kind == "shop":
         fields["product"] = held[_quoted(recorded_with, "product")]
-    if kind == "capability":
+    if kind in {"capability", "decision"}:
         fields["shop"] = held[_quoted(recorded_with, "shop")]
     if kind == "feature":
         fields["formulates"] = held[_quoted(recorded_with, "capability")]
@@ -56,7 +56,8 @@ def _given_fields(held, kind, recorded_with):
 @given(parsers.re(r'the user has recorded a (?P<kind>\w+) "(?P<name>[^"]*)" (?P<recorded_with>.*)'), target_fixture="recorded")
 def _recorded(env, tmp_path, held, kind, name, recorded_with):
     fields = _given_fields(held, kind, recorded_with)
-    return {"id": put(env, tmp_path, kind, name, **fields), "fields": fields}
+    own = decided(2, fields["shop"]) if kind == "decision" else {}
+    return {"id": put(env, tmp_path, kind, name, **{**own, **fields}), "fields": fields}
 
 
 @when(parsers.re(r'the user reads the (?P<kind>\w+) "(?P<name>[^"]*)" at a glance'), target_fixture="glanced")

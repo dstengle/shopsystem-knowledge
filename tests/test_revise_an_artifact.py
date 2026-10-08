@@ -4,7 +4,7 @@ import pytest
 from kb.content import dumps
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol, record, start, whole
 from kb_oracle import UNKEPT, refused_as_unkept
 
@@ -16,15 +16,22 @@ NEW_SECTIONS = [
 ]
 
 
+@pytest.fixture
+def held():
+    """The name kb minted for the decision's shop, as the Background records it."""
+    return {}
+
+
 @given(
     "a shop knowledge base holding a decision with a purpose and a rationale, at its first version",
     target_fixture="decision_id",
 )
-def _shop_with_a_decision(env, shop, tmp_path):
+def _shop_with_a_decision(env, shop, tmp_path, held):
     start(env, shop)
+    held["shop"] = shop_of(env, tmp_path)
     return record(env, tmp_path, "decision", {
         "title": "Price reviews happen weekly",
-        **decided(1),
+        **decided(1, held["shop"]),
         "sections": [
             {"title": "Purpose", "body": "Keep prices in step with costs.\n"},
             {"title": "Rationale", "body": "Costs move weekly.\n"},
@@ -39,9 +46,9 @@ def before(env, decision_id):
 
 
 @when("the user replaces the decision from a file, saying who they are and why", target_fixture="result")
-def _replace_the_decision(env, decision_id, tmp_path, before):
+def _replace_the_decision(env, decision_id, tmp_path, held, before):
     path = tmp_path / "new-wording.yaml"
-    path.write_text(dumps({**decided(1), "sections": NEW_SECTIONS}))
+    path.write_text(dumps({**decided(1, held["shop"]), "sections": NEW_SECTIONS}))
     return knol(env, "write", decision_id, "--from", str(path), "-m", "Costs now move daily")
 
 
@@ -86,12 +93,12 @@ def _the_rest_reads_as_before(env, decision_id, before):
 
 
 @given("a file whose prose has a line ending in a space before its last line", target_fixture="unkept")
-def _files_with_unkept_prose(tmp_path):
+def _files_with_unkept_prose(tmp_path, held):
     """For each part the user may replace, a file of that part whose rationale's first line ends in a space, written
     as a quoted scalar, and the place in the file where it is. Which one the user gives is the When's to say."""
     whole_file, section_file = tmp_path / "unkept-decision.yaml", tmp_path / "unkept-rationale.yaml"
     whole_file.write_text(
-        dumps(decided(1))
+        dumps(decided(1, held["shop"]))
         + "sections:\n"
         "  - title: Purpose\n    body: Keep prices in step with what the shop pays.\n"
         f"  - title: Rationale\n    body: {json.dumps(UNKEPT)}\n"

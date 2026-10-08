@@ -3,7 +3,7 @@ artifact carries, and those of a process's steps. The feature's test module star
 from kb.content import dumps
 from pytest_bdd import given, parsers, then, when
 
-from decision_fields import decided
+from decision_fields import DATE, STATEMENT
 from driver import knol, record, start, whole
 
 PURPOSE = [{"title": "Purpose", "body": "Why.\n"}]
@@ -17,7 +17,9 @@ BY_KIND = {
     "capability": ("capability", {
         "title": "Set prices", "gist": "Prices are set.", "narrator": "the shopkeeper", "sections": PURPOSE,
     }),
-    "decision": ("decision", {"title": "Price reviews happen weekly", **decided(1), "sections": SECTIONS}),
+    "decision": ("decision", {
+        "title": "Price reviews happen weekly", "statement": STATEMENT, "date": DATE, "number": 1, "sections": SECTIONS,
+    }),
     "feature": ("feature", {"title": "Pricing"}),
     "work item": ("work-item", {"title": "Reprice the shelves"}),
     "role": ("role", {
@@ -44,7 +46,10 @@ def _a_capability(env, tmp_path):
     return record(env, tmp_path, "capability", {**BY_KIND["capability"][1], "shop": shop}, "Record the capability")
 
 
-LINKED = {"shop": ("product", _a_product), "capability": ("shop", _a_shop), "feature": ("formulates", _a_capability)}
+LINKED = {
+    "shop": ("product", _a_product), "capability": ("shop", _a_shop), "decision": ("shop", _a_shop),
+    "feature": ("formulates", _a_capability),
+}
 """The kinds whose required link needs an artifact the shop holds first: the field, and how that artifact is recorded."""
 
 

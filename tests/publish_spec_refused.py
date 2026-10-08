@@ -4,7 +4,6 @@ the names it gives it for, never the whole line."""
 from pytest_bdd import given, parsers, then
 
 import spec_shop
-from decision_fields import decided
 from driver import record
 
 
@@ -72,18 +71,6 @@ def _rejected_shared_decisions(result, refused_for):
 
 @then("publishing is rejected because a number names one decision, naming both decisions")
 def _rejected_shared_number(result, refused_for):
-    _lines_naming(result, *refused_for)
-
-
-@given("one of the shop's capabilities rests on a decision that no shop names among its decisions", target_fixture="refused_for")
-def _rests_on_an_unnamed_decision(env, tmp_path, built):
-    decision = spec_shop.put(env, tmp_path, "decision", "Nobody owns this", **decided(5))
-    spec_shop.rest_on(env, tmp_path, built.capabilities[0], decision)
-    return ["belongs to no shop", [decision]]
-
-
-@then("publishing is rejected because that decision belongs to no shop, naming it")
-def _rejected_unowned(result, refused_for):
     _lines_naming(result, *refused_for)
 
 

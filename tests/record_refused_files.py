@@ -8,7 +8,7 @@ from kb.content import NotCanonical, dumps, loads
 from kb.contract import kb_pb2
 from pytest_bdd import given, then, when
 
-from decision_fields import decided
+from decision_fields import decided, shop_of
 from driver import knol
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 
@@ -17,12 +17,12 @@ SAYING_WHY = "Move price reviews to weekly"
 
 
 @given("a file missing something the shop's decision type requires", target_fixture="decision_file")
-def _file_missing_a_section(tmp_path):
+def _file_missing_a_section(env, tmp_path):
     """A title and a Purpose but no Rationale, so kb's answer is one fault naming the artifact and the place."""
     path = tmp_path / "unfinished.yaml"
     path.write_text(dumps({
         "title": "Prices are reviewed monthly",
-        **decided(1),
+        **decided(1, shop_of(env, tmp_path)),
         "sections": [{"title": "Purpose", "body": "Keep prices current.\n"}],
     }))
     return path
@@ -56,11 +56,11 @@ def _told_artifact_and_place(env, result, decision_file):
 
 
 @given("a decision in a file that names the same entry twice in the same place", target_fixture="decision_file")
-def _decision_in_a_file_naming_an_entry_twice(tmp_path):
+def _decision_in_a_file_naming_an_entry_twice(env, tmp_path):
     path = tmp_path / "twice.yaml"
     path.write_text(
         "title: Price reviews happen weekly\n"
-        + dumps(decided(1))
+        + dumps(decided(1, shop_of(env, tmp_path)))
         + "sections:\n"
         "  - title: Purpose\n"
         "    body: Keep prices in step with costs.\n"
@@ -99,12 +99,12 @@ def _record_from_an_empty_name(env, before):
 
 
 @given("a decision in a file whose prose has a line ending in a space before its last line", target_fixture="decision_file")
-def _decision_in_a_file_with_unkept_prose(tmp_path):
+def _decision_in_a_file_with_unkept_prose(env, tmp_path):
     """Its rationale's first line ends in a space, written as a quoted scalar the way a person might."""
     path = tmp_path / "unkept.yaml"
     path.write_text(
         "title: Price reviews happen weekly\n"
-        + dumps(decided(1))
+        + dumps(decided(1, shop_of(env, tmp_path)))
         + "sections:\n"
         "  - title: Purpose\n"
         "    body: Keep prices in step with costs.\n"
