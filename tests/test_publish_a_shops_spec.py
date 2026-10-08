@@ -8,6 +8,7 @@ from publish_spec_features import *  # noqa: F403
 from publish_spec_from import *  # noqa: F403
 from publish_spec_refused import *  # noqa: F403
 from publish_spec_deleted import *  # noqa: F403
+from publish_spec_linked import *  # noqa: F403
 
 scenarios("publish-a-shops-spec.feature")
 

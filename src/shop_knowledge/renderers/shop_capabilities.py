@@ -26,6 +26,9 @@ def of(client, shop: str):
 
 
 def position(order: str) -> tuple[int, ...]:
-    """An order as the whole numbers it is joined from, so that two orders compare part by part as numbers: 1.10 comes
-    after 1.2 and 10 after 2."""
-    return tuple(int(part) for part in order.split("."))
+    """An order as the whole numbers it is joined from, without trailing zeros, so that two orders compare part by part
+    as numbers: 1.10 comes after 1.2, 10 after 2, and 3.0 is the order 3 is."""
+    parts = [int(part) for part in order.split(".")]
+    while len(parts) > 1 and parts[-1] == 0:
+        parts.pop()
+    return tuple(parts)

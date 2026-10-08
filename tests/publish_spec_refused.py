@@ -4,20 +4,8 @@ the names it gives it for, never the whole line."""
 from pytest_bdd import given, parsers, then
 
 import spec_shop
-from driver import record
+from publish_refusals import capability as _capability, feature_of as _feature_of, lines_naming as _lines_naming
 from published_from import markdown
-
-
-def _lines_naming(result, reason, names):
-    """The refusal is shop-knol's, as one line holding the reason and every one of the names."""
-    assert result.returncode == 1 and result.stdout == "", (result.returncode, result.stdout)
-    lines = [line for line in result.stderr.splitlines() if reason in line]
-    assert any(all(name in line for name in names) for line in lines), result.stderr
-
-
-def _capability(env, tmp_path, shop, title, order=3):
-    line = {"title": "Only line", "says": "When asked, it answers."}
-    return spec_shop.put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=[line], order=str(order))
 
 
 @given("another shop of the same product", target_fixture="other_shop")
@@ -51,13 +39,6 @@ def _rejected_shared_decisions(result, refused_for):
 @then("publishing is rejected because a number names one decision, naming both decisions")
 def _rejected_shared_number(result, refused_for):
     _lines_naming(result, *refused_for)
-
-
-def _feature_of(env, tmp_path, capability, title, scenario):
-    return record(env, tmp_path, "feature", {"title": title, "formulates": capability, "scenarios": [{
-        "title": f"{title}, as the user does it", "formulates": f"{capability}#behaviour/{spec_shop.line_id(env, capability, 'Only line')}",
-        "steps": [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text": "the shelf is in order"}], **scenario}]},
-        f"Formulate {title}")
 
 
 @given("two features that each formulate the same one of the shop's capabilities", target_fixture="refused_for")
