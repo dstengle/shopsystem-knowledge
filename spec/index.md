@@ -10,7 +10,7 @@ Unless a capability says otherwise, "the user" means a shopsystem user or agent 
 
 Each promise below holds for every command. Its scenarios sit in the capability where it shows.
 
-- **kb only through its contract.** kb is reached only through its published contract, pinned by version. Today the pin is kb v0.5.0, which publishes contract v1. In v1 every rpc was renamed or reshaped. shop-knol uses the calls Create, Replace, Add, Remove, BatchCreate, BatchReplace, Read, List, Follow, Search, History, Snapshot and Check. In its own process it also uses `kb.init`, which refuses by raising `kb.NotStarted`. shop-knowledge's rule that it knows kb only through what kb publishes names `kb.init` and `kb.NotStarted`. shop-knowledge never touches kb's files or git. A change it needs from kb is a request to bump the pin.
+- **kb only through its contract.** kb is reached only through its published contract, pinned by version. Today the pin is kb v0.6.0, which publishes contract v1. In v1 every rpc was renamed or reshaped. shop-knol uses the calls Create, Replace, Add, Remove, BatchCreate, BatchReplace, Read, List, Follow, Search, History, Snapshot and Check. In its own process it also uses `kb.init`, which refuses by raising `kb.NotStarted`. shop-knowledge's rule that it knows kb only through what kb publishes names `kb.init` and `kb.NotStarted`. shop-knowledge never touches kb's files or git. A change it needs from kb is a request to bump the pin.
 - **One behaviour, wherever the store is.** shop-knol calls kb through kb's client, which reaches the store in-process or through a server hosting it, whichever kb's search finds. shop-knol does nothing different between the two. Tested in find-the-knowledge-base.
 - **Files are YAML 1.2, read the way kb reads content.** This covers every file shop-knol reads or writes, on `create`, `write`, `append`, `apply`, and in its own output. A title that looks like a date or a yes is still text when it reaches kb. A file kb would not read is refused the way kb refuses it, naming the place: a tag, an anchor, a directive, a second document, or a duplicate key. Tested in record-an-artifact.
 - **Answers are YAML, with JSON where a command offers it.** JSON is the same structure. Today only `read` offers it. Tested in read-an-artifact.
@@ -36,7 +36,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - An argument shop-knol cannot take is refused as one fault: the command as argparse names it (`shop-knol list`), then argparse's message. No usage block is printed. `-h` is help on stdout, with exit 0.
 - Every file the user gives is read as YAML 1.2 through `kb.content`. Text kb cannot keep is refused by `kb.content`'s own refusal, `NotCanonical`. A file that is not UTF-8 is a fault with rule `content` and message `it is not text that can be read: <reason>`.
 - A file the user gives is checked against its shape, written as JSON Schema. Each violation is one fault: `artifact` is the file as named, `place` is its parts joined with `/`, `rule` is the JSON Schema keyword, and `message` is jsonschema's.
-- Each command maps to one contract v1 call, named in its capability, except `coverage`, `dependencies` and `render spec`, which read through Read, List and Follow, and `validate`, which makes Check and then reads through Read, List and Follow. Every kb response is a result or a refusal, never both.
+- Each command maps to one contract v1 call, named in its capability, except `coverage`, `dependencies` and `render spec`, which read through Read, List and Follow, and `validate`, which makes Check and then reads through List and Read. Every kb response is a result or a refusal, never both.
 - Every change sends kb one signature: the role, the piece of work and the message.
 - A place inside an artifact, the part of a locator after `#`, is sent as kb's `place`.
 - An answer keeps shop-knol's own keys whatever kb names them: it says `type` where kb's v1 says `kind`.
@@ -69,7 +69,7 @@ shop-knowledge and kb were one effort until the walking skeleton was green, and 
 
 1. Feature files for both were formulated in one session from both specs. This repository's scenarios are the outer loop; every kb scenario cites the scenario here that needs it.
 2. Slice 1 was "create a decision and read it back through `shop-knol`". It could touch both repositories, and kb was an editable path dependency until it was green.
-3. Once slice 1 was green, kb was tagged and pinned here. From then on, a kb change needed here is a request to bump the pin, and each repository plans alone. kb v0.5.0 is pinned today.
+3. Once slice 1 was green, kb was tagged and pinned here. From then on, a kb change needed here is a request to bump the pin, and each repository plans alone. kb v0.6.0 is pinned today.
 
 ## Testing
 

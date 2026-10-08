@@ -571,3 +571,8 @@ source: adrs/0066-an-unreadable-file-stops-the-publish.md
 Every capability of this repository's `spec/` lists the capabilities it builds on under a `depends_on` frontmatter key after `rests_on`, and `rests_on` keeps decisions only.
 date: 2026-10-08
 source: adrs/0067-this-repositorys-capabilities-declare-depends-on.md
+
+## decision/a-renamed-shop-field-is-not-converted
+The shop type's constraint field renamed from `pinned_in` to `tested_in` keeps the type's version, and shops recorded under the old name are not converted, because no knowledge base in use holds shops; settled as old-feature-and-decision-artifacts-are-not-converted was.
+date: 2026-10-08
+source: the person's delegation (adrs/0068), batch 18's branch review

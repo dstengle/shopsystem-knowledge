@@ -30,7 +30,7 @@ This capability covers one check over the whole knowledge base. It names every f
 
 | command | maps to |
 |---|---|
-| `shop-knol validate` | Check, then Read, List and Follow over every feature's scenarios and the capabilities they formulate |
+| `shop-knol validate` | Check, then List and Read over every feature's scenarios and the capabilities they formulate |
 
 - A check that finds no fault shows `sound: true` and `behind:` on stdout, and exits 0.
 - A check that finds faults prints them on stderr, one line each, and exits 1. It also shows `sound: false` and `behind:` on stdout.
