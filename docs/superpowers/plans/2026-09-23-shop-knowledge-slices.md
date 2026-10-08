@@ -44,7 +44,7 @@ only.
 - Observable: a decision names the shop it belongs to and shows it at a glance, and following a decision's links reaches its shop and that shop's product
 - Unknown: whether every step that records a decision can give it a shop without changing what any other scenario observes
 - Needs: the decision-fields helper gives every recorded decision a shop of its own scenario (step data only); the ledger and records find a shop's decisions through the links pointing at it
-- Status: planned
+- Status: green
 
 ## Slice 69: Capabilities link to their shop in order
 - Kind: capability
@@ -127,3 +127,7 @@ only.
 - 2026-10-08 Batch batch16 archived to archive/2026-09-23-shop-knowledge-slices-batch16.md; last 2026-10-08 Suite: 190 passed, 0 failed at e7d73ea in 22.4 s (batch 16's fix-wave re-review, make test at HEAD)
 - 2026-10-08 Suite: 190 passed, 0 failed at e7d73ea in 22.4 s (batch 16's fix-wave re-review, make test at HEAD)
 - 2026-10-08 Suite: 148 passed, 64 failed at 57bf44c in 15 s; failing: the new and changed scenarios of batch 17 (read-an-artifact and publish-a-shops-spec through their changed Backgrounds), see-what-a-shop-depends-on not yet collected
+- 2026-10-08 slice 68 green. Someone can now: record a decision linked to its one shop, and see that shop at a glance and among what it points at (and, two steps out, the shop's product).
+  Surprised by: making the link required reached every step recording a decision (tests/decision_fields.shop_of records a product and a shop first); the no-shop check (spec_faults._unowned) and its unbound steps went with shop.decisions, since a decision's shop is now required.
+  Open questions: none. Next: slice 69.
+- 2026-10-08 Suite: 158 passed, 54 failed at 390424a in 17 s; failing: publish-a-shops-spec through its changed Background (43), the slice 69-73 rows of use-the-shops-types (9), follow-the-links into a capability, see-what-is-formulated's retired capability
