@@ -186,3 +186,12 @@ def deprecate(env, tmp_path, capability):
 def rest_on(env, tmp_path, capability, decision):
     """`capability` made to rest on `decision` as well as what it rests on."""
     _rewritten(env, tmp_path, capability, rests_on=[*whole(env, capability)["rests_on"], decision])
+
+
+def retired_capability(env, tmp_path, shop, title):
+    """A capability of `title` linking to `shop` whose status is retired, and a feature formulating it; return the
+    capability's name and the feature's."""
+    lines = [{"title": "Only line", "says": "When asked, it answers."}]
+    capability = put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines, order="9",
+                     status="retired")
+    return capability, _feature(env, tmp_path, {"title": title, "behaviour": lines}, capability)

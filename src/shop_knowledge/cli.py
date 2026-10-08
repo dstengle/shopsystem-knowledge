@@ -6,13 +6,12 @@ A refusal, kb's or its own, is printed in plain words on stderr, one fault a lin
 import json
 import os
 import sys
-from pathlib import Path
 
 from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, coverage, document, init, kb_requests
+from shop_knowledge import answers, arguments, bootstrap, coverage, document, init, kb_requests, published
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -201,7 +200,7 @@ def _snapshot(args) -> int:
 def _render(args) -> int:
     rendered = RENDERERS[args.renderer](_client(), args.locator)
     _refused(rendered.faults)
-    _write(rendered.files, args.to)
+    published.publish(args.renderer, rendered.files, args.to)
     _show(answers.written(rendered.files))
     return 0
 
@@ -209,14 +208,6 @@ def _render(args) -> int:
 def _coverage(args) -> int:
     _show(coverage.of(_client(), args.shop))
     return 0
-
-
-def _write(files: dict[str, str], directory: Path) -> None:
-    """The files a renderer gave back, each written at its path under the directory asked for."""
-    for relative, content in files.items():
-        path = directory / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content)
 
 
 _HANDLERS = {

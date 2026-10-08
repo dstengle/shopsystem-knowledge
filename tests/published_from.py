@@ -6,3 +6,8 @@ from driver import whole
 def markdown(env, name):
     """The line as an HTML comment, naming the artifact and the revision it holds now."""
     return f"<!-- published from the knowledge base: {name}@{whole(env, name)['revision']}; do not edit by hand -->"
+
+
+def gherkin(env, name):
+    """The line as a `#` comment, as a feature file carries it."""
+    return f"# published from the knowledge base: {name}@{whole(env, name)['revision']}; do not edit by hand"

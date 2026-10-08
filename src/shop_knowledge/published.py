@@ -1,0 +1,48 @@
+"""What a publish leaves in the directory it publishes into: the files a renderer gave back, written, and, for a
+shop's spec, the files it published earlier under `spec/capabilities/`, `features/` and `adrs/` that it no longer
+writes, deleted. A file there is one it published when it carries the published-from line where the publisher puts
+it: its first line, or the line directly after its frontmatter. Nothing else in the directory is ever deleted."""
+from pathlib import Path
+
+from shop_knowledge.renderers import published_from
+
+_CLEARED = {"spec": ("spec/capabilities", "features", "adrs")}
+"""The renderers whose publish deletes what it no longer writes, and the directories, under the one asked for, whose
+files it reads; a renderer not named here deletes nothing."""
+
+
+def publish(renderer: str, files: dict[str, str], directory: Path) -> None:
+    """The files written, then the files `renderer` published earlier and no longer writes deleted, found before
+    anything is written so a file that cannot be read stops the publish before it changes the directory."""
+    stale = _stale(_CLEARED.get(renderer, ()), files, directory)
+    _write(files, directory)
+    for path in stale:
+        path.unlink()
+
+
+def _write(files: dict[str, str], directory: Path) -> None:
+    """Each file at its path under the directory asked for."""
+    for relative, content in files.items():
+        path = directory / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+
+
+def _stale(cleared: tuple[str, ...], files: dict[str, str], directory: Path) -> list[Path]:
+    """The regular files directly in each of the `cleared` directories that carry the published-from line and are not
+    among `files`."""
+    written = {directory / relative for relative in files}
+    found = [path for each in cleared for path in sorted((directory / each).glob("*"))]
+    return [path for path in found if path.is_file() and not path.is_symlink() and path not in written and _published(path)]
+
+
+def _published(path: Path) -> bool:
+    """Whether the file carries the published-from line where the publisher puts it; a file that is not UTF-8 text
+    does not."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except UnicodeDecodeError:
+        return False
+    if lines[:1] == ["---"] and "---" in lines[1:]:
+        lines = lines[lines.index("---", 1) + 1:]
+    return bool(lines) and published_from.is_line(lines[0])
