@@ -44,7 +44,7 @@ only.
 - Observable: a shop's constraints name the capabilities they are tested in, published as 'Tested in', and a constraint tested in a retired capability stops the publish
 - Unknown: none
 - Needs: pinned_in renamed tested_in in the shop type, the publisher and the test helpers; the published index says 'Tested in' (the index scenario's expected text, step data)
-- Status: planned
+- Status: green
 
 ## Slice 75: A file publishing cannot read stops the publish
 - Kind: capability
@@ -112,3 +112,5 @@ only.
 - 2026-10-08 Suite: 216 passed, 0 failed at e01f9b1 in 33 s (batch 17's fix-wave re-review, make test at HEAD)
 - 2026-10-08 Suite: 216 passed, 7 failed at 2d05fb1 in 33 s; failing: batch 18's new scenarios
 - 2026-10-08 REQUEST shopsystem-bdd: the capability format defines a depends_on frontmatter key (capabilities a capability builds on, in its own context or another) beside rests_on (decisions only); this repository's capabilities use it (adrs/0067).
+- 2026-10-08 slice 74 green. Someone can now: publish a shop whose constraints are tested_in capabilities (Tested in), and be stopped when one is tested in a retired capability of any shop. Surprised by: nothing; the pinned_in to tested_in rename was green on its own before the new steps. Probe: a constraint tested in a deprecated capability publishes as today (Tested in listed). Folded in the ragged-table and linked-directory CLAUDE.md row notes. Open questions: none. Next: slice 75.
+- 2026-10-08 Suite: 218 passed, 5 failed at 2779289 in 35 s; failing: slice 75 (3 rows), slice 76 (2 rows)
