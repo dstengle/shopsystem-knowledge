@@ -68,7 +68,7 @@ only.
 - Observable: the user asks shop-knol dependencies for a shop and is shown its published capabilities depending on deprecated or retired capabilities in any shop, with the scenarios that use them; following links into a capability shows who depends on it
 - Unknown: how to find, through the contract, the status and shop of each capability a shop's capabilities depend on, and the scenarios of theirs that use it
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 72: Deprecated and retired capabilities
 - Kind: capability
@@ -143,3 +143,5 @@ only.
   Surprised by: the deletion outline needed slice 72's retired filtering (handed back, re-sliced into slice 72); its adrs row is already green. The three rows here passed as soon as their steps existed, since no code deletes a file without the line; a mutation making every file count as published turned all three red on their Then. Review Focus probes (.superpowers/batch17/probe_deletion.py): a well-formed line naming another shop's artifact is deleted; a malformed line, a line not first or after the frontmatter, a non-UTF-8 file, a subdirectory under features/, a symlink, and files outside the three directories (notes/old.md, spec/old.md) are left; publishing through the markdown renderer deletes nothing.
   Open questions: an unreadable file (OSError) in the three directories refuses the publish before anything is written, which no scenario covers. Next: slice 71.
 - 2026-10-08 Suite: 195 passed, 17 failed at 296212f in 29 s; failing: publish-a-shops-spec slice 72-73 rows (deletion's spec/capabilities and features rows, deprecated and retired pages, refusals), the slice 72 retired rows of use-the-shops-types, follow-the-links into a capability, see-what-is-formulated's retired capability
+- 2026-10-08 slice 71 green. Someone can now: run shop-knol dependencies <shop> and see which of its capabilities lean on deprecated or retired ones, with the scenarios using them; and follow the links into a capability to see who depends on it. Surprised by: follow-the-links' into-a-capability row passed on its new steps alone, no code; an empty list prints as an empty value; the shared shop-is-absent and answered Thens moved to conftest. Open questions: none. Next: slice 72.
+- 2026-10-08 Suite: 200 passed, 16 failed at 3602d0c in 33 s; failing: publish-a-shops-spec slice 72-73 rows, the slice 72 retired rows of use-the-shops-types, see-what-is-formulated's retired capability
