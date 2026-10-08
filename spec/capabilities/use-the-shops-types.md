@@ -48,7 +48,7 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 - When the user records a scenario with labels, each label is kept as a plain word, not as a link to a tag.
 - When the user records a capability that depends on capabilities of its own shop and of other shops, the capability names each capability it depends on.
 - If the user records a capability whose status is not active, deprecated or retired, the change is refused because it does not fit its type.
-- If the user records a capability whose order is not a dotted number, the change is refused because it does not fit its type.
+- If the user records a capability whose order is not one or more whole numbers joined by dots, such as 3 or 3.1.2, the change is refused because it does not fit its type.
 - When the user sets a capability's status to retired while other capabilities or scenarios depend on it, in any shop, the capability is recorded as retired.
 
 ## Implementation, may change
