@@ -37,7 +37,7 @@ schema:
             pattern: '^[^\n]*(?!\n)$'
           says:
             type: string
-          pinned_in:
+          tested_in:
             type: array
             items:
               type: string

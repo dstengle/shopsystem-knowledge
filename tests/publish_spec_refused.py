@@ -125,3 +125,14 @@ def _a_capability_depending_on_it(env, tmp_path, built, retiree, status):
 @then("publishing is rejected because it depends on a retired capability, naming both capabilities")
 def _rejected_depending_on_retired(result, refused_for):
     _lines_naming(result, *refused_for)
+
+
+@given("a constraint of the shop tested in that retired capability", target_fixture="refused_for")
+def _a_constraint_tested_in_it(env, tmp_path, built, retiree):
+    spec_shop.constrain(env, tmp_path, built.shop, "Old cache is swept", "The old cache never lingers.", [retiree])
+    return ["a retired capability", ["Old cache is swept", retiree]]
+
+
+@then("publishing is rejected because that capability is retired, naming that constraint and that capability")
+def _rejected_tested_in_retired(result, refused_for):
+    _lines_naming(result, *refused_for)

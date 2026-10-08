@@ -15,11 +15,11 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
     own, faults = spec_decisions.of(client, shop.id)
     if faults:
         return faults
-    depended, faults = _retired_dependencies(client, ordered)
+    retired, faults = _retired(client, shop, ordered)
     if faults:
         return faults
     return [
-        *depended,
+        *retired,
         *_shared([(each.id, f"spec/capabilities/{names.from_title(each.title)}.md") for each in ordered], "capabilities-share-a-file"),
         *_shared([(each.id, each.path) for each in own], "decisions-share-a-file"),
         *_numbered(own),
@@ -78,21 +78,26 @@ def _undepended(ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_p
     ]
 
 
-def _retired_dependencies(client, ordered: list[kb_pb2.Artifact]):
-    """A fault for each published capability whose `depends_on` names a retired capability, in any shop, each named
-    read whole for its status; or the faults of the first read that was refused."""
+def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):
+    """A fault for each published capability whose `depends_on`, and for each constraint of the shop whose
+    `tested_in`, names a retired capability, in any shop, each named read whole for its status; or the faults of the
+    first read that was refused."""
+    asks = [(each.id, "depends-on-a-retired-capability", name,
+             "depends on {}, a retired capability; a published capability depends only on one in use")
+            for each in ordered for name in loads(each.content).get("depends_on", [])]
+    asks += [(shop.id, "tested-in-a-retired-capability", name,
+              f"carries the constraint \"{constraint['title']}\", tested in " + "{}, a retired capability; a constraint is tested only in one in use")
+             for constraint in loads(shop.content).get("constraints", []) for name in constraint.get("tested_in", [])]
     status = {}
     faults = []
-    for each in ordered:
-        for name in loads(each.content).get("depends_on", []):
-            if name not in status:
-                read = source.whole(client, name)
-                if refused := source.faults(read):
-                    return [], refused
-                status[name] = loads(read.result.content)["status"]
-            if status[name] == "retired":
-                faults.append(_fault(each.id, "depends-on-a-retired-capability",
-                                     f"depends on {name}, a retired capability; a published capability depends only on one in use"))
+    for artifact, rule, name, message in asks:
+        if name not in status:
+            read = source.whole(client, name)
+            if refused := source.faults(read):
+                return [], refused
+            status[name] = loads(read.result.content)["status"]
+        if status[name] == "retired":
+            faults.append(_fault(artifact, rule, message.format(name)))
     return faults, []
 
 

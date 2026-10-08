@@ -29,10 +29,10 @@ def _constraints(constraints: list[dict], capabilities: dict[str, Capability]) -
 
 
 def _constraint(constraint: dict, capabilities: dict[str, Capability]) -> str:
-    """One bullet; the Pinned-in clause only where the constraint is pinned in a capability."""
+    """One bullet; the Tested-in clause only where the constraint is tested in a capability."""
     line = f"- **{constraint['title']}.** {constraint['says']}"
-    if pinned := constraint.get("pinned_in"):
-        line += f" Pinned in {_joined([capabilities[id].name for id in pinned])}."
+    if tested := constraint.get("tested_in"):
+        line += f" Tested in {_joined([capabilities[id].name for id in tested])}."
     return line
 
 

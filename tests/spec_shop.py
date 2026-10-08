@@ -104,7 +104,7 @@ def build(env, tmp_path) -> Built:
         capabilities.append(record(env, tmp_path, "capability", content, f"Record {each['title']}"))
     features = [_feature(env, tmp_path, each, name) for each, name in zip(CAPABILITIES, capabilities)]
     constraints = [
-        {"title": each["title"], "says": each["says"], "pinned_in": [capabilities[index] for index in each["pinned"]]}
+        {"title": each["title"], "says": each["says"], "tested_in": [capabilities[index] for index in each["pinned"]]}
         for each in CONSTRAINTS
     ]
     complete = {**{key: value for key, value in shop_content.items() if key != "title"}, "constraints": constraints}
@@ -200,3 +200,9 @@ def retired_capability(env, tmp_path, shop, title):
 def depend_on(env, tmp_path, capability, targets):
     """`capability` made to depend on `targets` (names), beside what it depends on."""
     _rewritten(env, tmp_path, capability, depends_on=[*whole(env, capability).get("depends_on", []), *targets])
+
+
+def constrain(env, tmp_path, shop, title, says, tested_in):
+    """`shop` made to carry one more constraint, `title` saying `says`, tested in `tested_in` (names)."""
+    held = whole(env, shop).get("constraints", [])
+    _rewritten(env, tmp_path, shop, constraints=[*held, {"title": title, "says": says, "tested_in": tested_in}])

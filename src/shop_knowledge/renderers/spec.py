@@ -1,5 +1,5 @@
 """The spec renderer: a shop's spec, published from the shop and, through it, the capabilities linking to it and the
-capabilities its constraints are pinned in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
+capabilities its constraints are tested in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
 from kb.content import loads
 from kb.contract import kb_pb2
 
@@ -19,7 +19,7 @@ def render(client, name: str) -> Rendered:
     ordered, faults = shop_capabilities.of(client, shop.id)
     if faults:
         return refused(faults)
-    capabilities, faults = _capabilities(client, ordered, _pinned(content))
+    capabilities, faults = _capabilities(client, ordered, _tested(content))
     if faults:
         return refused(faults)
     formulating, faults = _formulating(client, ordered)
@@ -35,16 +35,16 @@ def render(client, name: str) -> Rendered:
     return Rendered({**index, **_pages(ordered, formulating), **decisions}, [])
 
 
-def _pinned(content: dict) -> list[str]:
-    """The capabilities a constraint is pinned in."""
-    return [id for constraint in content.get("constraints", []) for id in constraint.get("pinned_in", [])]
+def _tested(content: dict) -> list[str]:
+    """The capabilities a constraint is tested in."""
+    return [id for constraint in content.get("constraints", []) for id in constraint.get("tested_in", [])]
 
 
-def _capabilities(client, ordered: list[kb_pb2.Artifact], pinned: list[str]):
-    """The shop's capabilities by id, with each pinned one read whole besides, or the faults of the first read that
+def _capabilities(client, ordered: list[kb_pb2.Artifact], tested: list[str]):
+    """The shop's capabilities by id, with each tested one read whole besides, or the faults of the first read that
     was refused."""
     found = {each.id: each for each in ordered}
-    for id in pinned:
+    for id in tested:
         if id not in found:
             read = source.whole(client, id)
             if faults := source.faults(read):

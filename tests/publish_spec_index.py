@@ -57,7 +57,7 @@ def _joined(names):
 def _expected_index(env, built):
     names = _names(built)
     constraints = [
-        f"- **{each['title']}.** {each['says']} Pinned in {_joined([names[index] for index in each['pinned']])}."
+        f"- **{each['title']}.** {each['says']} Tested in {_joined([names[index] for index in each['pinned']])}."
         for each in spec_shop.CONSTRAINTS
     ]
     composition = [
