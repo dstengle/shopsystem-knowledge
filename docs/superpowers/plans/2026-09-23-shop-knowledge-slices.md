@@ -76,7 +76,7 @@ only.
 - Observable: a deprecated capability is published and marked, a retired one is kept but not published or counted, and a capability depending on a retired one stops its shop's publish
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 73: Publishing refuses a capability's inconsistent links
 - Kind: capability
@@ -117,6 +117,7 @@ only.
 - 2026-10-07 Gherkin is laid out verbatim: a label without @ is dropped by the parser; a description line starting with Given parses as a step; one starting with # vanishes as a comment; a step text holding a line break adds a step. Repro: gherkin.feature_file with each input, parsed by pytest-bdd's FeatureParser. Extends the earlier docstring/pipe backlog line. (from batch 16's branch review)
 - 2026-10-08 tests/publish_spec_index.py:34 and tests/publish_spec_capabilities.py:37 take the expected page name from kb's minted id, while the publisher names pages with names.from_title: the Thens pass only while kb's slug rule agrees. Build them with names.from_title over spec_shop's titles, as publish_spec_from.py does; tests/publish_spec_decisions.py:12 hand-copies the naming rule the same way. (from batch 16's fix-wave re-review)
 - 2026-10-08 An unreadable file (permission denied) directly in spec/capabilities/, features/ or adrs/ refuses the whole publish of a shop's spec, where the plan's reading would leave it. Repro: chmod 000 <dir>/adrs/locked.md, then shop-knol render spec <shop> --to <dir>: 'Permission denied', nothing written. Leave or refuse is for the spec. (from batch 17's Task 3 review)
+- 2026-10-08 The published index names a retired capability a constraint is pinned in (`Pinned in restock-the-shelves and count-the-stock`) though that capability is no longer published, so the link points at no page. Repro: build a shop, retire a capability a constraint pins, `shop-knol render spec <shop> --to d`, read d/spec/index.md. (from batch 17's slice 72 probe)
 
 ## Log
 - 2026-10-07 REQUEST kb: a validate-only mode on BatchCreate and BatchReplace, checking a batch as it would land and landing nothing (adrs/0053; spec/capabilities/make-several-changes-at-once.md Not yet). No slice of batch 16 waits on it.
@@ -145,3 +146,5 @@ only.
 - 2026-10-08 Suite: 195 passed, 17 failed at 296212f in 29 s; failing: publish-a-shops-spec slice 72-73 rows (deletion's spec/capabilities and features rows, deprecated and retired pages, refusals), the slice 72 retired rows of use-the-shops-types, follow-the-links into a capability, see-what-is-formulated's retired capability
 - 2026-10-08 slice 71 green. Someone can now: run shop-knol dependencies <shop> and see which of its capabilities lean on deprecated or retired ones, with the scenarios using them; and follow the links into a capability to see who depends on it. Surprised by: follow-the-links' into-a-capability row passed on its new steps alone, no code; an empty list prints as an empty value; the shared shop-is-absent and answered Thens moved to conftest. Open questions: none. Next: slice 72.
 - 2026-10-08 Suite: 200 passed, 16 failed at 3602d0c in 33 s; failing: publish-a-shops-spec slice 72-73 rows, the slice 72 retired rows of use-the-shops-types, see-what-is-formulated's retired capability
+- 2026-10-08 slice 72 green. Someone can now: deprecate or retire a capability and see publishing and coverage honour it, the publish refused where a published capability depends on a retired one. Surprised by: the use-the-shops-types retiring scenario needed steps only, kb accepts the status change, so it went green on its step definitions alone; the formulated retired scenario went green with the same shop_capabilities filter as the retired publish (red seen by briefly disabling it). Open questions: none. Next: slice 73.
+- 2026-10-08 Suite: 213 passed, 3 failed at d7bf510 in 34 s; failing: publish-a-shops-spec slice 73 rows (two capabilities one order, a scenario's uses not depended on, a capability resting on another shop's decision)
