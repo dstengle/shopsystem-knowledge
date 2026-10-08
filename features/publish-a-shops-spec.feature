@@ -131,7 +131,7 @@ Feature: Publish a shop's spec
     When the user publishes the shop's spec into a directory
     Then every entry in the ledger is a decision the knowledge base holds
 
-  @slice-70
+  @slice-72
   Scenario Outline: The user publishes a shop's spec into a directory holding files published earlier, and those this publish does not write are deleted
     Pins that a published file this publish does not write leaves the repository, both one whose artifact is no longer published and one its artifact left behind on taking a new name, and that deleting reaches nothing outside the three published directories.
     Given <artifact> was published earlier as <old file>, and its title has since changed so that it is now published as <new file>
