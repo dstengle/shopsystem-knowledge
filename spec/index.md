@@ -31,7 +31,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 
 - Answers are printed on stdout as YAML 1.2, written through `kb.content`. JSON is the same document written by the standard library's `json`.
 - Refusals are printed on stderr, one line per fault, with exit 1.
-- A fault carries `artifact`, `place` (its parts joined with `/`), `rule` and `message`, and is printed as before: `artifact at place: message`. A message over several lines is joined into one line. A fault with no artifact is printed as its message alone.
+- A fault carries `artifact`, `place` (its parts joined with `/`), `rule` and `message`, and is printed as `artifact at place: rule: message`. A message over several lines is joined into one line. A fault with no artifact is printed without `artifact at place: `, and one with no rule without `rule: `.
 - An operating-system error on a path is a fault: its artifact is the path the error names (empty if it names none), and its message is the operating system's reason.
 - An argument shop-knol cannot take is refused as one fault: the command as argparse names it (`shop-knol list`), then argparse's message. No usage block is printed. `-h` is help on stdout, with exit 0.
 - Every file the user gives is read as YAML 1.2 through `kb.content`. Text kb cannot keep is refused by `kb.content`'s own refusal, `NotCanonical`. A file that is not UTF-8 is a fault with rule `content` and message `it is not text that can be read: <reason>`.

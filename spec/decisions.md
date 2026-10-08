@@ -576,3 +576,8 @@ source: adrs/0067-this-repositorys-capabilities-declare-depends-on.md
 The shop type's constraint field renamed from `pinned_in` to `tested_in` keeps the type's version, and shops recorded under the old name are not converted, because no knowledge base in use holds shops; settled as old-feature-and-decision-artifacts-are-not-converted was.
 date: 2026-10-08
 source: the person's delegation (adrs/0068), batch 18's branch review
+
+## decision/a-fault-is-printed-with-its-rule
+Every fault shop-knol prints names its rule, `artifact at place: rule: message`, leaving out `rule: ` when a fault carries none, as kb's own command line words a refusal.
+date: 2026-10-08
+source: adrs/0069-a-fault-is-printed-with-its-rule.md
