@@ -118,3 +118,7 @@ only.
 - 2026-10-08 Suite: 221 passed, 2 failed at d1657f5 in 34 s; failing: slice 76 (2 rows)
 - 2026-10-08 slice 76 green. Someone can now: run shop-knol validate and be told of every scenario, in any shop, using a capability its capability does not depend on, with sound false and exit 1. Surprised by: nothing; the rule's one function (consistency.undepended) now serves the publishing check too, which gained a place on its fault. Probe: kb's Check clean and one uses fault gives sound false, the fault listed, exit 1. Open questions: none. Next: none.
 - 2026-10-08 Suite: 223 passed, 0 failed at 9097d50 in 34 s
+- 2026-10-08 batch 18 fix wave green (e6910b0, 0cceeb7). Someone can now: validate a damaged or bare knowledge base and get kb's own answer beside the uses check (no traceback, sound on a bare store as at 018a928), publish a shop whose constraint title holds braces and get one plain refusal, and see one uses fault per scenario and capability.
+  Surprised by: kb refuses Remove of a capability a feature points at, so the deleted-capability probe needed a scratch store damaged by hand.
+  Open questions: none. Next: the controller's re-review.
+- 2026-10-08 Suite: 223 passed, 0 failed at 0cceeb7 in 33 s
