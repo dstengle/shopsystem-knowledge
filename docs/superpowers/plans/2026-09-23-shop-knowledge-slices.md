@@ -156,3 +156,5 @@ only.
 - 2026-10-08 Suite: 216 passed, 0 failed at c2849ba in 34 s
 - 2026-10-08 Suite: 216 passed, 0 failed at 7961fc4 in 35 s (batch 17's branch review, make test)
 - 2026-10-08 QUESTION FOR THE SPEC: publish-a-shops-spec, no scenario pins that a scenario whose uses names a capability of its own shop, among its capability's depends_on, is published; and the index's 'Pinned in' names a retired capability that has no page (keep, drop, or refuse?). For the person. (batch 17's branch review)
+- 2026-10-08 Fix wave for batch 17's branch review green: publishing deletes only files inside the directory asked for (a linked adrs/, features/ or spec/ deletes nothing); a scenario may use its own shop's capability (uses-its-own-shop refusal and its steps removed); module-map rows brought up to date; dependencies.PUBLISHED and unreachable steps removed; dependency scenario Then keyed by pair. Open: writing through a linked directory stays a backlog line.
+- 2026-10-08 Suite: 216 passed, 0 failed at 52ca71d in 35 s
