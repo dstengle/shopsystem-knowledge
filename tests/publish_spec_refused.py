@@ -6,6 +6,7 @@ from pytest_bdd import given, parsers, then
 import spec_shop
 from publish_refusals import capability as _capability, feature_of as _feature_of, lines_naming as _lines_naming
 from published_from import markdown
+from publish_refusals import UNREADABLE
 
 
 @given("another shop of the same product", target_fixture="other_shop")
@@ -77,6 +78,13 @@ def _a_directory_holding_an_old_record(env, tmp_path, built, target, kept):
     _old_record(env, target, kept, decision)
 
 
+@given("the directory also holds `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product")
+def _the_directory_also_holds_an_old_record(env, tmp_path, built, target, kept):
+    """The same old record, put in a directory that already holds a file of the scenario's."""
+    _, decision = spec_shop.other_shop_decision(env, tmp_path, built.product, 99, "Old rule")
+    _old_record(env, target, kept, decision)
+
+
 @given("a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop")
 def _a_directory_holding_the_other_shops_old_record(env, tmp_path, built, target, kept, other_shop):
     """The same, the decision linking to the other shop the scenario already made."""
@@ -85,13 +93,21 @@ def _a_directory_holding_the_other_shops_old_record(env, tmp_path, built, target
 
 def _old_record(env, target, kept, decision):
     file = target / "adrs" / "0099-old-rule.md"
-    file.parent.mkdir()
+    file.parent.mkdir(exist_ok=True)
     file.write_text(f"{markdown(env, decision)}\n\n# 0099 Old rule\n")
     kept[file] = file.read_text()
 
 
 def _files(target):
-    return {file: file.read_text() for file in target.rglob("*") if file.is_file()}
+    """Each file in the directory and what it holds, a file that cannot be read as `UNREADABLE`."""
+    return {file: _held(file) for file in target.rglob("*") if file.is_file()}
+
+
+def _held(file):
+    try:
+        return file.read_text()
+    except PermissionError:
+        return UNREADABLE
 
 
 @then("nothing is written to the directory")

@@ -8,6 +8,7 @@ from pytest_bdd import given, parsers, then
 
 import spec_shop
 from driver import knol
+from publish_refusals import UNREADABLE, lines_naming
 from published_from import gherkin, markdown
 
 
@@ -98,3 +99,25 @@ def _nothing_published_there(env, tmp_path, built, by_hand):
 def _left_as_it_was(result, target, kept, file):
     assert result.returncode == 0, result.stderr
     assert _path(target, file).read_text() == kept[_path(target, file)], file
+
+
+@given(parsers.re(r"a directory holding (?P<file>`[^`]+`), which cannot be read"), target_fixture="by_hand")
+def _which_cannot_be_read(env, built, target, kept, request, file):
+    """A file that carries the published-from line, so it would be deleted were it readable, its read permission taken
+    away and given back when the scenario ends, so the temporary directory can be cleaned."""
+    _put(target, kept, file, f"{markdown(env, built.decisions[0])}\n\n# Old\n")
+    path = _path(target, file)
+    path.chmod(0o000)
+    request.addfinalizer(lambda: path.chmod(0o644))
+    kept[path] = UNREADABLE
+    return file
+
+
+@then(parsers.re(r"publishing is rejected because that file cannot be read, naming (?P<file>`[^`]+`)"))
+def _rejected_unreadable(result, file):
+    lines_naming(result, "cannot be read", [file.strip("`")])
+
+
+@then(parsers.re(r"(?P<file>`[^`]+`) is still in that directory"))
+def _still_there(target, kept, file):
+    assert _path(target, file).is_file() and _path(target, file) in kept

@@ -3,6 +3,9 @@ and names, and the capability and feature a refusal is made for. Imported plainl
 import spec_shop
 from driver import record
 
+UNREADABLE = "<a file that cannot be read>"
+"""What a file the scenario made unreadable is recorded as, before and after the publish."""
+
 
 def lines_naming(result, reason, names):
     """The refusal is shop-knol's, as one line holding the reason and every one of the names."""

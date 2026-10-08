@@ -7,6 +7,9 @@ Only the spec renderer deletes: every other renderer's publish only writes, so p
 repository never takes away the spec published there."""
 from pathlib import Path
 
+from kb.contract import kb_pb2
+
+from shop_knowledge import refusal
 from shop_knowledge.renderers import published_from
 
 _CLEARED = {"spec": ("spec/capabilities", "features", "adrs")}
@@ -47,11 +50,13 @@ def _within(directory: Path, cleared: str) -> bool:
 
 def _published(path: Path) -> bool:
     """Whether the file carries the published-from line where the publisher puts it; a file that is not UTF-8 text
-    does not."""
+    does not; a file that cannot be read stops the publish, for it cannot be told whether it was published."""
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except UnicodeDecodeError:
         return False
+    except OSError as error:
+        raise refusal.Refused([kb_pb2.Fault(artifact=str(path), message="cannot be read, so publishing cannot tell whether to delete it")]) from error
     if lines[:1] == ["---"] and "---" in lines[1:]:
         lines = lines[lines.index("---", 1) + 1:]
     return bool(lines) and published_from.is_line(lines[0])
