@@ -50,7 +50,7 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - If a capability of the shop rests on a decision of another shop, publishing is refused because a capability rests only on its own shop's decisions, naming the capability and the decision, and nothing is written or deleted.
 - If a scenario's `uses` names a capability that is not among its capability's dependencies, publishing is refused because a scenario uses only what its capability depends on, naming the scenario and the capability it uses, and nothing is written or deleted.
 - If an active or deprecated capability of the shop depends on a retired capability, in any shop, publishing is refused because it depends on a retired capability, naming both, and nothing is written or deleted.
-- If a constraint of the shop is tested in a retired capability, publishing is refused because that capability is retired, naming the constraint and the capability, and nothing is written or deleted.
+- If a constraint of the shop is tested in a retired capability, in any shop, publishing is refused because that capability is retired, naming the constraint and the capability, and nothing is written or deleted.
 - If two features formulate one of the shop's capabilities, publishing is refused because they would share a file, naming both, and nothing is written or deleted.
 - If a table in a feature formulating one of the shop's capabilities has rows of different widths, publishing is refused because a table's rows must each have one cell per column, naming the scenario, and nothing is written or deleted.
 - If, among the files publishing may delete, one cannot be read, publishing is refused because that file cannot be read, naming the file, and nothing is written or deleted.
