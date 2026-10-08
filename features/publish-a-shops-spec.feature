@@ -3,7 +3,7 @@ Feature: Publish a shop's spec
   Narrator: the user, publishing a shop's spec into the shop's repository
 
   Background:
-    Given a knowledge base holding a product and a shop of that product, with the shop's capabilities in its reading order, its decisions, and a feature formulating each capability
+    Given a knowledge base holding a product and a shop of that product, active capabilities linking to the shop each carrying an order of its own, decisions linking to the shop each carrying a number of its own, and a feature formulating each capability
 
   @slice-61
   Scenario: The user publishes a shop's spec and the directory holds its index
@@ -13,17 +13,21 @@ Feature: Publish a shop's spec
     And the shop's knowledge base is unchanged
 
   @slice-63
-  Scenario: The user publishes a shop's spec and the directory holds a file for each capability
-    Pins that every capability of the shop reaches the repository as a file of its own under the spec's capabilities.
+  Scenario: The user publishes a shop's spec and the directory holds a file for each active or deprecated capability linking to the shop
+    Pins that a capability reaches the repository as a file of its own when it links to the shop and is still in use, whether active or deprecated.
+    Given one of the capabilities linking to the shop is deprecated
     When the user publishes the shop's spec into a directory
-    Then that directory holds `spec/capabilities/<name>.md` for each capability of the shop
+    Then that directory holds `spec/capabilities/<name>.md` for each capability linking to the shop whose status is active or deprecated
 
   @slice-64
-  Scenario: The user publishes a shop's spec and the directory holds its ledger
-    Pins that the ledger gathers both what the shop decided and what its capabilities rest on, in one file.
+  Scenario: The user publishes a shop's spec and the directory holds the ledger of the shop's own decisions in number order
+    Pins that the ledger is made of the decisions linking to the shop and no others, read from the lowest number to the highest whatever order they were made in.
+    Given the decisions linking to the shop are three, numbered 12, 3 and 7, created in that order
+    And another shop of the same product, with a decision linking to it
     When the user publishes the shop's spec into a directory
     Then that directory holds `spec/decisions.md`
-    And the ledger lists each of the shop's decisions and each decision its capabilities rest on
+    And the ledger lists the decisions numbered 3, 7 and 12, in that order
+    And the ledger does not list the other shop's decision
 
   @slice-65
   Scenario: The user publishes a shop's spec and the directory holds a feature file for each formulated capability
@@ -36,6 +40,38 @@ Feature: Publish a shop's spec
     Pins that every decision of the shop is published as a decision record, so no decision stands only as a ledger entry.
     When the user publishes the shop's spec into a directory
     Then that directory holds `adrs/<number>-<name>.md` for each of the shop's decisions
+
+  Scenario: The user publishes a shop's spec and the index lists its capabilities in their order, dotted numbers compared part by part as numbers
+    Pins that the reading order follows the number in each part, so 1.10 comes after 1.2 and 10 after 2, never the order the characters sort in or the order the capabilities were made in.
+    Given the capabilities linking to the shop are these, created in this order:
+      | title          | order |
+      | Keep the cache | 10    |
+      | Read the log   | 1.10  |
+      | Write the log  | 2     |
+      | Open the log   | 1.2   |
+    When the user publishes the shop's spec into a directory
+    Then the index lists the shop's capabilities in this order:
+      | title          |
+      | Open the log   |
+      | Read the log   |
+      | Write the log  |
+      | Keep the cache |
+
+  Scenario: The user publishes a shop's spec holding a deprecated capability
+    Pins that a deprecated capability is still published, and that its reader is told it is deprecated both on its page and in the index.
+    Given one of the capabilities linking to the shop is deprecated
+    When the user publishes the shop's spec into a directory
+    Then that directory holds that capability's page
+    And that page says the capability is deprecated
+    And that capability's line in the index says it is deprecated
+
+  Scenario: The user publishes a shop's spec holding a retired capability
+    Pins that a retired capability leaves the published spec entirely: no page, no feature file, no line in the index.
+    Given a capability linking to the shop whose status is retired, and a feature formulating it
+    When the user publishes the shop's spec into a directory
+    Then that directory holds no page for that capability
+    And that directory holds no feature file for it
+    And the index does not list it
 
   @slice-63
   Scenario Outline: The user publishes a shop's spec and a capability's file is named from its title
@@ -92,84 +128,130 @@ Feature: Publish a shop's spec
     When the user publishes the shop's spec into a directory
     Then every entry in the ledger is a decision the knowledge base holds
 
-  @slice-64
-  Scenario: The user publishes a shop's spec whose capabilities rest on a decision of another shop
-    Pins that a decision borrowed from another shop is listed, but after the shop's own, and points the reader to the shop that holds its record.
-    Given another shop of the same product holds a decision
-    And one of the shop's capabilities rests on that decision
-    When the user publishes the shop's spec into a directory
-    Then the ledger lists that decision after the shop's own decisions
-    And the ledger gives that decision's source as the other shop's record of it
+  Scenario Outline: The user publishes a shop's spec into a directory holding files published earlier, and those this publish does not write are deleted
+    Pins that a published file this publish does not write leaves the repository, both one whose artifact is no longer published and one its artifact left behind on taking a new name, and that deleting reaches nothing outside the three published directories.
+    Given <artifact> was published earlier as <old file>, and its title has since changed so that it is now published as <new file>
+    And the directory also holds <stale file>, published earlier from <stale artifact>
+    And the directory holds `notes/old.md`, whose published-from line names <stale artifact>
+    When the user publishes the shop's spec into that directory
+    Then <old file> is deleted
+    And <stale file> is deleted
+    And that directory holds <new file>
+    And `notes/old.md` is still in that directory, as it was
 
-  @slice-67
-  Scenario: Publishing is refused when a capability names the shop but is not in the shop's reading order
-    Pins that a capability the shop's reading order leaves out is never silently dropped from the spec or silently added to it.
-    Given a capability that names the shop but is not in the shop's reading order
-    When the user publishes the shop's spec into a directory
-    Then publishing is rejected because that capability is not in the shop's reading order, naming that capability
-    And nothing is written to the directory
+    Examples:
+      | artifact                                              | old file                          | new file                          | stale file                       | stale artifact                                                                   |
+      | one of the shop's capabilities                        | `spec/capabilities/read-the-log.md` | `spec/capabilities/tail-the-log.md` | `spec/capabilities/old-cache.md` | a capability linking to the shop whose status is retired                          |
+      | the feature formulating one of the shop's capabilities | `features/read-the-log.feature`   | `features/tail-the-log.feature`   | `features/old-cache.feature`     | the feature formulating a capability linking to the shop whose status is retired |
+      | one of the shop's decisions, numbered 7               | `adrs/0007-keep-the-log.md`       | `adrs/0007-keep-every-log.md`     | `adrs/0099-old-rule.md`          | a decision linking to another shop of the same product                            |
 
-  @slice-67
-  Scenario: Publishing is refused when a capability in the shop's reading order names another shop
-    Pins that a shop's spec never publishes a capability another shop owns as if it were its own.
-    Given another shop of the same product
-    And a capability that names the other shop is in the shop's reading order
-    When the user publishes the shop's spec into a directory
-    Then publishing is rejected because that capability belongs to another shop, naming that capability
-    And nothing is written to the directory
+  Scenario Outline: The user publishes a shop's spec into a directory holding a file with no published-from line, at a name it does not write
+    Pins that a file written by hand beside the published ones, at a name nothing is published under, is neither deleted nor changed by publishing.
+    Given a directory holding <file>, which has no published-from line
+    And no artifact is published under that name
+    When the user publishes the shop's spec into that directory
+    Then <file> is left as it was
+
+    Examples:
+      | file                         |
+      | `spec/capabilities/notes.md` |
+      | `features/notes.feature`     |
+      | `adrs/notes.md`              |
 
   @slice-67
   Scenario: Publishing is refused when two of the shop's capabilities would be published under one file name
-    Pins that one capability's file never overwrites another's.
-    Given two of the shop's capabilities titled "Read the log" and "Read the Log"
-    When the user publishes the shop's spec into a directory
+    Pins that one capability's file never overwrites another's, and that a refused publish leaves the directory exactly as it found it.
+    Given two of the shop's capabilities, each with an order of its own, titled "Read the log" and "Read the Log"
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
     Then publishing is rejected because those capabilities would share a file, naming both
     And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
 
   @slice-67
   Scenario: Publishing is refused when two of the shop's decisions would be published under one file name
-    Pins that one decision's record never overwrites another's.
+    Pins that one decision's record never overwrites another's, and that a refused publish leaves the directory exactly as it found it.
     Given two of the shop's decisions numbered 7, titled "Keep the log" and "Keep the Log"
-    When the user publishes the shop's spec into a directory
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
     Then publishing is rejected because those decisions would share a file, naming both
     And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
 
   @slice-67
   Scenario: Publishing is refused when two of the shop's decisions carry one number
-    Pins that a decision's number names one decision only, so a number cited anywhere leads to one record.
+    Pins that a decision's number names one decision only, so a number cited anywhere leads to one record, and that a refused publish leaves the directory exactly as it found it.
     Given two of the shop's decisions numbered 7, titled "Keep the log" and "Drop the cache"
-    When the user publishes the shop's spec into a directory
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
     Then publishing is rejected because a number names one decision, naming both decisions
     And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
 
-  @slice-67
-  Scenario: Publishing is refused when a capability of the shop rests on a decision no shop names
-    Pins that the ledger never lists a decision that has no shop's record behind it.
-    Given one of the shop's capabilities rests on a decision that no shop names among its decisions
-    When the user publishes the shop's spec into a directory
-    Then publishing is rejected because that decision belongs to no shop, naming it
+  Scenario: Publishing is refused when two of the shop's capabilities carry one order
+    Pins that an order places one capability only, so the index never has to choose between two, and that a refused publish leaves the directory exactly as it found it.
+    Given two of the shop's capabilities, both active, both at order 3, titled "Read the log" and "Keep the cache"
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because an order places one capability, naming both capabilities
     And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+  Scenario: Publishing is refused when a capability of the shop rests on a decision of another shop
+    Pins that a capability's decisions are always in its own shop's ledger, never borrowed from another shop's, and that a refused publish leaves the directory exactly as it found it.
+    Given another shop of the same product, with a decision linking to it
+    And one of the shop's capabilities rests on that decision
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because a capability rests only on its own shop's decisions, naming that capability and that decision
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+  Scenario: Publishing is refused when a scenario's uses names a capability its capability does not depend on
+    Pins that a scenario reaches only what its capability is declared to depend on, and that a refused publish leaves the directory exactly as it found it.
+    Given another shop of the same product, with an active capability linking to it
+    And a scenario in a feature formulating one of the shop's capabilities, whose uses names that other shop's capability
+    And the scenario's capability does not depend on that other shop's capability
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because a scenario uses only what its capability depends on, naming that scenario and the capability it uses
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+  Scenario Outline: Publishing is refused when an active or deprecated capability of the shop depends on a retired capability
+    Pins that a capability still published never leans on one taken out of use, wherever the retired one lives, and that a refused publish leaves the directory exactly as it found it.
+    Given another shop of the same product
+    And a capability linking to <owner> whose status is retired
+    And a capability linking to the shop whose status is <status> depends on that retired capability
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to the other shop
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because it depends on a retired capability, naming both capabilities
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+    Examples:
+      | status     | owner          |
+      | active     | the shop       |
+      | deprecated | the shop       |
+      | active     | the other shop |
+      | deprecated | the other shop |
 
   @slice-67
   Scenario: Publishing is refused when two features formulate one of the shop's capabilities
-    Pins that a capability has one feature file, never two competing for it.
+    Pins that a capability has one feature file, never two competing for it, and that a refused publish leaves the directory exactly as it found it.
     Given two features that each formulate the same one of the shop's capabilities
-    When the user publishes the shop's spec into a directory
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
     Then publishing is rejected because those features would share a file, naming both
     And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
 
   @slice-67.1
   Scenario: Publishing is refused when a table in a feature has rows of different widths
-    Pins that a published feature file never holds a table whose rows do not line up, and that the user is told which scenario holds it.
+    Pins that a published feature file never holds a table whose rows do not line up, that the user is told which scenario holds it, and that a refused publish leaves the directory exactly as it found it.
     Given a scenario in a feature formulating one of the shop's capabilities, whose step's table has a row with fewer cells than its header
-    When the user publishes the shop's spec into a directory
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
     Then publishing is rejected because a table's rows must each have one cell per column, naming that scenario
     And nothing is written to the directory
-
-  @slice-67
-  Scenario: Publishing is refused when a scenario's uses points at a capability of its own shop
-    Pins that a scenario reaches only across to another shop's capability, never back into its own shop.
-    Given a scenario in a feature formulating one of the shop's capabilities, whose uses points at another of the shop's capabilities
-    When the user publishes the shop's spec into a directory
-    Then publishing is rejected because a scenario uses only another shop's capability, naming that scenario
-    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory

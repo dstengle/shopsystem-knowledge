@@ -3,14 +3,14 @@ Feature: Read an artifact
   Narrator: the user, reading back one artifact by its name
 
   Background:
-    Given a shop knowledge base holding a decision with a purpose and a rationale, tagged "pricing", superseding an older decision, and pointed at by two work items
+    Given a shop knowledge base holding a decision of the shop "knowledge", with a purpose and a rationale, tagged "pricing", superseding an older decision, and pointed at by two work items
 
   @slice-1
   Scenario: The user reads a decision at a glance
     Pins the default answer, sized for a first look: what this is, the little it points at, and how much of the shop leans on it.
     When the user reads the decision
     Then the user sees its name, its title and the few fields the shop shows for a decision
-    And the user sees a stub of each thing it points at
+    And the user sees a stub of each thing it points at: the older decision, the tag "pricing" and the shop "knowledge"
     And the user sees how many things point back at it, and of what kind
 
   @slice-22

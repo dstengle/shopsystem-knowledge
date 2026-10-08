@@ -59,3 +59,21 @@ Feature: See what is formulated
     Given a shop knowledge base holding no shop "returns"
     When the user asks what is formulated in the shop "returns"
     Then the answer is rejected because that shop is not there, naming "returns"
+
+  Scenario: Where a capability linking to the shop is retired, the user asks what is formulated and is shown none of its lines
+    Pins that a retired capability's lines drop out of the report, whether no scenario or several formulate them, while the shop's other capabilities' lines are still shown.
+    Given a shop knowledge base holding the shop "checkout" with these capabilities linking to it
+      | capability       | status  |
+      | Apply a discount | active  |
+      | Take a payment   | retired |
+    And these Behaviour lines, formulated by these scenarios
+      | capability       | line                          | scenarios formulating it |
+      | Apply a discount | A valid code lowers the price | 1                        |
+      | Apply a discount | An expired code is refused    | 0                        |
+      | Take a payment   | A paid order is confirmed     | 0                        |
+      | Take a payment   | A refunded order is reversed  | 2                        |
+    When the user asks what is formulated in the shop "checkout"
+    Then the user is shown as formulated by no scenario each of these lines, by its link, and no other
+      | capability       | line                       |
+      | Apply a discount | An expired code is refused |
+    And the user is shown that no line is formulated by more than one scenario

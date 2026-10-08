@@ -73,12 +73,12 @@ Feature: Use the shop's types
     Then each field it shows is one short line or a link, as it was recorded
 
     Examples:
-      | kind       | name                | recorded with                                                                                         |
-      | product    | storefront          | with the gist "Sells what the shop makes"                                                             |
-      | shop       | catalogue           | of the product "shopsystem", with the gist "Holds what is for sale"                                   |
-      | capability | apply-a-code        | of the shop "knowledge", with the gist "A customer takes money off with a code"                       |
-      | decision   | prices-exclude-tax  | with the statement "Prices are shown before tax", the date 2026-10-07, superseding "prices-include-tax" |
-      | feature    | checkout            | formulating the capability "checkout"                                                                 |
+      | kind       | name                | recorded with                                                                                                                  |
+      | product    | storefront          | with the gist "Sells what the shop makes"                                                                                      |
+      | shop       | catalogue           | of the product "shopsystem", with the gist "Holds what is for sale"                                                            |
+      | capability | apply-a-code        | of the shop "knowledge", with the gist "A customer takes money off with a code"                                                |
+      | decision   | prices-exclude-tax  | of the shop "knowledge", with the statement "Prices are shown before tax", the date 2026-10-07, superseding "prices-include-tax" |
+      | feature    | checkout            | formulating the capability "checkout"                                                                                          |
 
   @slice-62
   Scenario: The user reads an artifact holding parts at a glance
@@ -154,3 +154,41 @@ Feature: Use the shop's types
     And a capability "checkout" with a Behaviour line titled "Show the price"
     When the user records a feature with a scenario labelled "@pricing" that formulates the Behaviour line "Show the price", saying who they are and why
     Then the label is kept as the plain word "@pricing", not as a link to the tag "pricing"
+
+  Scenario: The user records a capability that depends on capabilities of its own shop and of other shops
+    Pins that a capability can build on capabilities wherever they are held, in its own shop or another, and says which ones it builds on.
+    Given a shop knowledge base holding a product "shopsystem", shops "knowledge" and "catalogue" of "shopsystem", a capability "checkout" of "knowledge" and a capability "list-products" of "catalogue"
+    When the user records a capability "apply-a-code" of the shop "knowledge" that depends on "checkout" and "list-products", saying who they are and why
+    Then the capability "apply-a-code" names "checkout" and "list-products" as the capabilities it depends on
+
+  Scenario: The user records a capability whose status is not active, deprecated or retired
+    Pins that a capability's status is one of its three stages of life, never a word of the user's choosing.
+    Given a shop knowledge base holding a product "shopsystem" and a shop "knowledge" of "shopsystem"
+    When the user records a capability of the shop "knowledge" with the status "draft", saying who they are and why
+    Then the change is refused because it does not fit its type
+
+  Scenario Outline: The user records a capability whose order is not one or more whole numbers joined by dots
+    Pins that a capability's place in its shop's reading order is always whole numbers joined by dots, so capabilities can be put in order.
+    Given a shop knowledge base holding a product "shopsystem" and a shop "knowledge" of "shopsystem"
+    When the user records a capability of the shop "knowledge" with the order "<order>", saying who they are and why
+    Then the change is refused because it does not fit its type
+
+    Examples:
+      | order  |
+      | first  |
+      | 3..1   |
+      | 3.1.a  |
+
+  Scenario Outline: The user sets a capability's status to retired while other capabilities or scenarios depend on it, in any shop
+    Pins that what still depends on a capability, here or in another shop, does not stop it being retired.
+    Given a shop knowledge base holding a product "shopsystem", shops "knowledge" and "catalogue" of "shopsystem", and a capability "checkout" of "knowledge" with the status deprecated
+    And the knowledge base holds <dependent>
+    When the user sets the status of the capability "checkout" to retired, saying who they are and why
+    Then the capability "checkout" is recorded as retired
+
+    Examples:
+      | dependent                                                                  |
+      | a capability of the shop "knowledge" that depends on "checkout"            |
+      | a capability of the shop "catalogue" that depends on "checkout"            |
+      | a scenario of a capability of the shop "knowledge" that uses "checkout"    |
+      | a scenario of a capability of the shop "catalogue" that uses "checkout"    |
