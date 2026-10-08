@@ -10,11 +10,20 @@ from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import source
 
 
+def _refusal(read: kb_pb2.ReadResponse) -> list[kb_pb2.Fault]:
+    """What stops a coverage: kb's own refusal of the read, else the artifact's not being a shop."""
+    if read.WhichOneof("outcome") == "refusal":
+        return source.faults(read)
+    if read.result.kind != "shop":
+        return [kb_pb2.Fault(artifact=read.result.id, rule="coverage-of-a-shop", message=f"{read.result.id} is a {read.result.kind}, not a shop")]
+    return []
+
+
 def of(client, shop: str) -> dict:
     """The shop's lines no scenario formulates and those more than one does, in reading order and then the capability's
     own, each as its link with its capability's title and its own."""
     read = source.whole(client, shop)
-    if faults := source.refusal(read, "coverage", "shop"):
+    if faults := _refusal(read):
         raise Refused(faults)
     lines = [line for id in loads(read.result.content).get("reading_order", []) for line in _lines(client, id)]
     formulating = _formulating(client)

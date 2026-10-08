@@ -26,11 +26,12 @@ def _a_shop_with_lines(env, started_shop, tmp_path, datatable, shop):
         lines = [{"title": row["line"], "says": f"When asked, {row['line'].lower()}."} for row in rows if row["capability"] == title]
         capabilities[title] = spec_shop.put(env, tmp_path, "capability", title, shop=shop_id, gist="A capability.", behaviour=lines)
     spec_shop.reading_order(env, tmp_path, shop_id, list(capabilities.values()))
+    ids = {(row["capability"], row["line"]): spec_shop.line_id(env, capabilities[row["capability"]], row["line"]) for row in rows}
     for title, capability in capabilities.items():
         scenarios = [
             {
                 "title": f"{row['line']}, number {number}",
-                "formulates": f"{capability}#behaviour/{spec_shop.handle(row['line'])}",
+                "formulates": f"{capability}#behaviour/{ids[(row['capability'], row['line'])]}",
                 "steps": [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text": "all is well"}],
             }
             for row in rows if row["capability"] == title
@@ -39,7 +40,7 @@ def _a_shop_with_lines(env, started_shop, tmp_path, datatable, shop):
         if scenarios:
             record(env, tmp_path, "feature", {"title": title, "formulates": capability, "scenarios": scenarios}, f"Formulate {title}")
     return {"shop": shop_id, "link": {
-        (row["capability"], row["line"]): f"{capabilities[row['capability']]}#behaviour/{spec_shop.handle(row['line'])}" for row in rows
+        (row["capability"], row["line"]): f"{capabilities[row['capability']]}#behaviour/{ids[(row['capability'], row['line'])]}" for row in rows
     }}
 
 

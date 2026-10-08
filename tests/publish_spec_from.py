@@ -2,13 +2,16 @@
 (adrs/0035)."""
 from pytest_bdd import parsers, then
 
+import spec_shop
 from driver import whole
+from shop_knowledge.renderers import names
 
 LINE = "published from the knowledge base"
 
 
-def _slug(name):
-    return name.split("/", 1)[1]
+def _page_names():
+    """The names the publisher gives the pages of the shop's capabilities and their features: its naming of their titles."""
+    return [names.from_title(each["title"]) for each in spec_shop.CAPABILITIES]
 
 
 def _files(label, built, target):
@@ -18,9 +21,9 @@ def _files(label, built, target):
     if label == "`spec/decisions.md`":
         return [(target / "spec" / "decisions.md", built.shop)]
     if label == "each capability's file":
-        return [(target / "spec" / "capabilities" / f"{_slug(name)}.md", name) for name in built.capabilities]
+        return [(target / "spec" / "capabilities" / f"{page}.md", name) for page, name in zip(_page_names(), built.capabilities)]
     if label == "each feature file":
-        return [(target / "features" / f"{_slug(name)}.feature", feature) for name, feature in zip(built.capabilities, built.features)]
+        return [(target / "features" / f"{page}.feature", feature) for page, feature in zip(_page_names(), built.features)]
     assert label == "each decision's record", label
     return list(zip(sorted((target / "adrs").glob("*.md")), built.decisions))
 

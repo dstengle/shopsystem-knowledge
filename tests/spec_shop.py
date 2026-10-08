@@ -70,14 +70,15 @@ def _feature(env, tmp_path, capability, name):
         "formulates": name,
         "scenarios": [{
             "title": f"{capability['title']}, as the user does it",
-            "formulates": f"{name}#behaviour/{handle(capability['behaviour'][0]['title'])}",
+            "formulates": f"{name}#behaviour/{line_id(env, name, capability['behaviour'][0]['title'])}",
             "steps": [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text": "the shelf is in order"}],
         }],
     }, f"Formulate {capability['title']}")
 
 
-def handle(title):
-    return title.lower().replace(" ", "-")
+def line_id(env, capability, title):
+    """The id kb minted for the Behaviour line of `title` in `capability`, read from the capability held."""
+    return next(line["id"] for line in whole(env, capability)["behaviour"] if line["title"] == title)
 
 
 def build(env, tmp_path) -> Built:

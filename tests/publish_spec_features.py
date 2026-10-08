@@ -4,6 +4,7 @@ from pytest_bdd import then
 from pytest_bdd.parser import FeatureParser
 
 import spec_shop
+from shop_knowledge.renderers import names
 
 
 def parsed(path):
@@ -14,7 +15,7 @@ def parsed(path):
 @then("that directory holds `features/<name>.feature` for each feature formulating one of the shop's capabilities")
 def _holds_each_feature(result, target, built):
     assert result.returncode == 0, result.stderr
-    for name, each in zip((capability.split("/", 1)[1] for capability in built.capabilities), spec_shop.CAPABILITIES):
-        feature = parsed(target / "features" / f"{name}.feature")
+    for each in spec_shop.CAPABILITIES:
+        feature = parsed(target / "features" / f"{names.from_title(each['title'])}.feature")
         assert feature.name == each["title"]
         assert [scenario.name for scenario in feature.scenarios.values()] == [f"{each['title']}, as the user does it"]

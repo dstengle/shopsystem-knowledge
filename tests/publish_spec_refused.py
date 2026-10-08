@@ -89,7 +89,7 @@ def _rejected_unowned(result, refused_for):
 
 def _feature_of(env, tmp_path, capability, title, scenario):
     return record(env, tmp_path, "feature", {"title": title, "formulates": capability, "scenarios": [{
-        "title": f"{title}, as the user does it", "formulates": f"{capability}#behaviour/{spec_shop.handle('Only line')}",
+        "title": f"{title}, as the user does it", "formulates": f"{capability}#behaviour/{spec_shop.line_id(env, capability, 'Only line')}",
         "steps": [{"keyword": "When", "text": "the user acts"}, {"keyword": "Then", "text": "the shelf is in order"}], **scenario}]},
         f"Formulate {title}")
 
