@@ -525,3 +525,29 @@ source: the person's delegation, 2026-10-07, slicing batch 16
 A feature table whose rows have different widths is refused when the shop's spec is published, rather than laid out or crashed on, by the principle that shop-knol never shows a traceback and refuses in plain words.
 date: 2026-10-07
 source: the person's delegation, 2026-10-07, batch 16's branch review (small-change path)
+
+## decision/a-decision-links-to-its-shop
+A decision links to its one shop through a required `shop` shown at a glance, and a shop's decisions are those linking to it, because kb answers a link from either end and each fact is held in one direction only; following the links out of a decision, and its glance, now show its shop.
+date: 2026-10-08
+supersedes: decision/a-shop-names-its-decisions
+source: adrs/0058-a-decision-links-to-its-shop.md
+
+## decision/a-ledger-holds-only-the-shops-own-decisions
+A shop's ledger lists only the shop's own decisions, in number order; a capability resting on a decision of another shop is refused when the shop's spec is published.
+date: 2026-10-08
+source: adrs/0059-a-ledger-holds-only-the-shops-own-decisions.md
+
+## decision/capabilities-depend-on-capabilities
+A capability names the capabilities it builds on, in any shop, through `depends_on`, kept apart from `rests_on`; a scenario is part of its capability and its `uses` names only dependencies of that capability, in its own shop or another; who depends on a capability is a query, not a stored list.
+date: 2026-10-08
+source: adrs/0060-capabilities-depend-on-capabilities.md
+
+## decision/a-capability-carries-its-reading-order
+A capability carries its place in its shop's reading order as a dotted number, sorted numerically part by part, so a capability can be inserted without renumbering; a shop no longer lists its capabilities.
+date: 2026-10-08
+source: adrs/0061-a-capability-carries-its-reading-order.md
+
+## decision/capabilities-are-deprecated-then-retired
+A capability's status is active, deprecated or retired. Removing one is three checked steps: deprecate it, remove its spec and code through the shop's normal work, retire it. Retiring is the shop's own act on its public contract, accepted whatever depends on it elsewhere; other shops find out when they publish or ask, and act on their own schedule.
+date: 2026-10-08
+source: adrs/0062-capabilities-are-deprecated-then-retired.md

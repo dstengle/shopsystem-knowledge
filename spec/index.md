@@ -19,7 +19,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - **shop-knol's own refusals are in plain words.** Each says what was refused and names the place it concerns: the file, the directory or the artifact. A name given empty names no place and is refused. Pinned in start-a-knowledge-base, record-an-artifact, read-an-artifact, publish-an-artifact and publish-a-shops-spec.
 - **Every change says who and why.** Every mutating command requires an actor and a message. `init` requires an actor and no message. Pinned in record-an-artifact and start-a-knowledge-base.
 - **kb mints the ids.** Ids are minted by kb from titles and never supplied by the user. Pinned in record-an-artifact.
-- **Publishing only reads.** Files are written only when the renderer refused nothing. Pinned in publish-an-artifact and publish-a-shops-spec.
+- **Publishing only reads.** Publishing reads the knowledge base and never changes it. Files are written, and files published earlier deleted, only when the renderer refused nothing. Pinned in publish-an-artifact and publish-a-shops-spec.
 - **Corpus-only roles.** The boundary for a corpus-only role is a harness permission allowlist of exactly `shop-knol *`. The harness provides it; shop-knowledge does not implement it.
 - **Bounds:**
   - `--resolve` with no depth means depth 1.
@@ -36,7 +36,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - An argument shop-knol cannot take is refused as one fault: the command as argparse names it (`shop-knol list`), then argparse's message. No usage block is printed. `-h` is help on stdout, with exit 0.
 - Every file the user gives is read as YAML 1.2 through `kb.content`. Text kb cannot keep is refused by `kb.content`'s own refusal, `NotCanonical`. A file that is not UTF-8 is a fault with rule `content` and message `it is not text that can be read: <reason>`.
 - A file the user gives is checked against its shape, written as JSON Schema. Each violation is one fault: `artifact` is the file as named, `place` is its parts joined with `/`, `rule` is the JSON Schema keyword, and `message` is jsonschema's.
-- Each command maps to one contract v1 call, named in its capability, except `coverage` and `render spec`, which read through Read, List and Follow. Every kb response is a result or a refusal, never both.
+- Each command maps to one contract v1 call, named in its capability, except `coverage`, `dependencies` and `render spec`, which read through Read, List and Follow. Every kb response is a result or a refusal, never both.
 - Every change sends kb one signature: the role, the piece of work and the message.
 - A place inside an artifact, the part of a locator after `#`, is sent as kb's `place`.
 - An answer keeps shop-knol's own keys whatever kb names them: it says `type` where kb's v1 says `kind`.
@@ -45,7 +45,7 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 
 1. [start-a-knowledge-base](capabilities/start-a-knowledge-base.md): set up a knowledge base holding the shop's types.
 2. [find-the-knowledge-base](capabilities/find-the-knowledge-base.md): have every other command find the one knowledge base it works on.
-3. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's ten types, and record things that use them, a shop's spec among them.
+3. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's ten types, and record things that use them, a shop's spec and its capabilities' lifecycle among them.
 4. [record-an-artifact](capabilities/record-an-artifact.md): record something new under a name the shop mints.
 5. [read-an-artifact](capabilities/read-an-artifact.md): read one artifact at a chosen level.
 6. [revise-an-artifact](capabilities/revise-an-artifact.md): replace an artifact, or one section of it.
@@ -53,14 +53,15 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 8. [retire-an-artifact](capabilities/retire-an-artifact.md): take out something nothing depends on.
 9. [make-several-changes-at-once](capabilities/make-several-changes-at-once.md): apply a batch of creates, or of replacements, that lands whole or not at all.
 10. [list-what-the-shop-holds](capabilities/list-what-the-shop-holds.md): see everything of one kind.
-11. [follow-the-links](capabilities/follow-the-links.md): see what an artifact points at and what points at it.
+11. [follow-the-links](capabilities/follow-the-links.md): see what an artifact points at and what points at it, who depends on a capability among it.
 12. [search-what-the-shop-knows](capabilities/search-what-the-shop-knows.md): find knowledge by its words.
 13. [review-who-changed-what](capabilities/review-who-changed-what.md): read the history.
 14. [record-what-a-piece-of-work-read](capabilities/record-what-a-piece-of-work-read.md): anchor a piece of work to the versions it read.
 15. [check-the-knowledge-base](capabilities/check-the-knowledge-base.md): learn whether the shop's knowledge is sound and what is behind its type.
 16. [publish-an-artifact](capabilities/publish-an-artifact.md): publish an artifact into files as a skill, an agent, a diagram or a markdown page.
-17. [publish-a-shops-spec](capabilities/publish-a-shops-spec.md): publish a shop's whole spec, ledger, decision records and feature files into its repository.
+17. [publish-a-shops-spec](capabilities/publish-a-shops-spec.md): publish a shop's whole spec, ledger, decision records and feature files into its repository, deleting what it published earlier that nothing stands behind now.
 18. [see-what-is-formulated](capabilities/see-what-is-formulated.md): see which of a shop's Behaviour lines no scenario, or more than one, formulates.
+19. [see-what-a-shop-depends-on](capabilities/see-what-a-shop-depends-on.md): see which of a shop's capabilities depend on a deprecated or retired capability, in any shop.
 
 ## Order of building
 
