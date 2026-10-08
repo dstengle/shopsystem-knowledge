@@ -7,7 +7,7 @@ Feature: Follow the links
     And two work items point at that decision
     And the older decision is tagged "pricing"
 
-  @slice-32
+  @slice-68
   Scenario: The user sees what a decision points at
     Pins the outward question: what does this thing itself refer to.
     When the user follows the links out of the decision
@@ -25,13 +25,14 @@ Feature: Follow the links
     When the user follows the links into the decision, only through the link a work item uses, and only from work items
     Then the user sees both work items and nothing else
 
-  @slice-32
+  @slice-68
   Scenario: The user follows the links two steps out
     Pins reach beyond the immediate neighbours, with the route shown so a reader can tell how each thing was arrived at.
     When the user follows the links out of the decision two steps
     Then the user sees the older decision, the tag "pricing", the decision's shop and that shop's product
     And the user sees the route taken to each of them
 
+  @slice-71
   Scenario: The user follows the links into a capability
     Pins that who builds on a capability is found by asking, across every shop, rather than kept as a list on the capability itself.
     Given the shops "checkout" and "payments" of the product "shopsystem"

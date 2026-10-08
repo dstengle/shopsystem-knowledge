@@ -60,6 +60,7 @@ Feature: See what is formulated
     When the user asks what is formulated in the shop "returns"
     Then the answer is rejected because that shop is not there, naming "returns"
 
+  @slice-72
   Scenario: Where a capability linking to the shop is retired, the user asks what is formulated and is shown none of its lines
     Pins that a retired capability's lines drop out of the report, whether no scenario or several formulate them, while the shop's other capabilities' lines are still shown.
     Given a shop knowledge base holding the shop "checkout" with these capabilities linking to it

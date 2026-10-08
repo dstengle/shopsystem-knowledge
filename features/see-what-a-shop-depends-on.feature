@@ -2,6 +2,7 @@
 Feature: See what a shop depends on
   Narrator: the user, checking whether a shop's capabilities lean on capabilities being removed
 
+  @slice-71
   Scenario: The user asks what a shop depends on, and is shown each of its active or deprecated capabilities that depends on a deprecated or retired capability, in any shop
     Pins that every active or deprecated capability of the shop leaning on a capability on its way out, in the shop itself or another, is shown with what it leans on, that capability's shop and status, and the scenarios using it, and that nothing else is shown.
     Given a shop knowledge base holding the shop "checkout" with these capabilities, depending on these capabilities
@@ -33,6 +34,7 @@ Feature: See what a shop depends on
       | Confirm an order | A paid order is confirmed     |
       | Confirm an order | An unpaid order is held       |
 
+  @slice-71
   Scenario: Where some of the shop's capabilities depend on a retired capability, the user asks what the shop depends on and is answered, not refused
     Pins that leaning on a retired capability is something the user is told, never a reason to refuse: seeing what a shop depends on is a report, not a check.
     Given a shop knowledge base holding the shop "checkout" with these capabilities, depending on these capabilities
@@ -42,6 +44,7 @@ Feature: See what a shop depends on
     Then the user is answered
     And the command is not refused
 
+  @slice-71
   Scenario: None of the shop's published capabilities depends on a deprecated or retired capability, and the user is shown none
     Pins what a shop leaning on nothing on its way out looks like: an answer with no capability in it.
     Given a shop knowledge base holding the shop "checkout" with these capabilities, depending on these capabilities
@@ -51,6 +54,7 @@ Feature: See what a shop depends on
     When the user asks what the shop "checkout" depends on
     Then the user is shown no capability depending on a deprecated or retired capability
 
+  @slice-71
   Scenario: The user asks what a shop depends on, and the knowledge base does not hold that shop
     Pins that asking about a shop that is not there is refused, and the refusal names the shop asked for, rather than answering as though it depended on nothing.
     Given a shop knowledge base holding no shop "returns"

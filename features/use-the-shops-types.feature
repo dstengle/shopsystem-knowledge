@@ -64,7 +64,7 @@ Feature: Use the shop's types
       | describes what to do in place                    | as described, in place                             |
       | uses "check the stock" with settings of its own  | as a use of "check the stock" with those settings  |
 
-  @slice-62
+  @slice-68
   Scenario Outline: The user reads a product, a shop, a capability, a decision or a feature at a glance
     Pins that a glance at one of the spec's kinds of thing shows only short lines and links, each just as the user recorded it.
     Given a shop knowledge base holding a product "shopsystem", a shop "knowledge" of "shopsystem", a capability "checkout" of "knowledge" and a decision "prices-include-tax" of "knowledge"
@@ -155,18 +155,21 @@ Feature: Use the shop's types
     When the user records a feature with a scenario labelled "@pricing" that formulates the Behaviour line "Show the price", saying who they are and why
     Then the label is kept as the plain word "@pricing", not as a link to the tag "pricing"
 
+  @slice-69
   Scenario: The user records a capability that depends on capabilities of its own shop and of other shops
     Pins that a capability can build on capabilities wherever they are held, in its own shop or another, and says which ones it builds on.
     Given a shop knowledge base holding a product "shopsystem", shops "knowledge" and "catalogue" of "shopsystem", a capability "checkout" of "knowledge" and a capability "list-products" of "catalogue"
     When the user records a capability "apply-a-code" of the shop "knowledge" that depends on "checkout" and "list-products", saying who they are and why
     Then the capability "apply-a-code" names "checkout" and "list-products" as the capabilities it depends on
 
+  @slice-69
   Scenario: The user records a capability whose status is not active, deprecated or retired
     Pins that a capability's status is one of its three stages of life, never a word of the user's choosing.
     Given a shop knowledge base holding a product "shopsystem" and a shop "knowledge" of "shopsystem"
     When the user records a capability of the shop "knowledge" with the status "draft", saying who they are and why
     Then the change is refused because it does not fit its type
 
+  @slice-69
   Scenario Outline: The user records a capability whose order is not one or more whole numbers joined by dots
     Pins that a capability's place in its shop's reading order is always whole numbers joined by dots, so capabilities can be put in order.
     Given a shop knowledge base holding a product "shopsystem" and a shop "knowledge" of "shopsystem"
@@ -179,6 +182,7 @@ Feature: Use the shop's types
       | 3..1   |
       | 3.1.a  |
 
+  @slice-72
   Scenario Outline: The user sets a capability's status to retired while other capabilities or scenarios depend on it, in any shop
     Pins that what still depends on a capability, here or in another shop, does not stop it being retired.
     Given a shop knowledge base holding a product "shopsystem", shops "knowledge" and "catalogue" of "shopsystem", and a capability "checkout" of "knowledge" with the status deprecated
