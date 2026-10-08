@@ -6,6 +6,7 @@ from collections import defaultdict
 from kb.content import loads
 from kb.contract import kb_pb2
 
+from shop_knowledge import consistency
 from shop_knowledge.renderers import names, shop_capabilities, source, spec_decisions
 
 
@@ -70,12 +71,8 @@ def _borrowed(ordered: list[kb_pb2.Artifact], own: set[str]) -> list[kb_pb2.Faul
 
 def _undepended(ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
     """A fault for each scenario whose `uses` names a capability that is not among its capability's `depends_on`."""
-    return [
-        _fault(feature.id, "uses-what-its-capability-depends-on", f"scenario \"{scenario['title']}\" uses {used}, which its capability does not depend on; a scenario uses only what its capability depends on")
-        for capability in ordered for feature in formulating.get(capability.id, [])
-        for scenario in loads(feature.content).get("scenarios", []) for used in scenario.get("uses", [])
-        if used not in loads(capability.content).get("depends_on", [])
-    ]
+    return [fault for capability in ordered for feature in formulating.get(capability.id, [])
+            for fault in consistency.undepended(feature, loads(capability.content).get("depends_on", []))]
 
 
 def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):

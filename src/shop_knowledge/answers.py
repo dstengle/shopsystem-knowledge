@@ -132,12 +132,12 @@ def written(files) -> dict:
     return {"written": sorted(files)}
 
 
-def checked(response: kb_pb2.Checked) -> dict:
-    """What every check that ran gives back: sound when it found no violation, and each artifact last checked
+def checked(response: kb_pb2.Checked, violations) -> dict:
+    """What every check that ran gives back: sound when `violations` (kb's and the consistency check's) is empty, and each artifact last checked
     against an older version of its type, whether or not it found any. A check that never ran shows no answer; its
     refusal is refused by the caller before this is reached, so it plays no part in `sound` here."""
     return {
-        "sound": not response.violations,
+        "sound": not violations,
         "behind": [
             {"artifact": stale.artifact, "schema_version": stale.schema_version, "current": stale.current}
             for stale in response.stale

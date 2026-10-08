@@ -5,6 +5,7 @@ from pytest_bdd import given, scenarios, then, when
 from decision_fields import decided, shop_of
 from driver import answering, knol, record, start, whole
 from kb_oracle import printed
+from consistency_steps import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
 scenarios("check-the-knowledge-base.feature")
 

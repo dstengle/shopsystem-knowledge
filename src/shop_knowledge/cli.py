@@ -11,7 +11,7 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, coverage, dependencies, document, init, kb_requests, published
+from shop_knowledge import answers, arguments, bootstrap, consistency, coverage, dependencies, document, init, kb_requests, published
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -143,9 +143,11 @@ def _validate(args) -> int:
     (violations, damaged files included). A call that never ran shows no answer: its refusal is refused through
     `_answered` before anything is shown. A call that ran shows what it found, then refuses any violation as the exit,
     so what is behind its type is shown beside the faults."""
-    response = _answered(_client().Check(kb_requests.validate_request(args)))
-    _show(answers.checked(response))
-    _refused(response.violations)
+    client = _client()
+    response = _answered(client.Check(kb_requests.validate_request(args)))
+    violations = [*response.violations, *consistency.of(client)]
+    _show(answers.checked(response, violations))
+    _refused(violations)
     return 0
 
 
