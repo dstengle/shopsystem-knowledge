@@ -118,6 +118,6 @@ def _rejected_unreadable(result, file):
     lines_naming(result, "cannot be read", [file.strip("`")])
 
 
-@then(parsers.re(r"(?P<file>`[^`]+`) is still in that directory"))
+@then(parsers.re(r"(?P<file>`(?:spec/capabilities/old-cache\.md|features/old-cache\.feature|adrs/0098-old-cache\.md)`) is still in that directory"))
 def _still_there(target, kept, file):
     assert _path(target, file).is_file() and _path(target, file) in kept
