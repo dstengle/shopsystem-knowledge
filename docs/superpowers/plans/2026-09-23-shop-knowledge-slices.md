@@ -60,7 +60,7 @@ only.
 - Observable: republishing a shop removes the files of artifacts it no longer publishes, and of renamed ones, and leaves every file it did not publish
 - Unknown: where deleting published files lives, given that a renderer only reads and the command writes
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Slice 71: See what a shop depends on
 - Kind: capability
@@ -138,3 +138,7 @@ only.
   Green in this slice: the adrs row of that outline. Red: its spec/capabilities and features rows; "The user publishes a shop's spec into a directory holding a file with no published-from line, at a name it does not write" (all three rows) not started. Suggest slice 72 (retired capabilities left out of publishing) before slice 70's two rows, or slice 70 resumed once it is green.
 - 2026-10-08 Suite: 192 passed, 20 failed at 88c38dc in 30 s; failing: publish-a-shops-spec slice 70 rows (deletion's spec/capabilities and features rows, the three no-published-from-line rows) and slice 72-73 rows (deprecated and retired pages, refusals), the slice 71 retired rows of use-the-shops-types, follow-the-links into a capability, see-what-is-formulated's retired capability
 - 2026-10-08 Re-slice (hand-back of slice 70): the deletion outline ('...and those this publish does not write are deleted', 3 rows) moves to slice 72, since two of its rows take a retired capability as the stale artifact and only slice 72 stops publishing retired capabilities; slice 70 keeps the outline for a file with no published-from line (3 rows). The deletion code landed in 88c38dc stays. Ruling under the person's delegation.
+- 2026-10-08 slice 70 green. Someone can now: publish a shop's spec into its repository without losing a file written by hand directly in spec/capabilities/, features/ or adrs/ at a name nothing is published under; publishing deletes only files carrying the published-from line where the publisher puts it, and only the spec renderer deletes (published.py, with its module-map row, landed in the hand-back commit 88c38dc).
+  Surprised by: the deletion outline needed slice 72's retired filtering (handed back, re-sliced into slice 72); its adrs row is already green. The three rows here passed as soon as their steps existed, since no code deletes a file without the line; a mutation making every file count as published turned all three red on their Then. Review Focus probes (.superpowers/batch17/probe_deletion.py): a well-formed line naming another shop's artifact is deleted; a malformed line, a line not first or after the frontmatter, a non-UTF-8 file, a subdirectory under features/, a symlink, and files outside the three directories (notes/old.md, spec/old.md) are left; publishing through the markdown renderer deletes nothing.
+  Open questions: an unreadable file (OSError) in the three directories refuses the publish before anything is written, which no scenario covers. Next: slice 71.
+- 2026-10-08 Suite: 195 passed, 17 failed at 296212f in 29 s; failing: publish-a-shops-spec slice 72-73 rows (deletion's spec/capabilities and features rows, deprecated and retired pages, refusals), the slice 72 retired rows of use-the-shops-types, follow-the-links into a capability, see-what-is-formulated's retired capability
