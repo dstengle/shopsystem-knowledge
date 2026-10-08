@@ -1,12 +1,8 @@
 """The steps of see-what-is-formulated. Star-imported by the feature's test module alone (adrs/0035)."""
-import pytest
-from kb.content import loads
-from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then, when
 
 import spec_shop
 from driver import knol, record
-from kb_oracle import kb_answer, printed
 
 
 @given(
@@ -44,11 +40,6 @@ def _a_shop_with_lines(env, started_shop, tmp_path, datatable, shop):
     }}
 
 
-@given(parsers.parse('a shop knowledge base holding no shop "{shop}"'), target_fixture="held")
-def _no_such_shop(started_shop, shop):
-    return {"shop": f"shop/{shop}"}
-
-
 @when(parsers.parse('the user asks what is formulated in the shop "{shop}"'), target_fixture="result")
 def _asks(env, held, shop):
     return knol(env, "coverage", held["shop"])
@@ -72,16 +63,6 @@ def _twice(shown, held, datatable):
     _listed(shown, "formulated_twice", held, datatable)
 
 
-@then("the user is answered")
-def _answered(result):
-    assert result.stdout.strip() != ""
-
-
-@then("the command is not refused")
-def _not_refused(result):
-    assert result.returncode == 0 and result.stderr == "", result.stderr
-
-
 @then("the user is shown that no line is formulated by no scenario")
 def _none_unformulated(shown):
     assert shown["unformulated"] == []
@@ -90,14 +71,3 @@ def _none_unformulated(shown):
 @then("the user is shown that no line is formulated by more than one scenario")
 def _none_twice(shown):
     assert shown["formulated_twice"] == []
-
-
-@then(parsers.parse('the answer is rejected because that shop is not there, naming "{shop}"'))
-def _rejected(env, result, held, shop):
-    """kb's own refusal of the same read, one line to each fault, and it names the shop."""
-    request = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=held["shop"]), whole=kb_pb2.ReadRequest.Whole(depth=0))
-    faults = kb_answer(env, "Read", request).refusal.faults
-    assert faults, "kb holds the shop"
-    assert result.returncode == 1 and result.stdout == "", result.stdout
-    assert sorted(result.stderr.splitlines()) == sorted(printed(fault) for fault in faults), result.stderr
-    assert shop in result.stderr

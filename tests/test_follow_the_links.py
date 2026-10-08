@@ -4,6 +4,8 @@ from pytest_bdd import given, scenarios, then, when
 from decision_fields import decided, shop_of
 from driver import knol, record, start, whole
 
+from follow_into_capability_steps import *  # noqa: F403  pytest-bdd registers steps only through a star import
+
 scenarios("follow-the-links.feature")
 
 OLDER = "decision/prices-are-reviewed-monthly"

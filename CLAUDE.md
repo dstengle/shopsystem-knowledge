@@ -18,12 +18,13 @@ command line; kb owns storage, checking and history. kb is pinned in `pyproject.
 | `batch.py` | a batch file read into the items of one BatchCreate or one BatchReplace, in the order written | reading files, kb calls |
 | `shape.py` | checking a user's file against its shape, and wording the violations as kb words a type's | reading files, kb calls |
 | `coverage.py` | `shop-knol coverage`: which of a shop's Behaviour lines (those of the capabilities linking to it) no scenario formulates and which more than one does, read through the client it is given, each line as its link with its capability's title and its own; kb's refusal of a shop it does not hold, or a name that is no shop, raised as `refusal.Refused` | printing, arguments, writing |
+| `dependencies.py` | `shop-knol dependencies`: which of a shop's active or deprecated capabilities depend on a deprecated or retired capability, in any shop, read through the client it is given, one entry for each such pair, with the dependency's shop and status and the scenarios of the depending capability's features whose `uses` name it; kb's refusal of a shop it does not hold, or a name that is no shop, raised as `refusal.Refused` | printing, arguments, writing |
 | `document.py` | the file a user gives: read the way kb reads content (`document.read`), checked against its shape and against whether kb can keep it (`kb.content`'s own refusal), or refused as a `Fault` on it | kb calls, printing, arguments |
 | `published.py` | what a publish leaves in the directory asked for: the files a renderer gave back, written, and, for the spec renderer, the files it published earlier directly in `spec/capabilities/`, `features/` and `adrs/` that carry the published-from line where the publisher puts it (told by `renderers/published_from.py`) and that it no longer writes, deleted after writing | rendering, kb calls, printing, deleting anything outside those three directories |
 | `refusal.py` | the one exception every refusal travels in, `Refused`, before `cli`'s one printer shows it | kb calls, printing |
 | `renderers/` | one module per renderer, each reading an artifact, and, for `spec`, the shop's other artifacts, through the contract and giving back a `Rendered` (`rendered.py`): `{path: text}`, or faults; `RENDERERS` names them for `shop-knol render` | writing files, kb writes |
-| `renderers/source.py` | reading the artifact a renderer publishes, what stops it being published (the read's faults, then a type other than the one the renderer is made from), and its name without its kind; used by the renderers and `coverage.py` | rendering, writing |
-| `renderers/shop_capabilities.py` | finding a shop's capabilities, those linking to it, each read whole and in their order, and comparing dotted orders part by part as numbers, for the spec renderer and `coverage.py` | rendering, files |
+| `renderers/source.py` | reading the artifact a renderer publishes, what stops it being published (the read's faults, then a type other than the one the renderer is made from), and its name without its kind; used by the renderers, `coverage.py` and `dependencies.py` | rendering, writing |
+| `renderers/shop_capabilities.py` | finding a shop's capabilities, those linking to it, each read whole and in their order, and comparing dotted orders part by part as numbers, for the spec renderer, `coverage.py` and `dependencies.py` | rendering, files |
 | `renderers/sections.py` | the layout of a content model's `sections` as headings and bodies, shared by the markdown, agent and spec page renderers | rendering a whole artifact, files |
 | `renderers/gherkin.py` | the layout of a feature's fields and `scenarios` parts as the text of a `.feature` file, two-space indented, its tables padded to their widest cell | reading an artifact, files |
 | `renderers/limits.py` | the limits the harness publishes, each checked against a renderer's output before anything is written, with where it was published | rendering, files |
@@ -61,7 +62,7 @@ own it.
    `cli.py`, one line each, with exit 1. shop-knol never shows a traceback. Code that refuses raises
    `refusal.Refused` with its faults and `main` alone prints them, so no handler prints a refusal of its own.
 5. **Types are data.** The shop's types reach kb only as schema artifacts created at `init`. No code outside a
-   renderer for that type, `coverage.py` (adrs/0057), and the step definitions, knows a type's fields.
+   renderer for that type, `coverage.py` and `dependencies.py` (adrs/0057), and the step definitions, knows a type's fields.
 6. **Renderers only read.** A renderer reads through the contract and gives back the files to write, or faults.
    It writes nothing; the command writes the files, and only when the renderer refused nothing.
 
@@ -73,7 +74,7 @@ own it.
 - A file a user gives is read, checked against its shape, and checked against whether kb can keep it (`kb.content`'s
   own refusal), in one place, `document.read`, and a kb answer's refusal is refused in one way, `cli._answered`. One
   place differs: a renderer turns a kb answer's refusal into the `Rendered` faults it gives back, which `_render`
-  refuses through `_refused`, the one refusal `_answered` itself makes. `init.py` and `coverage.py` raise kb's
+  refuses through `_refused`, the one refusal `_answered` itself makes. `init.py`, `coverage.py` and `dependencies.py` raise kb's
   refusals as `refusal.Refused` beside it (adrs/0057).
 
 ## Step definitions

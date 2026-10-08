@@ -4,10 +4,12 @@ from pathlib import Path
 
 import pytest
 from kb.content import loads
+from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then
 
 import driver
 from driver import knol, start
+from kb_oracle import kb_answer, printed
 from session_guard import _allowlisted
 from session_guard import *  # noqa: F403  conftest.py alone star-imports this, so pytest sees `pytest_sessionstart` (adrs/0048)
 from served_store import *  # noqa: F403  conftest.py alone star-imports this (adrs/0048)
@@ -147,3 +149,29 @@ def _rejected_for_an_empty_name(result, rejected, kind):
     assert result.stderr.splitlines() == [
         f"shop-knol {command}: argument {argument}: a name given empty names no {kind}",
     ], result.stderr
+
+
+@given(parsers.parse('a shop knowledge base holding no shop "{shop}"'), target_fixture="held")
+def _no_such_shop(started_shop, shop):
+    return {"shop": f"shop/{shop}"}
+
+
+@then("the user is answered")
+def _answered(result):
+    assert result.stdout.strip() != ""
+
+
+@then("the command is not refused")
+def _not_refused(result):
+    assert result.returncode == 0 and result.stderr == "", result.stderr
+
+
+@then(parsers.parse('the answer is rejected because that shop is not there, naming "{shop}"'))
+def _rejected(env, result, held, shop):
+    """kb's own refusal of the same read, one line to each fault, and it names the shop."""
+    request = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=held["shop"]), whole=kb_pb2.ReadRequest.Whole(depth=0))
+    faults = kb_answer(env, "Read", request).refusal.faults
+    assert faults, "kb holds the shop"
+    assert result.returncode == 1 and result.stdout == "", result.stdout
+    assert sorted(result.stderr.splitlines()) == sorted(printed(fault) for fault in faults), result.stderr
+    assert shop in result.stderr

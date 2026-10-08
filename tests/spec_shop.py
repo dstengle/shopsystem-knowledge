@@ -195,3 +195,8 @@ def retired_capability(env, tmp_path, shop, title):
     capability = put(env, tmp_path, "capability", title, shop=shop, gist="A capability.", behaviour=lines, order="9",
                      status="retired")
     return capability, _feature(env, tmp_path, {"title": title, "behaviour": lines}, capability)
+
+
+def depend_on(env, tmp_path, capability, targets):
+    """`capability` made to depend on `targets` (names), beside what it depends on."""
+    _rewritten(env, tmp_path, capability, depends_on=[*whole(env, capability).get("depends_on", []), *targets])

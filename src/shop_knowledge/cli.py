@@ -11,7 +11,7 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, coverage, document, init, kb_requests, published
+from shop_knowledge import answers, arguments, bootstrap, coverage, dependencies, document, init, kb_requests, published
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -210,6 +210,11 @@ def _coverage(args) -> int:
     return 0
 
 
+def _dependencies(args) -> int:
+    _show(dependencies.of(_client(), args.shop))
+    return 0
+
+
 _HANDLERS = {
     "init": _init,
     "create": _create,
@@ -227,4 +232,5 @@ _HANDLERS = {
     "delete": _delete,
     "snapshot": _snapshot,
     "coverage": _coverage,
+    "dependencies": _dependencies,
 }

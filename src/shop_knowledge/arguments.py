@@ -120,6 +120,9 @@ def command_parser() -> argparse.ArgumentParser:
     coverage = commands.add_parser("coverage", help="see which of a shop's Behaviour lines no scenario formulates, and which more than one does")
     coverage.add_argument("shop", type=_named("shop"))
 
+    dependencies = commands.add_parser("dependencies", help="see which of a shop's capabilities depend on a deprecated or retired capability")
+    dependencies.add_argument("shop", type=_named("shop"))
+
     delete = commands.add_parser("delete", help="retire an artifact nothing points at")
     delete.add_argument("locator", type=_named("artifact"))
     delete.add_argument("-m", dest="message", help="why")
