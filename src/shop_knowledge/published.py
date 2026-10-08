@@ -1,7 +1,10 @@
 """What a publish leaves in the directory it publishes into: the files a renderer gave back, written, and, for a
 shop's spec, the files it published earlier under `spec/capabilities/`, `features/` and `adrs/` that it no longer
 writes, deleted. A file there is one it published when it carries the published-from line where the publisher puts
-it: its first line, or the line directly after its frontmatter. Nothing else in the directory is ever deleted."""
+it: its first line, or the line directly after its frontmatter. Nothing else in the directory is ever deleted.
+
+Only the spec renderer deletes: every other renderer's publish only writes, so publishing one artifact into a shop's
+repository never takes away the spec published there."""
 from pathlib import Path
 
 from shop_knowledge.renderers import published_from

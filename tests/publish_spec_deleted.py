@@ -7,6 +7,7 @@ from pathlib import Path
 from pytest_bdd import given, parsers, then
 
 import spec_shop
+from driver import knol
 from published_from import gherkin, markdown
 
 
@@ -76,3 +77,24 @@ def _holds(target, new):
 def _notes_kept(target, kept):
     path = _path(target, "notes/old.md")
     assert path.read_text() == kept[path]
+
+
+@given(parsers.re(r"a directory holding (?P<file>`[^`]+`), which has no published-from line"), target_fixture="by_hand")
+def _written_by_hand(target, kept, file):
+    _put(target, kept, file, "# Notes\n\nWritten by hand beside the published files.\n")
+    return file
+
+
+@given("no artifact is published under that name")
+def _nothing_published_there(env, tmp_path, built, by_hand):
+    """A publish of the shop's spec elsewhere writes no file under that name."""
+    elsewhere = tmp_path / "elsewhere"
+    published = knol(env, "render", "spec", built.shop, "--to", str(elsewhere))
+    assert published.returncode == 0, published.stderr
+    assert not (elsewhere / by_hand.strip("`")).exists() and by_hand.strip("`") not in published.stdout, published.stdout
+
+
+@then(parsers.re(r"(?P<file>`[^`]+`) is left as it was"))
+def _left_as_it_was(result, target, kept, file):
+    assert result.returncode == 0, result.stderr
+    assert _path(target, file).read_text() == kept[_path(target, file)], file
