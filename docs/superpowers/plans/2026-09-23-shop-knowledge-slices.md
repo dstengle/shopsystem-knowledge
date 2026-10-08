@@ -108,7 +108,7 @@ only.
 - Observable: publishing a shop whose feature holds a table with rows of different widths is refused in plain words naming the scenario, never a traceback
 - Unknown: none
 - Needs: none
-- Status: planned
+- Status: green
 
 ## Satisfied by existing behaviour
 
@@ -181,3 +181,5 @@ only.
 - 2026-10-07 QUESTION FOR THE SPEC: see-what-is-formulated, which capabilities coverage counts: only those in the shop's reading order today, so a capability naming the shop but left out of the order has its lines silently omitted. Count every capability naming the shop, or refuse as publishing does? For the person. (batch 16's branch review)
 - 2026-10-07 QUESTION FOR THE SPEC: publish-a-shops-spec, a capability removed from the shop keeps its old page and feature file when publishing over an older spec, and the stale feature file keeps running as a test. Should publishing remove files of artifacts no longer in the shop? Deleting files is the person's call. (Review Focus 3; batch 16's branch review)
 - 2026-10-07 Next batch: the plan's kb-import check matches from kb_oracle; use grep -rnE "^\s*(from kb[ .]|import kb\b)" src tests | grep -vE "kb\.client|kb\.content|kb\.contract|import kb$|from kb import (init|NotStarted)|kb\.testing" (from batch 16's branch review)
+- 2026-10-08 slice 67.1 green. Someone can now: publish a shop's spec and be refused, naming the scenario, where a table's rows differ in width. Surprised by: nothing. Open questions: none. Fix wave items 2-5 (CLAUDE.md rows per adr 0057, coverage's own wording, tests read kb's minted ids, pytest-bdd<9) done at e81bc91; publish_spec_index.py and publish_spec_capabilities.py still derive page names from minted slugs.
+- 2026-10-08 Suite: 190 passed, 0 failed at e81bc91 in 23 s
