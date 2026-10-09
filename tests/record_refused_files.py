@@ -88,7 +88,7 @@ def _kb_refuses_to_read(path) -> kb_pb2.Fault:
     try:
         loads(path.read_text())
     except NotCanonical as refusal:
-        return kb_pb2.Fault(artifact=str(path), place=refusal.path, message=str(refusal))
+        return kb_pb2.Fault(artifact=str(path), place=refusal.path, rule="content", message=str(refusal))
     raise AssertionError(f"kb reads {path} plainly")
 
 

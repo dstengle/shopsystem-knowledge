@@ -67,12 +67,12 @@ def _record_it_without_a_message(env, decision_file):
 
 @then("the decision is rejected because every change must say which role made it")
 def _rejected_for_no_role(result):
-    assert result.stderr.splitlines() == ["every change must say which role made it, through KB_ACTOR as role or role:execution"]
+    assert result.stderr.splitlines() == ["actor: every change must say which role made it, through KB_ACTOR as role or role:execution"]
 
 
 @then("the decision is rejected because every change must carry a message")
 def _rejected_for_no_message(result):
-    assert result.stderr.splitlines() == ["every change must carry a message, given with -m"]
+    assert result.stderr.splitlines() == ["message: every change must carry a message, given with -m"]
 
 
 @then("the user is shown the name the decision was given, which the user did not choose")

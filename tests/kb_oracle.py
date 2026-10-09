@@ -131,11 +131,12 @@ def _kb_answer_from_gone(env, call, request, gone: driver.Removed):
 
 
 def printed(fault) -> str:
-    """A fault as the one line the shop's spec says the user is shown: the artifact and the place in it, then kb's
-    message as kb returned it, its lines joined."""
+    """A fault as the one line the shop's spec says the user is shown: the artifact and the place in it, the rule,
+    then the message as kb returned it, its lines joined."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
     where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
-    return f"{where}: {message}" if where else message
+    said = f"{fault.rule}: {message}" if fault.rule else message
+    return f"{where}: {said}" if where else said
 
 
 def refused_as_kb_refuses(env, result, workdir, called):
@@ -162,7 +163,7 @@ def refused_as_unkept(result, path: Path, place: str) -> None:
         dumps(loads(path.read_text()))
     except NotCanonical as refusal:
         assert result.returncode == 1
-        fault = kb_pb2.Fault(artifact=str(path), place=place, message=str(refusal))
+        fault = kb_pb2.Fault(artifact=str(path), place=place, rule="content", message=str(refusal))
         assert result.stderr.splitlines() == [printed(fault)], result.stderr
         return
     raise AssertionError(f"kb keeps {path} as written")

@@ -11,7 +11,7 @@ from start_not_empty import *  # noqa: F403  pytest-bdd registers steps only thr
 
 scenarios("start-a-knowledge-base.feature")
 
-_NO_ROLE = "every change must say which role made it, through KB_ACTOR as role or role:execution"
+_NO_ROLE = "actor: every change must say which role made it, through KB_ACTOR as role or role:execution"
 
 
 @given("the user is working in an empty directory for the shop's knowledge")

@@ -17,7 +17,7 @@ def _a_process_past_the_limits(env, tmp_path):
 @then("the skill is rejected because it goes beyond the limits the harness publishes")
 def _rejected_for_the_limits(result):
     assert result.stderr.splitlines() == [
-        "process/count-every-shelf at steps: a skill's body is under 500 lines, the limit the harness publishes; "
+        "process/count-every-shelf at steps: harness-limit: a skill's body is under 500 lines, the limit the harness publishes; "
         "this one is 801",
     ]
     assert result.returncode != 0
@@ -40,9 +40,9 @@ def _a_role_past_the_limits(env, tmp_path):
 @then("the agent is rejected because it goes beyond the limits the harness publishes")
 def _rejected_agent_for_the_limits(result):
     assert result.stderr.splitlines() == [
-        'role/shop-steward at harness.name: an agent\'s name holds no ":", the limit the harness publishes; '
+        'role/shop-steward at harness.name: harness-limit: an agent\'s name holds no ":", the limit the harness publishes; '
         "this one is -shop:steward",
-        'role/shop-steward at harness.name: an agent\'s name does not start with "-", the limit the harness '
+        'role/shop-steward at harness.name: harness-limit: an agent\'s name does not start with "-", the limit the harness '
         "publishes; this one is -shop:steward",
     ]
     assert result.returncode != 0
@@ -72,7 +72,7 @@ def _rejected_for_its_type(result, kind, process_name, role_name):
     """One line on the artifact published from: the process by name for the agent row, the role by name for skill
     and diagram, then `_REFUSAL`'s line for that kind."""
     name = process_name if kind == "agent" else role_name
-    assert result.stderr.splitlines() == [f"{name}: {_REFUSAL[kind]}"]
+    assert result.stderr.splitlines() == [f"{name}: renderer-type: {_REFUSAL[kind]}"]
 
 
 @pytest.fixture

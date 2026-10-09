@@ -69,10 +69,11 @@ def _show(document: dict | list, as_json: bool = False) -> None:
 
 
 def _plain(fault: kb_pb2.Fault) -> str:
-    """One fault as a line a person reads: where, then what is wrong."""
+    """One fault as a line a person reads: where, then the rule, then what is wrong."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
     where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
-    return f"{where}: {message}" if where else message
+    said = f"{fault.rule}: {message}" if fault.rule else message
+    return f"{where}: {said}" if where else said
 
 
 def _refuse(faults) -> int:
