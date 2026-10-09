@@ -92,3 +92,5 @@ only.
 - 2026-10-08 QUESTION FOR THE SPEC: check-the-knowledge-base's Implementation says the uses fault carries rule uses-not-depended-on, but shop-knol never prints a fault's rule, so no user sees it: drop it from the line, or print rules? For the person. (batch 18's branch review)
 - 2026-10-08 Batch batch18 archived to archive/2026-09-23-shop-knowledge-slices-batch18.md; last 2026-10-08 Suite: 223 passed, 0 failed at fd3eb62 in 35 s (batch 18's fix-wave re-review, make test at HEAD)
 - 2026-10-08 Suite: 223 passed, 0 failed at fd3eb62 in 35 s (batch 18's fix-wave re-review, make test at HEAD)
+- 2026-10-09 Answered: the uses question above, by the person: shop-knol prints every fault's rule, artifact at place: rule: message (adrs/0069), at 7f3b571
+- 2026-10-09 Suite: 223 passed, 0 failed at 7f3b571 in 33 s
