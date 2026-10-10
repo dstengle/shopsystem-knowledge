@@ -94,3 +94,4 @@ only.
 - 2026-10-08 Suite: 223 passed, 0 failed at fd3eb62 in 35 s (batch 18's fix-wave re-review, make test at HEAD)
 - 2026-10-09 Answered: the uses question above, by the person: shop-knol prints every fault's rule, artifact at place: rule: message (adrs/0069), at 7f3b571
 - 2026-10-09 Suite: 223 passed, 0 failed at 7f3b571 in 33 s
+- 2026-10-10 REQUEST kb: portable knowledge, ten changes to kb's capabilities (backup and restore; ids as IRIs under their type, chosen by the client; type versions as IRIs; placeholders, reported and never failed by kb; export over the contract, streamed, with its position; import into any store), in docs/superpowers/specs/2026-10-10-requests-to-kb-portable-knowledge.md (kb adrs/0022-0030; adrs/0070-0075). For a kb session. Migrating a markdown spec into kb (adrs/0070) and exporting after every change (adrs/0071, 0075) wait on it.
