@@ -653,3 +653,8 @@ source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the pers
 date: 2026-10-10
 supersedes: decision/a-placeholder-fails-validate-and-stops-the-publish
 source: adrs/0074; the person's answer, 2026-10-10
+
+## decision/a-type-beside-an-artifact-is-shown-at-the-version-it-conforms-to
+A type shown beside an artifact is shown at the version that artifact conforms to; a type shown on its own, as `shop-knol types` shows it, is shown at its current version.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the person's answer, 2026-10-10)

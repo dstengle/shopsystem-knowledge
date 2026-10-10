@@ -8,6 +8,7 @@ rests_on:
   - decision/shop-context-names-the-context
   - decision/shop-knol-makes-no-name-from-a-title
   - decision/a-type-is-shown-by-its-name-and-version
+  - decision/a-type-beside-an-artifact-is-shown-at-the-version-it-conforms-to
 depends_on: []
 formulated_as: features/name-an-artifact.feature
 ---
@@ -21,8 +22,9 @@ Every name shop-knol takes or prints is an IRI: its type, then its owner's domai
 ## Behaviour
 
 - Whenever shop-knol shows the user the name of an artifact, the name is shown short, in a JSON answer as in a YAML one.
-- Whenever shop-knol shows the user the name of a shop or a product, the name is shown short.
-- Whenever shop-knol shows the user a type, the type is shown by its name and its version.
+- Whenever shop-knol shows the user the name of a shop or a product, the name is shown short, in a JSON answer as in a YAML one.
+- Whenever shop-knol shows the user a type beside an artifact, the type is shown by its name and the version that artifact conforms to, in a JSON answer as in a YAML one.
+- Whenever shop-knol shows the user a type on its own, the type is shown by its name and its current version, in a JSON answer as in a YAML one.
 - When the user names an artifact by its short IRI, the command works on that artifact, whatever context it is in.
 - When the user names an artifact by its full IRI, the command works on that artifact, whatever context it is in.
 - Where `SHOP_CONTEXT` names a context, when the user names an artifact by its name alone, the command works on the artifact of that name in that context.
