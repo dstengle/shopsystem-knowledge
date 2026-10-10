@@ -87,12 +87,23 @@ Feature: Use the shop's types
     When the user reads the capability "checkout" at a glance
     Then each of its Behaviour lines is shown by its title
 
-  @slice-62
-  Scenario: The user records an artifact holding parts
-    Pins that the user gives a part a title and the shop gives it its name, so no part's name is chosen by hand.
+  Scenario: The user records an artifact holding parts without naming them
+    Pins that a part the user gives only a title is named by the shop from that title, so no unnamed part goes without a name.
     Given a shop knowledge base
-    When the user records a capability with a Behaviour line titled "Show the price", saying who they are and why
+    When the user records a capability with a Behaviour line titled "Show the price" and given no name, saying who they are and why
     Then the Behaviour line's name is minted from its title "Show the price"
+
+  Scenario: The user records a capability with an "Implementation, may change" section
+    Pins that a capability can carry, beside its Purpose, a section saying how it is built today and that this may change.
+    Given a shop knowledge base holding a product "shopsystem" and a shop "knowledge" of "shopsystem"
+    When the user records a capability "checkout" of the shop "knowledge" with an "Implementation, may change" section, saying who they are and why
+    Then the capability "checkout" holds that "Implementation, may change" section
+
+  Scenario: The user records a shop with a "Mechanisms every command shares" section
+    Pins that a shop can carry, beside its Purpose, Order of building and Testing, a section on the mechanisms all its commands share.
+    Given a shop knowledge base holding a product "shopsystem"
+    When the user records a shop "knowledge" of "shopsystem" with a "Mechanisms every command shares" section, saying who they are and why
+    Then the shop "knowledge" holds that "Mechanisms every command shares" section
 
   @slice-62
   Scenario Outline: The user records a gist or a statement longer than 200 characters

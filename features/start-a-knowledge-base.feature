@@ -10,6 +10,13 @@ Feature: Start a knowledge base
     Then the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
+  Scenario: The user starts a knowledge base and each of the shop's types is held at its own IRI, its current version at that version's IRI
+    Pins that a freshly started knowledge base names every one of the shop's types, and the version of it in force, by IRIs of their own, so anything recorded later can point at a type and at the version it was made under.
+    Given the user is working in an empty directory for the shop's knowledge
+    When the user starts a shop knowledge base there without naming a directory, saying who they are
+    Then each of the shop's types is held at its own IRI
+    And each type's current version is held at that version's IRI
+
   @slice-54
   Scenario: Where no knowledge base is found, the shop's knowledge sits in a place of its own inside the working directory
     Pins that a new knowledge base is started only where none can be found, and then keeps to its own corner beside the shop's other work without mingling with it.

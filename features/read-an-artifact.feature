@@ -47,6 +47,27 @@ Feature: Read an artifact
     When the user reads the decision asking for JSON
     Then the user gets the same answer as the default, written as JSON
 
+  Scenario: The user reads a decision holding a link to something the knowledge base does not hold
+    Pins that a link left pointing at nothing still gets a first look answered, with the dangling link told apart from the ones that land.
+    Given the decision also holds a link to a decision the knowledge base does not hold
+    When the user reads the decision
+    Then the link to the decision the knowledge base does not hold is shown as a pointer marked as landing on nothing the knowledge base holds
+    And the read is not refused
+
+  Scenario: The user reads the whole decision holding a link to something the knowledge base does not hold
+    Pins that reading the full contents is not blocked by one link that lands nowhere, and that the reader can see which link that is.
+    Given the decision also holds a link to a decision the knowledge base does not hold
+    When the user reads the whole decision
+    Then the link to the decision the knowledge base does not hold is shown as a pointer marked as landing on nothing the knowledge base holds
+    And the read is not refused
+
+  Scenario: The user reads a decision with the things it points at filled in, and one of its links lands on something the knowledge base does not hold
+    Pins that filling links in leaves a dangling link as a marked pointer, with nothing to put in its place, rather than refusing the whole read.
+    Given the decision also holds a link to a decision the knowledge base does not hold
+    When the user reads the whole decision asking for what it points at to be filled in, without saying how far
+    Then the link to the decision the knowledge base does not hold is shown as a pointer marked as landing on nothing the knowledge base holds
+    And the read is not refused
+
   @slice-68
   Scenario: Reading something whose file the shop cannot read is refused
     Pins how a file damaged by hand surfaces to a reader: a plain refusal naming the file, never a traceback to decipher.

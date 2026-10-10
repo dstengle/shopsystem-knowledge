@@ -13,6 +13,13 @@ Feature: Follow the links
     When the user follows the links out of the decision
     Then the user sees the older decision and the decision's shop
 
+  Scenario: The user follows the links out of a decision holding a link to something the knowledge base does not hold
+    Pins that a link to nothing is still shown when following links out, marked so the reader can tell it lands on nothing the knowledge base holds.
+    Given the decision also holds a link to an artifact the knowledge base does not hold
+    When the user follows the links out of the decision
+    Then the user sees that link, marked as landing on nothing the knowledge base holds
+    And the user sees the older decision and the decision's shop
+
   @slice-32
   Scenario: The user sees what points at a decision
     Pins the question the shop cannot answer by reading one file: who elsewhere depends on this.

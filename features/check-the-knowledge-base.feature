@@ -74,3 +74,10 @@ Feature: Check the knowledge base
       | shop            |
       | the shop        |
       | the other shop  |
+
+  Scenario: The user checks a knowledge base where an artifact links to an artifact the knowledge base does not hold
+    Pins that a link to something missing is laid at the door of the artifact that holds the link, where the user can fix it, and that it makes the shop unsound.
+    Given a shop knowledge base where a capability depends on a capability the knowledge base does not hold
+    When the user checks the shop's knowledge
+    Then that link is listed as a fault of the capability that depends on it
+    And the command reports failure to whatever ran it

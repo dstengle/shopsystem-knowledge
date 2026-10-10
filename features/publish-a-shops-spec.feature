@@ -12,12 +12,24 @@ Feature: Publish a shop's spec
     Then that directory holds `spec/index.md` from the shop
     And the shop's knowledge base is unchanged
 
+  Scenario: The user publishes the spec of a shop holding a "Mechanisms every command shares" section
+    Pins that the mechanisms every command shares reach the published index, kept with the constraints the shop carries.
+    Given the shop holds a "Mechanisms every command shares" section
+    When the user publishes the shop's spec into a directory
+    Then `spec/index.md` holds that section under "Constraints carried"
+
   @slice-69
   Scenario: The user publishes a shop's spec and the directory holds a file for each active or deprecated capability linking to the shop
     Pins that a capability reaches the repository as a file of its own when it links to the shop and is still in use, whether active or deprecated.
     Given one of the capabilities linking to the shop is deprecated
     When the user publishes the shop's spec into a directory
     Then that directory holds `spec/capabilities/<name>.md` for each capability linking to the shop whose status is active or deprecated
+
+  Scenario: The user publishes a shop's spec and a capability's page holds its "Implementation, may change" section
+    Pins that how a capability is done today reaches its published page beside what it does.
+    Given one of the shop's capabilities holds an "Implementation, may change" section
+    When the user publishes the shop's spec into a directory
+    Then that capability's page holds that section
 
   @slice-69
   Scenario: The user publishes a shop's spec and the directory holds the ledger of the shop's own decisions in number order
@@ -76,37 +88,25 @@ Feature: Publish a shop's spec
     And that directory holds no feature file for it
     And the index does not list it
 
-  @slice-69
-  Scenario Outline: The user publishes a shop's spec and a capability's file is named from its title
-    Pins that a capability's file and its feature's file both take one name made from the title, so either can be found from the other.
-    Given one of the shop's capabilities titled "<title>", and a feature formulating it
+  Scenario: The user publishes a shop's spec and a capability's file is named from the name in its IRI
+    Pins that a capability's page and its feature's file both take the capability's own name, never one made from its title, so either can be found from the other.
+    Given one of the shop's capabilities named "tail-the-log" in its IRI, titled "Read the log's tail", and a feature formulating it
     When the user publishes the shop's spec into a directory
-    Then that directory holds `spec/capabilities/<name>.md` for that capability
-    And that directory holds `features/<name>.feature` for the feature formulating it
+    Then that directory holds `spec/capabilities/tail-the-log.md` for that capability
+    And that directory holds `features/tail-the-log.feature` for the feature formulating it
 
-    Examples:
-      | title                       | name                       |
-      | Publish a shop's spec       | publish-a-shops-spec       |
-      | Read the log’s tail         | read-the-logs-tail         |
-      | Rock 'n' roll               | rock-n-roll                |
-      | Read the Log                | read-the-log               |
-      | Café menus, 2 per table     | caf-menus-2-per-table      |
-      | -- Trim both ends! --       | trim-both-ends             |
-      | Step 1 / step 2 — then wait | step-1-step-2-then-wait    |
-
-  @slice-69
-  Scenario Outline: The user publishes a shop's spec and a decision's record is named from its number and title
-    Pins that a decision's record sorts by its number and carries a name made from its title the same way a capability's is.
-    Given one of the shop's decisions numbered <number>, titled "<title>"
+  Scenario Outline: The user publishes a shop's spec and a decision's record is named from its number and the name in its IRI
+    Pins that a decision's record sorts by its number, padded to four digits and never cut short, and carries the decision's own name, never one made from its title.
+    Given one of the shop's decisions numbered <number>, named "<name>" in its IRI, titled "<title>"
     When the user publishes the shop's spec into a directory
     Then that directory holds `adrs/<file>.md` for that decision
 
     Examples:
-      | number | title                               | file                                     |
-      | 7      | Keep the log                        | 0007-keep-the-log                        |
-      | 51     | The shop's types model the BDD spec | 0051-the-shops-types-model-the-bdd-spec  |
-      | 1234   | Every decision is an ADR            | 1234-every-decision-is-an-adr            |
-      | 12345  | Kb’s pin is bumped, never edited    | 12345-kbs-pin-is-bumped-never-edited     |
+      | number | name                     | title                               | file                           |
+      | 7      | keep-the-log             | Logs are kept                       | 0007-keep-the-log              |
+      | 51     | types-model-the-spec     | The shop's types model the BDD spec | 0051-types-model-the-spec      |
+      | 1234   | every-decision-is-an-adr | Each decision becomes an ADR        | 1234-every-decision-is-an-adr  |
+      | 12345  | pin-is-bumped            | Kb's pin is bumped, never edited    | 12345-pin-is-bumped            |
 
   @slice-69
   Scenario Outline: The user publishes a shop's spec and every file it writes carries the published-from line
@@ -131,23 +131,19 @@ Feature: Publish a shop's spec
     When the user publishes the shop's spec into a directory
     Then every entry in the ledger is a decision the knowledge base holds
 
-  @slice-72
   Scenario Outline: The user publishes a shop's spec into a directory holding files published earlier, and those this publish does not write are deleted
-    Pins that a published file this publish does not write leaves the repository, both one whose artifact is no longer published and one its artifact left behind on taking a new name, and that deleting reaches nothing outside the three published directories.
-    Given <artifact> was published earlier as <old file>, and its title has since changed so that it is now published as <new file>
-    And the directory also holds <stale file>, published earlier from <stale artifact>
+    Pins that a published file nothing published now stands behind leaves the repository, and that deleting reaches nothing outside the three published directories.
+    Given a directory holding <stale file>, published earlier from <stale artifact>
     And the directory holds `notes/old.md`, whose published-from line names <stale artifact>
     When the user publishes the shop's spec into that directory
-    Then <old file> is deleted
-    And <stale file> is deleted
-    And that directory holds <new file>
+    Then <stale file> is deleted
     And `notes/old.md` is still in that directory, as it was
 
     Examples:
-      | artifact                                              | old file                          | new file                          | stale file                       | stale artifact                                                                   |
-      | one of the shop's capabilities                        | `spec/capabilities/read-the-log.md` | `spec/capabilities/tail-the-log.md` | `spec/capabilities/old-cache.md` | a capability linking to the shop whose status is retired                          |
-      | the feature formulating one of the shop's capabilities | `features/read-the-log.feature`   | `features/tail-the-log.feature`   | `features/old-cache.feature`     | the feature formulating a capability linking to the shop whose status is retired |
-      | one of the shop's decisions, numbered 7               | `adrs/0007-keep-the-log.md`       | `adrs/0007-keep-every-log.md`     | `adrs/0099-old-rule.md`          | a decision linking to another shop of the same product                            |
+      | stale file                       | stale artifact                                                                   |
+      | `spec/capabilities/old-cache.md` | a capability linking to the shop whose status is retired                         |
+      | `features/old-cache.feature`     | the feature formulating a capability linking to the shop whose status is retired |
+      | `adrs/0099-old-rule.md`          | a decision linking to another shop of the same product                           |
 
   @slice-70
   Scenario Outline: The user publishes a shop's spec into a directory holding a file with no published-from line, at a name it does not write
@@ -163,20 +159,18 @@ Feature: Publish a shop's spec
       | `features/notes.feature`     |
       | `adrs/notes.md`              |
 
-  @slice-69
   Scenario: Publishing is refused when two of the shop's capabilities would be published under one file name
-    Pins that one capability's file never overwrites another's, and that a refused publish leaves the directory exactly as it found it.
-    Given two of the shop's capabilities, each with an order of its own, titled "Read the log" and "Read the Log"
+    Pins that one capability's file never overwrites another's when two carry one name in different contexts, and that a refused publish leaves the directory exactly as it found it.
+    Given two capabilities linking to the shop, each with an order of its own, both named "read-the-log" in their IRIs, one in the shop's own context and the other in another context of the same product
     And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
     When the user publishes the shop's spec into that directory
     Then publishing is rejected because those capabilities would share a file, naming both
     And nothing is written to the directory
     And `adrs/0099-old-rule.md` is still in that directory
 
-  @slice-69
   Scenario: Publishing is refused when two of the shop's decisions would be published under one file name
-    Pins that one decision's record never overwrites another's, and that a refused publish leaves the directory exactly as it found it.
-    Given two of the shop's decisions numbered 7, titled "Keep the log" and "Keep the Log"
+    Pins that one decision's record never overwrites another's when two carry one number and one name in different contexts, and that a refused publish leaves the directory exactly as it found it.
+    Given two decisions linking to the shop, both numbered 7, both named "keep-the-log" in their IRIs, one in the shop's own context and the other in another context of the same product
     And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
     When the user publishes the shop's spec into that directory
     Then publishing is rejected because those decisions would share a file, naming both
@@ -299,3 +293,19 @@ Feature: Publish a shop's spec
       | `spec/capabilities/old-cache.md` |
       | `features/old-cache.feature`     |
       | `adrs/0098-old-cache.md`         |
+
+  Scenario Outline: Publishing is refused when an artifact the shop's spec would publish carries a link to an artifact the knowledge base does not hold
+    Pins that no published file, a feature file as much as a page, ever links to what the knowledge base does not hold, and that a refused publish leaves the directory exactly as it found it.
+    Given <artifact> carries a link to an artifact the knowledge base does not hold
+    And a directory holding `adrs/0099-old-rule.md`, whose published-from line names a decision linking to another shop of the same product
+    When the user publishes the shop's spec into that directory
+    Then publishing is rejected because a published file would link to an artifact the knowledge base does not hold
+    And nothing is written to the directory
+    And `adrs/0099-old-rule.md` is still in that directory
+
+    Examples:
+      | artifact                                                |
+      | the shop                                                |
+      | one of the shop's capabilities                          |
+      | one of the shop's decisions                             |
+      | the feature formulating one of the shop's capabilities |

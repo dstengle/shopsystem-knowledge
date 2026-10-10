@@ -6,21 +6,19 @@ Feature: Record an artifact
     Given a shop knowledge base holding the shop's types
 
   @slice-1
-  Scenario: The user records a decision
-    Pins the walking skeleton from the user's side: a decision in a file becomes a named record the shop can read back, under a name the shop mints.
+  Scenario: The user records a file as a decision under a name of their choosing
+    Pins that the name a decision is recorded under is the one the user chose, and that the shop reads it back by that name from its first version.
     Given a decision in a file, with a title, a purpose, a rationale and the decision it supersedes
-    When the user records that file as a decision, saying who they are and why
-    Then the user is shown the name the decision was given, which the user did not choose
-    And the shop holds the decision under that name and reads it back by it
+    When the user records that file as a decision under a name of their choosing, saying which role they are and why
+    Then the user is shown the name they chose
+    And the shop reads the decision back by that name
     And the decision is at its first version
 
-  @slice-28
-  Scenario: A decision whose title is already used is given a name of its own
-    Pins that names made from titles never collide: a repeated title gets its own name, and nothing already recorded is displaced.
-    Given a decision in a file whose title is already used by a decision the shop holds
-    When the user records that file as a decision, saying who they are and why
-    Then the user is shown a name of its own for the new decision, the name already taken with a number added
-    And the decision recorded earlier still reads back by the name it had
+  Scenario: The user records an artifact naming some of its parts
+    Pins that a part the user names keeps that name, so it can be found by it later.
+    Given an artifact in a file with several parts
+    When the user records that file under a name of their choosing, naming some of its parts, saying which role they are and why
+    Then each part the user named is known by the name the user gave it
 
   @slice-28
   Scenario: The user pipes a decision in instead of naming a file
@@ -52,6 +50,22 @@ Feature: Record an artifact
     When the user records that file as a decision without a message
     Then the decision is rejected because every change must carry a message
 
+  Scenario: An artifact recorded without a name is refused
+    Pins that the shop never names an artifact on the user's behalf: a record with no name enters nothing.
+    Given a decision in a file
+    When the user records that file as a decision without naming it, saying which role they are and why
+    Then the decision is rejected because every artifact is named by the user
+    And the shop's knowledge base is unchanged
+
+  Scenario: An artifact recorded under a name the shop already holds is refused
+    Pins that a name already taken is never reused or altered: the record is refused, the taken name is given back, and what was held stays as it was.
+    Given a decision the shop holds under a name
+    And another decision in a file
+    When the user records that file as a decision under that same name, saying which role they are and why
+    Then the decision is rejected because that name is taken
+    And the user is told the name that is taken
+    And the shop's knowledge base is unchanged
+
   @slice-26
   Scenario: A decision that does not fit the shop's decision type is refused
     Pins that the shop's types are enforced at the door, and that the refusal says enough to fix the file without reading the type itself.
@@ -62,20 +76,18 @@ Feature: Record an artifact
     And the command reports failure to whatever ran it
 
   @slice-1.17
-  Scenario: A title in a file that reads as a date is still a title
+  Scenario: The user records a file whose title is written as a date
     Pins that the shop reads files the strict way, so a title that happens to look like a date stays the text that was written.
     Given a decision in a file whose title is written "2026-09-24"
-    When the user records that file as a decision, saying who they are and why
+    When the user records that file as a decision under a name of their choosing, saying which role they are and why
     Then the shop reads the title back as the text that was written, not as a date
-    And the name the decision was given is made from that text
 
   @slice-1.17
-  Scenario: A title in a file that reads as a yes is still a title
+  Scenario: The user records a file whose title is written as a yes
     Pins the same strict reading for the other trap, a title that looks like a yes or a no.
     Given a decision in a file whose title is written "yes"
-    When the user records that file as a decision, saying who they are and why
+    When the user records that file as a decision under a name of their choosing, saying which role they are and why
     Then the shop reads the title back as the text that was written, not as a yes or a no
-    And the name the decision was given is made from that text
 
   @slice-1.24
   Scenario: A file naming the same entry twice is refused
