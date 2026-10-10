@@ -34,7 +34,8 @@ part IRI         <artifact IRI>#<collection>/<part name>
 
 For example `https://missingmass.io/shopsystem/capability/missingmass.io/shopsystem/shop-knowledge/find-the-knowledge-base`,
 its first Behaviour line `…/find-the-knowledge-base#behaviour/answers-from-the-knowledge-base-found-upward`, kb's
-decision `https://missingmass.io/shopsystem/decision/missingmass.io/shopsystem/kb/0002-ids-minted-from-titles`, and
+decision `https://missingmass.io/shopsystem/decision/missingmass.io/shopsystem/kb/ids-minted-from-titles` (a decision's
+name holds no number; its number is a field, and it is published as `adrs/0002-ids-minted-from-titles.md`), and
 a hosted product's capability `https://missingmass.io/shopsystem/capability/missingmass.io/ecommercesite/catalog/browse-the-catalog`.
 
 shop-knol shortens each of the shop's types by a fixed prefix, `capability:missingmass.io/shopsystem/shop-knowledge/find-the-knowledge-base`,
@@ -58,7 +59,8 @@ Waits for kb's identity and export release (requests 2-10, kb.v2).
   whose published pages would link to one (adrs/0074).
 - **Renderers** name pages and links from IRIs; a shop's own pages link to its own artifacts by name, as today.
 - **Code.** One module owns IRIs: building one from type, owner, product, context and name, and the prefixes that
-  shorten and expand them; every command and renderer uses it. `names.py` keeps the name made from a title.
+  shorten and expand them; every command and renderer uses it. Published files are named from the name in the
+  artifact's IRI, and shop-knol makes no name from a title.
 
 ## S2: rendered and exported after every change
 
@@ -82,7 +84,7 @@ shopsystem-knowledge and shopsystem-kb are migrated once each, by an agent, not 
   | `spec/index.md` | the shop: title, Purpose, Order of building, Testing, the shared mechanisms; each `**Title.** says … Tested in …` constraint a part with `tested_in`; a gist the agent writes |
   | the index's Composition | each capability's `order` and `gist` |
   | `spec/capabilities/*.md` | a capability: narrator, Purpose, Implementation, `rests_on` split by kind into decisions (`rests_on`) and capabilities (`depends_on`), `status: active`, each Behaviour line a part (`says` verbatim, a title the agent writes, the part named from it), each Not-yet entry a part (defers, trigger) |
-  | `spec/decisions.md`, `adrs/` | a decision: statement, date, `supersedes`, `extends`, `revisit_when`; number, title and Purpose from its ADR, or, for one with none, the next free number and Purpose from the ledger; a statement over 200 characters shortened, kept whole as Purpose |
+  | `spec/decisions.md`, `adrs/` | a decision, named from its ledger id without any leading number: statement, date, `supersedes`, `extends`, `revisit_when`; number, title and Purpose from its ADR, or, for one with none, the next free number and Purpose from the ledger; a statement over 200 characters shortened, kept whole as Purpose |
   | `features/*.feature` | a feature formulating its capability; each scenario a part linking to the Behaviour line it formulates; `uses` left empty |
 
 - **The loop.** The agent writes the batch, applies it to a scratch knowledge base (`shop-knol init`, `apply`,
