@@ -1,7 +1,7 @@
 # Portable knowledge: shop-knowledge on IRIs, exported after every change, and markdown specs migrated
 
 Proposal, 2026-10-10. Decided by the person in a brainstorming session; the decisions are adrs/0071-0076,
-0079, 0081 and 0082 here (0070, 0077, 0078 and 0080 superseded in the session) and shopsystem-kb/adrs/0022-0031.
+0079, 0081 and 0082 here (0070, 0077, 0078 and 0080 superseded in the session).
 Rests on the requests to kb in docs/superpowers/specs/2026-10-10-requests-to-kb-portable-knowledge.md.
 
 ## Why
