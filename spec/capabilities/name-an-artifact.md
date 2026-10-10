@@ -23,7 +23,7 @@ Every name shop-knol takes or prints is an IRI: its type, then its owner's domai
 
 - Whenever shop-knol shows the user the name of an artifact, the name is shown short, in a JSON answer as in a YAML one.
 - Whenever shop-knol shows the user the name of a shop or a product, the name is shown short, in a JSON answer as in a YAML one.
-- Whenever shop-knol shows the user a type beside an artifact, the type is shown by its name and the version that artifact conforms to, in a JSON answer as in a YAML one.
+- Whenever shop-knol shows the user a type beside an artifact, the type is shown by its name and the version that artifact names, the one it was last written against, in a JSON answer as in a YAML one.
 - Whenever shop-knol shows the user a type on its own, the type is shown by its name and its current version, in a JSON answer as in a YAML one.
 - When the user names an artifact by its short IRI, the command works on that artifact, whatever context it is in.
 - When the user names an artifact by its full IRI, the command works on that artifact, whatever context it is in.
