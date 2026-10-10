@@ -16,7 +16,7 @@ rests_on:
   - decision/a-constraint-is-tested-in-capabilities
   - decision/an-unreadable-file-stops-the-publish
   - decision/the-capability-and-shop-types-gain-a-version
-  - decision/a-placeholder-fails-validate-and-stops-the-publish
+  - decision/a-placeholder-fails-validate-and-stops-any-published-file
   - decision/published-files-are-named-from-the-iri
   - decision/a-decisions-name-holds-no-number
   - decision/a-markdown-spec-is-migrated-once-by-an-agent
@@ -50,7 +50,7 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - When the user publishes a shop's spec, a decision's record is named from its number, padded with zeros to at least four digits and written in full where it is longer, then the name in its IRI.
 - When the user publishes a shop's spec, every file it writes carries a line saying it was published from the knowledge base and is not to be edited by hand; in `spec/index.md` and `spec/decisions.md` the line names the shop and the shop's revision, and in every other file it names the capability, feature or decision the file is published from and that artifact's revision; in a capability's file the line comes directly after the frontmatter, which stays first in the file, and in every other file it is the first line.
 - When the user publishes a shop's spec, every entry in its ledger is a decision the knowledge base holds.
-- When the user publishes a shop's spec into a directory holding files published earlier, every file under `spec/capabilities/`, `features/` and `adrs/` that carries a published-from line and that this publish does not write is deleted, a file left behind by an artifact published this time under a new name among them, and no other file is deleted.
+- When the user publishes a shop's spec into a directory holding files published earlier, every file under `spec/capabilities/`, `features/` and `adrs/` that carries a published-from line and that this publish does not write is deleted, and no other file is deleted.
 - When the user publishes a shop's spec into a directory, a file under `spec/capabilities/`, `features/` or `adrs/` that has no published-from line, at a name this publish does not write, is left as it was.
 - If two of the shop's capabilities would be published under one file name, publishing is refused because they would share a file, naming both, and nothing is written or deleted.
 - If two of the shop's decisions would be published under one file name, publishing is refused because they would share a file, naming both, and nothing is written or deleted.
@@ -63,7 +63,7 @@ This capability covers publishing a shop's whole spec from the knowledge base in
 - If two features formulate one of the shop's capabilities, publishing is refused because they would share a file, naming both, and nothing is written or deleted.
 - If a table in a feature formulating one of the shop's capabilities has rows of different widths, publishing is refused because a table's rows must each have one cell per column, naming the scenario, and nothing is written or deleted.
 - If, among the files publishing may delete, one cannot be read, publishing is refused because that file cannot be read, naming the file, and nothing is written or deleted.
-- If a page the shop's spec would publish links to an artifact the knowledge base does not hold, publishing is refused because a published page would link to an artifact the knowledge base does not hold, and nothing is written or deleted.
+- If an artifact the shop's spec would publish, into any of its files, a feature file included, carries a link to an artifact the knowledge base does not hold, publishing is refused because a published file would link to an artifact the knowledge base does not hold, and nothing is written or deleted.
 
 ## Implementation, may change
 

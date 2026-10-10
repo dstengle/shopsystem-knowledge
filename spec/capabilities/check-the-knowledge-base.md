@@ -5,7 +5,7 @@ narrator: the user, or a script, checking the shop's knowledge is sound
 rests_on:
   - decision/a-failing-check-still-shows-what-is-behind
   - decision/uses-is-kept-and-checked-for-consistency
-  - decision/a-placeholder-fails-validate-and-stops-the-publish
+  - decision/a-placeholder-fails-validate-and-stops-any-published-file
 depends_on:
   - capability/find-the-knowledge-base
 formulated_as: features/check-the-knowledge-base.feature

@@ -7,6 +7,7 @@ rests_on:
   - decision/names-are-iris-printed-short
   - decision/shop-context-names-the-context
   - decision/shop-knol-makes-no-name-from-a-title
+  - decision/a-type-is-shown-by-its-name-and-version
 depends_on: []
 formulated_as: features/name-an-artifact.feature
 ---
@@ -19,7 +20,9 @@ Every name shop-knol takes or prints is an IRI: its type, then its owner's domai
 
 ## Behaviour
 
-- Whenever shop-knol shows the user the name of an artifact, the name is shown short.
+- Whenever shop-knol shows the user the name of an artifact, the name is shown short, in a JSON answer as in a YAML one.
+- Whenever shop-knol shows the user the name of a shop or a product, the name is shown short.
+- Whenever shop-knol shows the user a type, the type is shown by its name and its version.
 - When the user names an artifact by its short IRI, the command works on that artifact, whatever context it is in.
 - When the user names an artifact by its full IRI, the command works on that artifact, whatever context it is in.
 - Where `SHOP_CONTEXT` names a context, when the user names an artifact by its name alone, the command works on the artifact of that name in that context.
@@ -40,6 +43,8 @@ part IRI         <artifact IRI>#<collection>/<part name>
 ```
 
 - A short IRI is a fixed prefix for each of the shop's types in place of the type's IRI: `capability:missingmass.io/shopsystem/shop-knowledge/find-the-knowledge-base`. kb holds no prefixes; shop-knol expands a short IRI before calling kb.
+- A shop is shown short like any artifact: `shop:missingmass.io/shopsystem/shop-knowledge`.
+- A type is shown as `<type>@<n>`, e.g. `capability@2`.
 - `SHOP_CONTEXT` is written `<owner>/<product>/<context>`, e.g. `SHOP_CONTEXT=missingmass.io/shopsystem/shop-knowledge`. Under it, `find-the-knowledge-base` and `capability/find-the-knowledge-base` both name `capability:missingmass.io/shopsystem/shop-knowledge/find-the-knowledge-base`.
 - One module owns IRIs: building one from type, owner, product, context and name, and the prefixes that shorten and expand them. Every command and renderer uses it.
 

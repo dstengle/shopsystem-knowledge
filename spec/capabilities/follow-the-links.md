@@ -5,7 +5,7 @@ narrator: the user, seeing how the shop's knowledge hangs together
 rests_on:
   - decision/follow-and-search
   - decision/capabilities-depend-on-capabilities
-  - decision/a-placeholder-fails-validate-and-stops-the-publish
+  - decision/a-placeholder-fails-validate-and-stops-any-published-file
 depends_on:
   - capability/find-the-knowledge-base
   - capability/name-an-artifact
@@ -21,7 +21,7 @@ Seeing what an artifact points at and what points at it. The answer can be narro
 ## Behaviour
 
 - When the user follows the links out of an artifact, the user is shown what it points at.
-- When the user follows the links out of an artifact holding a link to an artifact the shop does not hold, that link is shown marked as landing on nothing the shop holds.
+- When the user follows the links out of an artifact holding a link to an artifact the knowledge base does not hold, that link is shown marked as landing on nothing the knowledge base holds.
 - When the user follows the links into an artifact, the user is shown what points at it.
 - When the user follows the links into an artifact, only through one link and only from one type, the user is shown only what points at it through that link from that type.
 - When the user follows the links out of an artifact two steps, the user is shown everything reached within two steps, and the route taken to each.

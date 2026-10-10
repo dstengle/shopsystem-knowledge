@@ -642,3 +642,14 @@ source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the pers
 shop-knol makes no name from a title: every artifact is named by the user and every published file from the name in its IRI, so nothing is left to make a name from a title for.
 date: 2026-10-10
 source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the person's answer, 2026-10-10)
+
+## decision/a-type-is-shown-by-its-name-and-version
+A type is shown by its name and version (`capability@2`), not by a short IRI; shops and products are shown short like any artifact, and a JSON answer shows every name as its YAML one does.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the person's answer, 2026-10-10)
+
+## decision/a-placeholder-fails-validate-and-stops-any-published-file
+`validate` reports each placeholder kb lists as a fault of the artifact linking to it, under a rule of its own, and fails; `render spec` refuses a shop when any artifact it would publish, into any of its files, feature files included, carries a link to a placeholder.
+date: 2026-10-10
+supersedes: decision/a-placeholder-fails-validate-and-stops-the-publish
+source: adrs/0074; the person's answer, 2026-10-10

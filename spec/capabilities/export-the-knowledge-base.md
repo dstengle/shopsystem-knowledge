@@ -20,7 +20,8 @@ This capability covers writing kb's export of the knowledge base, whole or one c
 
 - When the user exports the knowledge base into an empty directory, the directory holds kb's export of the whole knowledge base.
 - When the user exports one context into an empty directory, the directory holds kb's export of that context.
-- When the user exports, the user is shown the position in the history the export reflects.
+- When the user exports the whole knowledge base, the user is shown the knowledge base's position in its history at the moment the export was taken.
+- When the user exports one context, the user is shown the knowledge base's position in its history at the moment the export was taken, not that context's last change.
 - If the user exports into a directory that is not empty, the export is refused because the directory is not empty, naming the directory, and nothing is written.
 
 ## Implementation, may change

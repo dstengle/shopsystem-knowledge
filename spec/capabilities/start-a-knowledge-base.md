@@ -37,7 +37,7 @@ init says which role set it up and writes its own message. It refuses rather tha
 ## Behaviour
 
 - When the user starts a knowledge base, saying which role they are, the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags, and the user defines nothing of their own before recording the first one.
-- When the user starts a knowledge base, saying which role they are, each of the shop's types is held at its IRI, at the IRI of its version.
+- When the user starts a knowledge base, saying which role they are, each of the shop's types is held at its own IRI, and its current version at that version's IRI.
 - Where no knowledge base is found from the working directory, when the user starts a knowledge base without naming a directory, saying which role they are, the shop's knowledge is kept in a place of its own inside the working directory, and what that directory already held is left as it was.
 - When the user starts a knowledge base by naming another directory, saying which role they are, the shop's knowledge is kept in a place of its own inside the named directory, and the working directory holds no knowledge base.
 - When the user starts a knowledge base, saying which role they are and giving no message, the knowledge base is started, and everything it was given is recorded in the history under a message the command writes itself.
