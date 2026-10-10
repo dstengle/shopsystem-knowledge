@@ -3,8 +3,8 @@
 Requests from shop-knowledge to kb, 2026-10-10, for a kb session to integrate into kb's spec. Each asks for a
 change to one of kb's capabilities, or a new one, and names the decision behind it. The decisions were the
 person's, made in a shop-knowledge brainstorming session about migrating markdown specs into kb and not losing a
-shop's knowledge with its server; they are recorded in shopsystem-kb/adrs/0022-0030 (uncommitted, for the kb
-session to keep) and shopsystem-knowledge/adrs/0070-0075. How each is worded as Behaviour, and everything not
+shop's knowledge with its server; they are recorded in shopsystem-kb/adrs/0022-0031 (uncommitted, for the kb
+session to keep) and shopsystem-knowledge/adrs/0071-0082. How each is worded as Behaviour, and everything not
 settled below, is the kb session's.
 
 ## Why
@@ -40,7 +40,9 @@ server is recovered with nothing lost.
 An artifact's id is an https IRI: its type's IRI, a `/`, and a path of plain names the client chooses. kb checks
 the grammar, that the id sits under its type's IRI, and that it is unique, and never mints one. Parts are still
 named by kb, from title or position, and are written as the artifact's IRI with a fragment (`…#behaviour-3`).
-An id is fixed for life. Supersedes adrs/0002 for artifacts; the "client never chooses a name" lines go.
+An id is fixed for life. Supersedes adrs/0002 for artifacts; the "client never chooses a name" lines go. A create, alone or in a set, may
+also name any part it carries, unique in its collection, kb naming a part given none as today (adrs/0031), so a
+client can link to a part of an artifact it creates in the same set.
 
 shop-knowledge's convention, for illustration only (kb sees a path): below the type, the owner's domain, product,
 bounded context and name, e.g. `https://missingmass.io/shopsystem/capability/missingmass.io/ecommercesite/catalog/browse-the-catalog`.
@@ -102,8 +104,8 @@ export (request 1 keeps it).
 ## Still outstanding
 
 - 2026-10-07: a validate-only mode on BatchCreate and BatchReplace, checking a set as it would land and landing
-  nothing (shop-knowledge adrs/0053). shop-knol's migration (adrs/0070) checks its drafted batches with it before
-  the gate.
+  nothing (shop-knowledge adrs/0053). The migration of a markdown spec (adrs/0081) checks its batch against a
+  scratch knowledge base meanwhile, and would use it in place of one.
 
 ## For the kb session to settle
 

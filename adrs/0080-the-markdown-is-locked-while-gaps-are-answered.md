@@ -1,0 +1,3 @@
+# 0080 The markdown is locked while a migration's gaps are answered
+
+2026-10-10. A migration's gaps are answered on the day a repository switches over (0079), with its `spec/`, `features/` and `adrs/` left unchanged until the batches are applied. The draft records a fingerprint of every file it read; taking answers is refused if any has changed since, and the migration is drafted again. Answers are kept by place and position in the per-artifact gap files, and nothing tracks a moved or reworded line. Supersedes 0078 where it keeps answers across re-drafts of changed markdown; its gap file per artifact stands. The user's decision.

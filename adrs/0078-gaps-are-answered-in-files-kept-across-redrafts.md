@@ -1,0 +1,3 @@
+# 0078 A migration's gaps are answered in files of their own, kept across re-drafts
+
+2026-10-10. A migration's gaps are written one file per artifact, each gap keyed by IRI and place and carrying the source text it was drafted from, and the agent answers in those files. Running `shop-knol migrate` again drafts afresh from the markdown as it now stands and takes every answer whose source text is unchanged; an answer whose source changed is listed again with the old answer and the new text. So spec work goes on while a migration is answered, and switching over is one last draft and apply. Refines 0077. The user's decision.
