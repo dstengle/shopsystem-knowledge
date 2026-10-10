@@ -53,6 +53,7 @@ Each publisher other than markdown takes only the type it is made from. Skills a
 
 - Renderers are client code, invoked only by `shop-knol render`. Each reads through the contract and gives back the files to write, or faults. The command writes the files only when the renderer refused nothing.
 - A renderer reads the whole artifact at depth 0, with links left as names.
+- Renderers name pages and links from IRIs, through the one module that owns them (name-an-artifact).
 - `<name>` below is the artifact's name without its kind.
 
 **skill, agent and diagram**

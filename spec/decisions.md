@@ -581,3 +581,64 @@ source: the person's delegation (adrs/0068), batch 18's branch review
 Every fault shop-knol prints names its rule, `artifact at place: rule: message`, leaving out `rule: ` when a fault carries none, as kb's own command line words a refusal.
 date: 2026-10-08
 source: adrs/0069-a-fault-is-printed-with-its-rule.md
+
+## decision/an-artifacts-iri-is-its-types-then-its-owners-path
+An artifact's IRI is its type's IRI, then its owner's domain, product, bounded context and name; a shop's IRI ends at its context, a product's at its product, a part's is its artifact's with `#<collection>/<part name>`, and a type version's is its type's with `@<n>`.
+date: 2026-10-10
+source: adrs/0073
+
+## decision/the-user-names-what-they-create
+The user names what they create: `create` and `apply` carry the artifact's name and may name its parts, a part not named being named by kb from its title, and links in a batch name IRIs; kb no longer mints an artifact's id from its title.
+date: 2026-10-10
+supersedes: decision/ids-minted-by-kb
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md, shopsystem-kb/adrs/0022, shopsystem-kb/adrs/0031
+
+## decision/names-are-iris-printed-short
+Every name shop-knol takes or prints is an IRI, printed short and taken short or full; shop-knol shortens each of the shop's types by a fixed prefix, and kb holds no prefixes.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md
+
+## decision/shop-context-names-the-context
+`SHOP_CONTEXT` names the context a command works in: a name, alone or after its type, is read in that context; a short or full IRI names an artifact anywhere; a bare name with no `SHOP_CONTEXT` is refused, naming the variable.
+date: 2026-10-10
+source: adrs/0082
+
+## decision/the-capability-and-shop-types-gain-a-version
+Two of the shop's types gain a version: the capability type an optional section "Implementation, may change", and the shop type an optional section "Mechanisms every command shares", both published by `render spec`, the shop's under "Constraints carried".
+date: 2026-10-10
+source: adrs/0076
+
+## decision/a-placeholder-fails-validate-and-stops-the-publish
+`validate` reports each placeholder kb lists as a fault of the artifact linking to it, under a rule of its own, and fails; `render spec` refuses a shop whose published pages would link to a placeholder.
+date: 2026-10-10
+source: adrs/0074
+
+## decision/published-files-are-named-from-the-iri
+A published file is named from the name in its artifact's IRI, never from its title: a capability's page and the feature file formulating it from the capability's, and a decision's record, `adrs/<number>-<name>.md`, from the decision's.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md
+
+## decision/rendered-and-exported-after-every-change
+After every round of changes applied, the shop's spec is published with `render spec` and its knowledge exported with `shop-knol export`, and both are committed.
+date: 2026-10-10
+source: adrs/0071, adrs/0075
+
+## decision/a-markdown-spec-is-migrated-once-by-an-agent
+shopsystem-knowledge and shopsystem-kb are each migrated into kb once, by an agent following a brief, not by code: it writes a batch, applies it to a scratch knowledge base until nothing is refused and nothing but the product is a placeholder, then publishes over a copy of the repository and compares until only layout differs.
+date: 2026-10-10
+source: adrs/0081
+
+## decision/a-repository-switches-over-when-the-writers-draft-against-kb
+A repository switches its spec over to kb when shopsystem-bdd's writers draft batches against kb: its markdown is left unchanged, the agent runs the migration loop, the person approves the difference once, the batch is applied to the real knowledge base, published and committed, and kb is the source from then on.
+date: 2026-10-10
+source: adrs/0079
+
+## decision/a-decisions-name-holds-no-number
+A decision's IRI name holds no number: the number is its `number` field alone, and its record is published as `adrs/<padded number>-<name>.md`, so the ledger and the records stay in number order as before.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the person's answer, 2026-10-10)
+
+## decision/shop-knol-makes-no-name-from-a-title
+shop-knol makes no name from a title: every artifact is named by the user and every published file from the name in its IRI, so nothing is left to make a name from a title for.
+date: 2026-10-10
+source: docs/superpowers/specs/2026-10-10-portable-knowledge-design.md (the person's answer, 2026-10-10)

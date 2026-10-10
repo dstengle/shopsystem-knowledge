@@ -14,6 +14,8 @@ rests_on:
   - decision/a-capability-carries-its-reading-order
   - decision/capabilities-depend-on-capabilities
   - decision/capabilities-are-deprecated-then-retired
+  - decision/an-artifacts-iri-is-its-types-then-its-owners-path
+  - decision/the-capability-and-shop-types-gain-a-version
 formulated_as: features/use-the-shops-types.feature
 ---
 
@@ -38,7 +40,9 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 - A process's steps each either define a step in place, or use a shared step with settings of their own.
 - When the user reads a product, a shop, a capability, a decision or a feature at a glance, each field it shows is one short line or a link, as it was recorded.
 - When the user reads an artifact holding parts at a glance, each part is shown by its title.
-- When the user records an artifact holding parts, each part's name is minted from its title.
+- When the user records an artifact holding parts without naming them, each part's name is minted from its title.
+- When the user records a capability with an "Implementation, may change" section, the capability holds that section.
+- When the user records a shop with a "Mechanisms every command shares" section, the shop holds that section.
 - If the user records a gist or a statement longer than 200 characters, the change is refused because it does not fit its type.
 - If the user records a gist or a statement that holds a line break, the change is refused because it does not fit its type.
 - If the user records a part whose title is longer than 80 characters, the change is refused because it does not fit its type.
@@ -60,6 +64,8 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 
 - The command's name may change. `create`, `write`, `list` and `read` are not the way to the types.
 - The types are schema artifacts in kb's schema language: `product`, `shop`, `capability`, `decision`, `feature`, `work-item`, `role`, `process`, `step` and `tag`.
+- Each type has an IRI, `https://missingmass.io/shopsystem/<type>`, under which its artifacts' IRIs sit, and each of its versions an IRI of its own, `https://missingmass.io/shopsystem/<type>@<n>`.
+- `capability` and `shop` are at a later version than the others: `capability` gains an optional section "Implementation, may change", and `shop` an optional section "Mechanisms every command shares".
 - `role`, `process`, `step`, `tag` and `work-item` stay as they were. `feature` is replaced, `decision` is reshaped, and `product`, `shop` and `capability` are new.
 - All ten build on the `shop-artifact` base schema (owner, status, tags) through kb's composition mechanism, so the common fields are declared once.
 - The shop's schemas are the ten types and the `shop-artifact` base, eleven in all.
@@ -73,12 +79,12 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 | type | glance fields | other fields | sections | parts |
 |---|---|---|---|---|
 | product | `gist` | | Purpose | |
-| shop | `product` → product, `gist` | `narrator` | Purpose, Order of building, Testing | `constraints`: `title`, `says`, `tested_in` → capability, many |
+| shop | `product` → product, `gist` | `narrator` | Purpose, Order of building, Testing; a `Mechanisms every command shares` section may follow | `constraints`: `title`, `says`, `tested_in` → capability, many |
 | capability | `shop` → shop, `gist` | `narrator`, `order`, `rests_on` → decision, many, `depends_on` → capability, many | Purpose; an `Implementation, may change` section may follow | `behaviour`: `title`, `says` (one EARS line); `not_yet`: `title`, `defers`, `trigger` |
 | decision | `statement`, `date`, `supersedes` → decision, `shop` → shop | `number`, `revisit_when`, `extends` → decision, many | Purpose, Rationale | |
 | feature | `formulates` → capability | `background`: steps | | `scenarios`: `title`, `description`, `formulates` → a capability's behaviour line, `uses` → capability, many, `labels` (Gherkin tags), `steps`, `examples` |
 
-- Every section listed for a type is required, save the capability's `Implementation, may change`, which may follow: a product requires Purpose; a shop, Purpose, Order of building and Testing; a capability, Purpose; a decision, Purpose and Rationale; a feature has no sections. A missing required section is refused as a change that does not fit its type (record-an-artifact).
+- Every section listed for a type is required, save the capability's `Implementation, may change` and the shop's `Mechanisms every command shares`, which may follow: a product requires Purpose; a shop, Purpose, Order of building and Testing; a capability, Purpose; a decision, Purpose and Rationale; a feature has no sections. A missing required section is refused as a change that does not fit its type (record-an-artifact).
 - Required fields:
   - product: `gist`;
   - shop: `product`, `gist`;
@@ -105,7 +111,7 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 - A decision's `date` is a day, `YYYY-MM-DD`. Its `number` is a whole number, given by whoever records it as the shop's next; it is the number its ADR file carries.
 - A scenario's step is `keyword` (Given, When, Then, And or But), `text`, and optionally a `table` (rows of cells, the first row the header) or a `docstring`. `examples` is a table, the first row the header.
 - `labels` are plain words such as `@slice-55.3`.
-- A scenario's `formulates` is one link into a capability's `behaviour` part: `capability/<name>#behaviour/<line>`. A scenario has no field that can point at a scenario.
+- A scenario's `formulates` is one link into a capability's `behaviour` part: `<capability IRI>#behaviour/<line>`. A scenario has no field that can point at a scenario.
 
 ## Not yet
 
@@ -116,3 +122,4 @@ The types arrive when a knowledge base is set up (start-a-knowledge-base). Defin
 - **The product's own concerns.** A lead shop holds the product's own concerns; beyond the `product` artifact itself, none is modelled. Promoted when a product's own concerns are to be held in the knowledge base.
 - **Removing a capability as a lifecycle in the workflow.** A request to shopsystem-bdd: integration deprecates the capability (its lines are removed), formulation removes its scenarios, and slicing cuts a removal slice whose check is that no step definition or code serves only the removed scenarios and the suite is green; retiring it is the last step. Promoted when shopsystem-bdd releases that lifecycle.
 - **A lifecycle for decisions beyond `supersedes`.** Promoted when a decision needs a state `supersedes` cannot express.
+- **Moving content between type versions.** An artifact at one version of its type moved to a later one. Promoted when an artifact must move to a later version of its type.

@@ -5,8 +5,10 @@ narrator: the user, reading back one artifact by its name
 rests_on:
   - decision/read-levels-and-json
   - decision/json-where-a-command-offers-it
+  - decision/a-placeholder-fails-validate-and-stops-the-publish
 depends_on:
   - capability/find-the-knowledge-base
+  - capability/name-an-artifact
 formulated_as: features/read-an-artifact.feature
 ---
 
@@ -30,6 +32,7 @@ The answer can be taken as JSON. Finding artifacts without knowing their names i
 - When the user reads an artifact whole, asking for what it points at to be filled in without saying how far, each thing it points at is shown in place of its pointer as the shop holds it now, and what those things point at is shown by name only.
 - When the user reads an artifact whole, asking for what it points at to be filled in two steps, each thing it points at is shown in place of its pointer, and so is each thing those point at.
 - When the user reads an artifact asking for JSON, the user gets the same answer as the default, written as JSON.
+- When the user reads an artifact holding a link to an artifact the shop does not hold, that link is shown marked as landing on nothing the shop holds.
 - If the stored file of the artifact being read cannot be read, the read is refused because that file cannot be read, naming the file.
 - If the user reads an artifact whose name is given empty, the read is refused because that artifact's name is empty, which names no place.
 

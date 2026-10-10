@@ -34,7 +34,7 @@ This capability covers seeing, for one shop's capabilities, which Behaviour line
 | `shop-knol coverage <shop>` | Read, List and Follow, over the shop's capabilities and the scenarios formulating their lines |
 
 - The shop's capabilities are found as publishing finds them: linking to the shop, active or deprecated, in `order`. Lines are listed in that order.
-- A line is shown as its link, `capability/<name>#behaviour/<line>`.
+- A line is shown as its link, the capability's short IRI followed by `#behaviour/<line>`.
 - Where none is unformulated and none is formulated twice, the answer is two empty lists.
 
 ## Not yet

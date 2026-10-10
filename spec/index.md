@@ -18,7 +18,8 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - **kb's refusals are passed through.** They are printed as kb returned them, naming the artifact, the place in it, and what is wrong. Tested in record-an-artifact and check-the-knowledge-base.
 - **shop-knol's own refusals are in plain words.** Each says what was refused and names the place it concerns: the file, the directory or the artifact. A name given empty names no place and is refused. Tested in start-a-knowledge-base, record-an-artifact, read-an-artifact, publish-an-artifact and publish-a-shops-spec.
 - **Every change says who and why.** Every mutating command requires an actor and a message. `init` requires an actor and no message. Tested in record-an-artifact and start-a-knowledge-base.
-- **kb mints the ids.** Ids are minted by kb from titles and never supplied by the user. Tested in record-an-artifact.
+- **Names are IRIs.** Every name shop-knol takes or prints is an IRI, printed short and taken short or full; a name that is not an IRI is read in the context `SHOP_CONTEXT` names. Tested in name-an-artifact.
+- **The user names what they create.** `create` and `apply` carry the artifact's name and may name its parts; kb never mints an artifact's name. Tested in record-an-artifact and make-several-changes-at-once.
 - **Publishing only reads.** Publishing reads the knowledge base and never changes it. Files are written, and files published earlier deleted, only when the renderer refused nothing. Tested in publish-an-artifact and publish-a-shops-spec.
 - **Corpus-only roles.** The boundary for a corpus-only role is a harness permission allowlist of exactly `shop-knol *`. The harness provides it; shop-knowledge does not implement it.
 - **Bounds:**
@@ -40,28 +41,31 @@ Each promise below holds for every command. Its scenarios sit in the capability 
 - Every change sends kb one signature: the role, the piece of work and the message.
 - A place inside an artifact, the part of a locator after `#`, is sent as kb's `place`.
 - An answer keeps shop-knol's own keys whatever kb names them: it says `type` where kb's v1 says `kind`.
+- Every name is read and shown through the one module that owns IRIs (name-an-artifact); kb is always sent a full IRI.
 
 ## Composition (reading order)
 
 1. [start-a-knowledge-base](capabilities/start-a-knowledge-base.md): set up a knowledge base holding the shop's types.
 2. [find-the-knowledge-base](capabilities/find-the-knowledge-base.md): have every other command find the one knowledge base it works on.
-3. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's ten types, and record things that use them, a shop's spec and its capabilities' lifecycle among them.
-4. [record-an-artifact](capabilities/record-an-artifact.md): record something new under a name the shop mints.
-5. [read-an-artifact](capabilities/read-an-artifact.md): read one artifact at a chosen level.
-6. [revise-an-artifact](capabilities/revise-an-artifact.md): replace an artifact, or one section of it.
-7. [add-a-step-to-a-process](capabilities/add-a-step-to-a-process.md): add a step, written in place or shared.
-8. [retire-an-artifact](capabilities/retire-an-artifact.md): take out something nothing depends on.
-9. [make-several-changes-at-once](capabilities/make-several-changes-at-once.md): apply a batch of creates, or of replacements, that lands whole or not at all.
-10. [list-what-the-shop-holds](capabilities/list-what-the-shop-holds.md): see everything of one kind.
-11. [follow-the-links](capabilities/follow-the-links.md): see what an artifact points at and what points at it, who depends on a capability among it.
-12. [search-what-the-shop-knows](capabilities/search-what-the-shop-knows.md): find knowledge by its words.
-13. [review-who-changed-what](capabilities/review-who-changed-what.md): read the history.
-14. [record-what-a-piece-of-work-read](capabilities/record-what-a-piece-of-work-read.md): anchor a piece of work to the versions it read.
-15. [check-the-knowledge-base](capabilities/check-the-knowledge-base.md): learn whether the shop's knowledge is sound and what is behind its type.
-16. [publish-an-artifact](capabilities/publish-an-artifact.md): publish an artifact into files as a skill, an agent, a diagram or a markdown page.
-17. [publish-a-shops-spec](capabilities/publish-a-shops-spec.md): publish a shop's whole spec, ledger, decision records and feature files into its repository, deleting what it published earlier that nothing stands behind now.
-18. [see-what-is-formulated](capabilities/see-what-is-formulated.md): see which of a shop's Behaviour lines no scenario, or more than one, formulates.
-19. [see-what-a-shop-depends-on](capabilities/see-what-a-shop-depends-on.md): see which of a shop's capabilities depend on a deprecated or retired capability, in any shop.
+3. [name-an-artifact](capabilities/name-an-artifact.md): name any artifact by its IRI, short or full, or by its name in the context `SHOP_CONTEXT` names.
+4. [use-the-shops-types](capabilities/use-the-shops-types.md): see and read the shop's ten types, and record things that use them, a shop's spec and its capabilities' lifecycle among them.
+5. [record-an-artifact](capabilities/record-an-artifact.md): record something new under a name the user chooses.
+6. [read-an-artifact](capabilities/read-an-artifact.md): read one artifact at a chosen level.
+7. [revise-an-artifact](capabilities/revise-an-artifact.md): replace an artifact, or one section of it.
+8. [add-a-step-to-a-process](capabilities/add-a-step-to-a-process.md): add a step, written in place or shared.
+9. [retire-an-artifact](capabilities/retire-an-artifact.md): take out something nothing depends on.
+10. [make-several-changes-at-once](capabilities/make-several-changes-at-once.md): apply a batch of creates, or of replacements, that lands whole or not at all.
+11. [list-what-the-shop-holds](capabilities/list-what-the-shop-holds.md): see everything of one kind.
+12. [follow-the-links](capabilities/follow-the-links.md): see what an artifact points at and what points at it, who depends on a capability among it.
+13. [search-what-the-shop-knows](capabilities/search-what-the-shop-knows.md): find knowledge by its words.
+14. [review-who-changed-what](capabilities/review-who-changed-what.md): read the history.
+15. [record-what-a-piece-of-work-read](capabilities/record-what-a-piece-of-work-read.md): anchor a piece of work to the versions it read.
+16. [check-the-knowledge-base](capabilities/check-the-knowledge-base.md): learn whether the shop's knowledge is sound and what is behind its type.
+17. [publish-an-artifact](capabilities/publish-an-artifact.md): publish an artifact into files as a skill, an agent, a diagram or a markdown page.
+18. [publish-a-shops-spec](capabilities/publish-a-shops-spec.md): publish a shop's whole spec, ledger, decision records and feature files into its repository, deleting what it published earlier that nothing stands behind now.
+19. [export-the-knowledge-base](capabilities/export-the-knowledge-base.md): write kb's export of the knowledge base, whole or one context's, into an empty directory.
+20. [see-what-is-formulated](capabilities/see-what-is-formulated.md): see which of a shop's Behaviour lines no scenario, or more than one, formulates.
+21. [see-what-a-shop-depends-on](capabilities/see-what-a-shop-depends-on.md): see which of a shop's capabilities depend on a deprecated or retired capability, in any shop.
 
 ## Order of building
 
@@ -70,6 +74,7 @@ shop-knowledge and kb were one effort until the walking skeleton was green, and 
 1. Feature files for both were formulated in one session from both specs. This repository's scenarios are the outer loop; every kb scenario cites the scenario here that needs it.
 2. Slice 1 was "create a decision and read it back through `shop-knol`". It could touch both repositories, and kb was an editable path dependency until it was green.
 3. Once slice 1 was green, kb was tagged and pinned here. From then on, a kb change needed here is a request to bump the pin, and each repository plans alone. kb v0.6.0 is pinned today.
+4. Portable knowledge follows in three steps. Names as IRIs, placeholders and the types' new versions wait for kb's identity and export release, kb.v2. Exporting after every change waits for those. The migration brief follows both.
 
 ## Testing
 

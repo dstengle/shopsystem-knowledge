@@ -5,7 +5,7 @@ narrator: the user, building up a process a step at a time
 rests_on:
   - decision/append-and-delete
   - decision/shared-steps-get-used
-  - decision/ids-minted-by-kb
+  - decision/the-user-names-what-they-create
 formulated_as: features/add-a-step-to-a-process.feature
 ---
 
