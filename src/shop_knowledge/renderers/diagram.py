@@ -1,8 +1,6 @@
 """The diagram renderer: a process as a Mermaid flowchart, laid out by whatever draws it, so nothing here places a node.
 Each step is a node numbered in the process's order, a reused step drawn as a subroutine. A step without branches goes
 on to the next; a step with branches goes where each says, the edge labelled with its condition."""
-from kb.content import loads
-
 from shop_knowledge.renderers import source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
@@ -14,9 +12,9 @@ def render(client, name: str) -> Rendered:
     faults = source.refusal(read, "diagram", "process")
     if faults:
         return refused(faults)
-    process = read.result
+    process = source.mapped(read.result)
     slug = source.slug(process.id)
-    return Rendered({f"{slug}.mmd": _flowchart(loads(process.content).get("steps", []))}, [])
+    return Rendered({f"{slug}.mmd": _flowchart(process.content.get("steps", []))}, [])
 
 
 def _flowchart(steps: list[dict]) -> str:

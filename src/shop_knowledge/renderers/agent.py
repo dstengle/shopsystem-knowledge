@@ -1,7 +1,8 @@
 """The agent renderer: a role as `.claude/agents/<name>.md` in the harness's heading-block-plus-body shape. The heading
 block is the role's harness field group as kb gives it; the body is its sections."""
-from kb.content import dumps, loads
+from kb.content import dumps
 
+from shop_knowledge import iris
 from shop_knowledge.renderers import limits, sections, source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
@@ -13,8 +14,8 @@ def render(client, name: str) -> Rendered:
     faults = source.refusal(read, "agent", "role")
     if faults:
         return refused(faults)
-    role = read.result
-    content = loads(role.content)
+    role = source.mapped(read.result)
+    content = role.content
     harness = content.get("harness", {})
     body = "\n\n".join(sections.laid_out(content.get("sections", []), 1))
     return _agent(role.id, harness, body)
@@ -22,7 +23,7 @@ def render(client, name: str) -> Rendered:
 
 def _agent(artifact: str, harness: dict, body: str) -> Rendered:
     """The agent's file, or refused if the harness would reject the role's harness fields."""
-    faults = limits.agent(artifact, harness.get("name", ""))
+    faults = limits.agent(iris.to_kb(artifact), harness.get("name", ""))
     if faults:
         return refused(faults)
     heading = dumps(harness)

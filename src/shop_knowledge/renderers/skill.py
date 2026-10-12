@@ -1,9 +1,9 @@
 """The skill renderer: a process as SKILL.md in the harness's heading-block-plus-body shape. The heading block is the
 process's identity; the body is its steps in order, each reused step written out in full with its own settings, and
 each branch saying which step it goes to."""
-from kb.content import dumps, loads
-from kb.contract import kb_pb2
+from kb.content import dumps
 
+from shop_knowledge import iris
 from shop_knowledge.renderers import limits, source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
@@ -15,20 +15,20 @@ def render(client, name: str) -> Rendered:
     faults = source.refusal(read, "skill", "process")
     if faults:
         return refused(faults)
-    process = read.result
-    steps = loads(process.content).get("steps", [])
+    process = source.mapped(read.result)
+    steps = process.content.get("steps", [])
     reads = {used: source.whole(client, used) for used in dict.fromkeys(step["uses"] for step in steps if "uses" in step)}
     faults = [fault for response in reads.values() for fault in source.faults(response)]
     if faults:
         return refused(faults)
-    shared = {used: response.result for used, response in reads.items()}
+    shared = {used: source.mapped(response.result) for used, response in reads.items()}
     return _skill(process, _body(process.title, steps, shared))
 
 
-def _skill(process: kb_pb2.Artifact, written: str) -> Rendered:
+def _skill(process: source.Mapped, written: str) -> Rendered:
     """SKILL.md in a directory of the skill's name, the process's name without its kind, or refused if the harness would
     reject it."""
-    faults = limits.skill(process.id, written)
+    faults = limits.skill(iris.to_kb(process.id), written)
     if faults:
         return refused(faults)
     slug = source.slug(process.id)
@@ -58,9 +58,9 @@ def _step(name: str, numbers: dict, titles: dict) -> str:
     return f"step {numbers[name]} ({titles[name]})" if name in numbers else name
 
 
-def _reused(step: dict, used: kb_pb2.Artifact) -> list[str]:
+def _reused(step: dict, used: source.Mapped) -> list[str]:
     """A shared step written out in full where it is used, with the settings this use gives it."""
     settings = ", ".join(f"{binding['name']} is {binding['value']}" for binding in step.get("with", []))
     said = f"This is the shared step {used.title}" + (f", where {settings}." if settings else ".")
-    return [said, "", loads(used.content)["does"].rstrip(), ""]
+    return [said, "", used.content["does"].rstrip(), ""]
 

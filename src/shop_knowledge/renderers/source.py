@@ -1,9 +1,28 @@
 """What a renderer publishes from: an artifact read whole through the contract, whether it is of the type the renderer
 is made from, and its name without its kind. kb's answer comes back as it is; `refusal` decides what stops a render:
 the read's own refusal first, then, only once it was read, whether its type is the one the render is made from."""
+from typing import NamedTuple
+
 from kb.contract import kb_pb2
 
 from shop_knowledge import iris
+
+
+class Mapped(NamedTuple):
+    """An artifact read, as the user sees it (D1): its id as `<kind>/<name>`, its kind, title, revision, content with
+    its links as the user names them, and the version of its type. The one shape the renderers work from."""
+    id: str
+    kind: str
+    title: str
+    revision: str
+    content: dict
+    version: int
+
+
+def mapped(artifact: kb_pb2.Artifact) -> Mapped:
+    """The artifact kb answered with, mapped through the seam."""
+    return Mapped(iris.from_kb(artifact.id), iris.shown_kind(artifact), artifact.title, artifact.revision,
+                  iris.content_of(artifact), iris.version_of(artifact))
 
 
 def whole(client, name: str, depth: int = 0) -> kb_pb2.ReadResponse:
@@ -35,6 +54,6 @@ def _a(word: str) -> str:
     return f"an {word}" if word[0] in "aeiou" else f"a {word}"
 
 
-def slug(artifact_id: str) -> str:
-    """An artifact's name without its kind: `process/deploy` is `deploy`."""
-    return artifact_id.split("/", 1)[1]
+def slug(mapped_id: str) -> str:
+    """A mapped artifact's name without its kind: `process/deploy` is `deploy`."""
+    return mapped_id.split("/", 1)[1]

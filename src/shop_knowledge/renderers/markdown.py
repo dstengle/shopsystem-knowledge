@@ -7,8 +7,6 @@ list among it, is nothing (adrs/0038, adrs/0043, adrs/0045). Whatever a value ho
 table row keeps one cell per column and no line ends in a space."""
 import re
 
-from kb.content import loads
-
 from shop_knowledge.renderers import sections, source
 from shop_knowledge.renderers.rendered import Rendered, refused
 
@@ -22,8 +20,8 @@ def render(client, name: str) -> Rendered:
     read = source.whole(client, name)
     if faults := source.faults(read):
         return refused(faults)
-    artifact = read.result
-    return Rendered({f"{source.slug(artifact.id)}.md": _page(artifact.title, loads(artifact.content))}, [])
+    artifact = source.mapped(read.result)
+    return Rendered({f"{source.slug(artifact.id)}.md": _page(artifact.title, artifact.content)}, [])
 
 
 def _page(title: str, content: dict) -> str:
