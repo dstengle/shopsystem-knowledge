@@ -180,6 +180,40 @@ Probe by hand and record in the checkpoint; a misbehaviour becomes a Backlog lin
 
 ---
 
+### Task 6.1: Slice 82.1, the renderers read mapped artifacts
+
+**Review:** batch-end · **Model:** sonnet · **Scripts:** as above · **Batch base:** as above · **Retires:** none
+
+Cut during execution: slice 79's implementer found renderers reading kb's ids and content raw; the scout's table is `.superpowers/scout/batch19/task-79.1.md` (read).
+
+**Check:** `.venv/bin/python -m pytest -q -n auto` → `202 passed, 37 xfailed`; a search of `renderers/source.py`, `markdown.py`, `skill.py`, `diagram.py` and `agent.py` finds no `.id`, `.content` or `loads(` of a kb answer that has not passed through the seam.
+
+**Where the change lands** (at most 7 production, 0 test): `renderers/source.py` hands every renderer an artifact already mapped through `iris.py` (its id, kind, content and version as the user sees them, D1), and `slug` and `refusal` take mapped values; `markdown.py`, `skill.py`, `diagram.py`, `agent.py` read that; `iris.py`, `limits.py` and `published_from.py` only if needed. CLAUDE.md's `renderers/source.py` row says so.
+
+**Decisions:** D1, D2. The mapped artifact is the one shape the spec family moves to in 82.2; name it so.
+
+**Tests the decisions break:** none: no test spells a kb id or reads an answer's attribute (search, task-79.1 notes §3).
+
+**Verify:** the Check.
+
+---
+
+### Task 6.2: Slice 82.2, the spec renderer reads mapped artifacts
+
+**Review:** batch-end · **Model:** sonnet · **Scripts:** as above · **Batch base:** as above · **Retires:** none
+
+**Check:** `.venv/bin/python -m pytest -q -n auto` → `202 passed, 37 xfailed`; a search of `renderers/spec*.py`, `renderers/gherkin.py`, `renderers/shop_capabilities.py` and `consistency.py` finds no id, content or revision of a kb answer read without the seam, and no id already from kb handed to a request builder that maps it again.
+
+**Where the change lands** (at most 8 production, 0 test): `renderers/spec.py`, `spec_faults.py`, `spec_decisions.py`, `spec_capabilities.py`, `spec_index.py`, `gherkin.py`, `shop_capabilities.py`, `consistency.py`, each taking the mapped artifact 82.1 made. Watch `spec.py:20` and `spec_decisions.py:33`: they pass kb's own id into a request builder that applies `to_kb` again; after this slice every id inside shop-knol is the user's form and goes to kb through `to_kb` once.
+
+**Decisions:** D1, D2. If the budget of 8 is not enough (iris.py too), stop and report.
+
+**Tests the decisions break:** none (search, task-79.1 notes §3).
+
+**Verify:** the Check.
+
+---
+
 ### Task 7: Slice 83, kb pinned at v0.9.0
 
 **Review:** per-task · **Model:** opus · **Scripts:** as above · **Batch base:** as above · **Retires:** none

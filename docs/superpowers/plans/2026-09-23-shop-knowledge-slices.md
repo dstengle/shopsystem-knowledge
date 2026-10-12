@@ -92,6 +92,24 @@ only.
 - Lands: 0 production, 4 test
 - Status: planned
 
+## Slice 82.1: The renderers read mapped artifacts
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -n auto` -> 202 passed, 0 failed, 37 expected; a search of renderers/source.py, markdown.py, skill.py, diagram.py and agent.py finds no id, content or loads of a kb answer outside the seam
+- Observable: Every page renderer reads an artifact as the user names it, through one reader
+- Unknown: whether one mapped artifact can stand for kb's answer in every renderer
+- Needs: none
+- Lands: 7 production, 0 test
+- Status: planned
+
+## Slice 82.2: The spec renderer reads mapped artifacts
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q -n auto` -> 202 passed, 0 failed, 37 expected; a search of renderers/spec*.py, gherkin.py, shop_capabilities.py and consistency.py finds no id, content or revision of a kb answer read outside the seam
+- Observable: The spec renderer and the consistency check read artifacts as the user names them
+- Unknown: none
+- Needs: none
+- Lands: 8 production, 0 test
+- Status: planned
+
 ## Slice 83: kb pinned at v0.9.0
 - Kind: enabling
 - Check: `.venv/bin/python -c "import kb.contract.kb_pb2 as m; print(m.DESCRIPTOR.package)"` -> kb.v2; `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected (fewer expected where a scenario goes green, credited here); a search over src/ and tests/ finds no kb.v1 field
@@ -252,3 +270,4 @@ only.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 9bdcac1 in 33 s
 - 2026-10-12 slice 80 green. Someone can now: change what kb_oracle, record_refused_files and spec_attempt hand kb or read from its messages by changing tests/kb_names.py alone. Surprised by: nothing. Open questions: none. Next: slice 81.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 3ce6003 in 32 s
+- 2026-10-12 Probe: searches for ids and content read from kb answers outside iris.py (.superpowers/scout/batch19/task-79.1.md) -> 12 production modules (source and four page renderers; the spec family and consistency), 0 test; cut as slices 82.1 and 82.2 before the flip
