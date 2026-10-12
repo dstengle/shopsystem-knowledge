@@ -7,6 +7,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from decision_fields import decided, shop_of
 from driver import answering, knol, record
+from kb_names import read_request, stand_in_read_refusal
 from kb_oracle import printed
 from read_back_from_elsewhere import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
@@ -71,7 +72,7 @@ def _linked_decision(env, tmp_path, held, shop):
 
 @when("the user reads the decision", target_fixture="result")
 def _read_the_decision(env, decision_id, workdir, called):
-    called.update(call="Read", request=kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=decision_id)))
+    called.update(call="Read", request=read_request(decision_id))
     return knol(env, "read", decision_id, cwd=workdir)
 
 
@@ -112,9 +113,7 @@ UNREADABLE = {"artifact": DECISION, "rule": "unreadable", "message": "the decisi
 def _decision_file_mangled_by_hand(env, tmp_path):
     """No contract call leaves a stored file unreadable, so kb's answer to reading it comes from the stand-in
     (adrs/0047), its fault in this step's own words."""
-    env.update(answering(env, tmp_path, {
-        "call": "Read", "asking": {"locator": {"id": DECISION}}, "answer": {"refusal": {"faults": [UNREADABLE]}},
-    }))
+    env.update(answering(env, tmp_path, stand_in_read_refusal(DECISION, [UNREADABLE])))
 
 
 @then("the command is rejected because that file cannot be read, naming the file")

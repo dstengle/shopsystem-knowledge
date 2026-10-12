@@ -4,6 +4,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from decision_fields import decided, shop_of
 from driver import answering, knol, record, start, whole
+from kb_names import check_request, stand_in_check
 from kb_oracle import printed
 from consistency_steps import *  # noqa: F403  pytest-bdd registers steps only through a star import
 
@@ -22,9 +23,7 @@ def _checked_as(env, tmp_path, *violations):
     """kb refuses to store an artifact unreadable, unfit for its type or pointing at nothing, so no contract call can
     leave the shop so: kb's check answers for that state through the stand-in (adrs/0047), with the violations as this
     module words them, beside what the real check finds behind its type."""
-    env.update(answering(env, tmp_path, {
-        "call": "Check", "answer": {"result": {"violations": list(violations)}}, "from_kb": ["stale", "violations"],
-    }))
+    env.update(answering(env, tmp_path, stand_in_check(list(violations))))
 
 
 def _line(fault: dict) -> str:
@@ -60,7 +59,7 @@ def _shop_with_a_file_mangled_by_hand(env, shop, tmp_path):
 
 @when("the user checks the shop's knowledge", target_fixture="result")
 def _check(env, workdir, called):
-    called.update(call="Check", request=kb_pb2.CheckRequest())
+    called.update(call="Check", request=check_request())
     return knol(env, "validate", cwd=workdir)
 
 

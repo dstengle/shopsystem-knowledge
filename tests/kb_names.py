@@ -37,3 +37,33 @@ def list_of_types() -> kb_pb2.ListRequest:
 def read_whole_request(artifact: str) -> kb_pb2.ReadRequest:
     """A Read of the artifact a user names, whole, with no depth."""
     return kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=artifact), whole=kb_pb2.ReadRequest.Whole(depth=0))
+
+
+def read_request(artifact: str) -> kb_pb2.ReadRequest:
+    """A Read of the artifact a user names, as the stand-in is asked for it."""
+    return kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=artifact))
+
+
+def remove_request(artifact: str, signature: kb_pb2.Signature) -> kb_pb2.RemoveRequest:
+    """A Remove of the artifact a user names."""
+    return kb_pb2.RemoveRequest(locator=kb_pb2.Locator(id=artifact), signature=signature)
+
+
+def check_request() -> kb_pb2.CheckRequest:
+    """A Check of the whole knowledge base."""
+    return kb_pb2.CheckRequest()
+
+
+def history_request(batch: str = "") -> kb_pb2.HistoryRequest:
+    """A History of the whole knowledge base, or of one batch's changes: the guard's question of whether a store is there."""
+    return kb_pb2.HistoryRequest(batch=batch) if batch else kb_pb2.HistoryRequest()
+
+
+def stand_in_read_refusal(artifact: str, faults: list) -> dict:
+    """The stand-in's entry for a Read of the artifact a user names, refused with the faults a step wrote."""
+    return {"call": "Read", "asking": {"locator": {"id": artifact}}, "answer": {"refusal": {"faults": faults}}}
+
+
+def stand_in_check(violations: list) -> dict:
+    """The stand-in's entry for a Check that finds the violations a step wrote, the rest of the answer kb's own."""
+    return {"call": "Check", "answer": {"result": {"violations": violations}}, "from_kb": ["stale", "violations"]}

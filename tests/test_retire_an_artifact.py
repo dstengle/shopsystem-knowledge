@@ -1,9 +1,9 @@
 from kb.content import loads
-from kb.contract import kb_pb2
 from pytest_bdd import given, scenarios, then, when
 
 from decision_fields import decided, shop_of
 from driver import knol, record, start
+from kb_names import remove_request
 from kb_oracle import kb_answer, printed, signature
 
 scenarios("retire-an-artifact.feature")
@@ -79,5 +79,5 @@ STILL_LINKED = "on_delete"
 def _kb_refuses_to_remove(env):
     """kb's own answer to the removal the user asked for, asked of the same store: refused, so nothing is removed;
     its faults' words are kb's."""
-    request = kb_pb2.RemoveRequest(locator=kb_pb2.Locator(id=PRICING), signature=signature(env, NO_LONGER_NEEDED))
+    request = remove_request(PRICING, signature(env, NO_LONGER_NEEDED))
     return kb_answer(env, "Remove", request).refusal.faults
