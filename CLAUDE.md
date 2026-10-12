@@ -89,6 +89,7 @@ own it.
   and hands every other call to the real kb. Nothing under `src/` knows it is there. The one place kb's contract names,
   a root's `kb/`, is named in `tests/driver.py` alone. A scenario that needs a server of kb's gets it from the served-store double kb
   publishes, `kb.testing.served`, used through one fixture (adrs/0050); no test starts such a server or writes a connection to one.
+- `tests/kb_names.py` is the test seam: every kind, id and Create a test hands kb directly, and every id it reads from a kb message or fault, goes through it, so a change of kb's names changes it alone on the test side; it never imports `src/`.
 - Fixtures and steps shared by more than one feature live in `tests/conftest.py`; the rest sit beside the scenarios
   they serve. When one feature's steps outgrow a module, the steps of one of its concerns go to a module beside it,
   not named `test_*`, which the feature's test module alone star-imports (a plain import does not register them).

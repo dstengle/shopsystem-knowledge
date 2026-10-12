@@ -10,6 +10,7 @@ from pytest_bdd import given, then, when
 
 from decision_fields import decided, shop_of
 from driver import knol
+from kb_names import create_request
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 
 SAYING_WHY = "Move price reviews to weekly"
@@ -41,8 +42,8 @@ def _kb_refuses_to_create(env, decision_file):
     same store: its faults, whose words are kb's (kb adrs/0018)."""
     content = loads(decision_file.read_text())
     title = content.pop("title")
-    request = kb_pb2.CreateRequest(
-        kind="decision", title=title, content=dumps(content), signature=signature(env, SAYING_WHY),
+    request = create_request(
+        "decision", title, dumps(content), signature(env, SAYING_WHY),
     )
     return kb_answer(env, "Create", request).refusal.faults
 

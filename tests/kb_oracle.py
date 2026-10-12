@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import driver
+import kb_names
 from kb import NotStarted, init
 from kb.client import connect
 from kb.content import NotCanonical, dumps, loads
@@ -79,13 +80,13 @@ def operator_created(env, root: Path, kind: str, title: str, content: dict) -> s
     this process, from `root` under exactly `env`, signed by the operator's role: never by writing a file, and never
     through shop-knol. Gives back the id kb named it with; refused, as `knol` is, outside the test's own directory."""
     driver._isolated(root, env)
-    asked = kb_pb2.CreateRequest(
-        kind=kind, title=title, content=dumps(content), signature=kb_pb2.Signature(role=OPERATOR, message=f"Add {title}"),
+    asked = kb_names.create_request(
+        kind, title, dumps(content), kb_pb2.Signature(role=OPERATOR, message=f"Add {title}"),
     )
     with _as_run(root, env):
         answer = connect(root).Create(asked)
     assert answer.WhichOneof("outcome") == "result", answer
-    return answer.result.id
+    return kb_names.artifact_id(answer)
 
 
 @contextmanager
@@ -134,7 +135,8 @@ def printed(fault) -> str:
     """A fault as the one line the shop's spec says the user is shown: the artifact and the place in it, the rule,
     then the message as kb returned it, its lines joined."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
-    where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
+    artifact = kb_names.artifact_name(fault.artifact)
+    where = f"{artifact} at {fault.place}" if fault.place else artifact
     said = f"{fault.rule}: {message}" if fault.rule else message
     return f"{where}: {said}" if where else said
 
