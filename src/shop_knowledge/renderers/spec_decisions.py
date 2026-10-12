@@ -2,8 +2,9 @@
 `adrs/<number>-<name>.md`. The shop's decisions are those linking to it."""
 from typing import NamedTuple
 
-from kb.content import loads
 from kb.contract import kb_pb2
+
+from shop_knowledge import iris
 
 from shop_knowledge.renderers import names, published_from, sections, source
 
@@ -46,10 +47,10 @@ def _by_number(decision: Decision) -> int:
 
 def of(client, shop: str):
     """The decisions linking to the shop, each read whole, or the faults of the list or read that was refused."""
-    listed = client.List(kb_pb2.ListRequest(kind="decision", fields={"shop": shop}, form=kb_pb2.ListRequest.IDS))
+    listed = client.List(iris.ids_request("decision", {"shop": shop}))
     if faults := list(listed.refusal.faults):
         return [], faults
-    return read(client, list(listed.result.ids))
+    return read(client, iris.listed_ids(listed))
 
 
 def read(client, ids: list[str]):
@@ -59,7 +60,7 @@ def read(client, ids: list[str]):
         read = source.whole(client, id)
         if faults := source.faults(read):
             return [], faults
-        decisions.append(Decision(id, read.result.title, loads(read.result.content), revision=read.result.revision))
+        decisions.append(Decision(id, read.result.title, iris.content_of(read.result), revision=read.result.revision))
     return decisions, []
 
 

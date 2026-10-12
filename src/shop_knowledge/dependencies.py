@@ -1,9 +1,9 @@
 """What a shop depends on: for the shop's active or deprecated capabilities, each that depends on a deprecated or
 retired capability, in any shop, with the scenarios of its features that use it. It reads through the contract alone
 and reports; what it finds is never a refusal. Its refusals are raised as `refusal.Refused`, kb's own passed on."""
-from kb.content import loads
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import shop_capabilities, source
 
@@ -14,8 +14,9 @@ def _refusal(read: kb_pb2.ReadResponse) -> list[kb_pb2.Fault]:
     """What stops an answer: kb's own refusal of the read, else the artifact's not being a shop."""
     if read.WhichOneof("outcome") == "refusal":
         return source.faults(read)
-    if read.result.kind != "shop":
-        return [kb_pb2.Fault(artifact=read.result.id, rule="dependencies-of-a-shop", message=f"{read.result.id} is a {read.result.kind}, not a shop")]
+    if (kind := iris.shown_kind(read.result)) != "shop":
+        name = iris.from_kb(read.result.id)
+        return [kb_pb2.Fault(artifact=read.result.id, rule="dependencies-of-a-shop", message=f"{name} is a {kind}, not a shop")]
     return []
 
 
@@ -29,11 +30,11 @@ def of(client, shop: str) -> list[dict]:
         raise Refused(faults)
     entries = []
     for held in capabilities:
-        content = loads(held.content)
+        content = iris.content_of(held)
         for name in dict.fromkeys(content.get("depends_on", [])):
             target = _read(client, name)
-            if loads(target.content)["status"] in LEAVING:
-                entries.append(_entry(held, target, _scenarios(client, held.id, name)))
+            if iris.content_of(target)["status"] in LEAVING:
+                entries.append(_entry(held, target, _scenarios(client, iris.from_kb(held.id), name)))
     return entries
 
 
@@ -45,10 +46,10 @@ def _read(client, name: str) -> kb_pb2.Artifact:
 
 
 def _entry(held: kb_pb2.Artifact, target: kb_pb2.Artifact, scenarios: list[str]) -> dict:
-    content = loads(target.content)
+    content = iris.content_of(target)
     return {
-        "capability": held.id, "capability_title": held.title,
-        "depends_on": target.id, "depends_on_title": target.title,
+        "capability": iris.from_kb(held.id), "capability_title": held.title,
+        "depends_on": iris.from_kb(target.id), "depends_on_title": target.title,
         "shop": content["shop"], "status": content["status"],
         "scenarios": scenarios,
     }
@@ -56,12 +57,12 @@ def _entry(held: kb_pb2.Artifact, target: kb_pb2.Artifact, scenarios: list[str])
 
 def _scenarios(client, capability: str, used: str) -> list[str]:
     """The titles of the scenarios, in the features formulating `capability`, whose `uses` name `used`."""
-    found = client.List(kb_pb2.ListRequest(kind="feature", fields={"formulates": capability}, form=kb_pb2.ListRequest.IDS))
+    found = client.List(iris.ids_request("feature", {"formulates": capability}))
     if faults := list(found.refusal.faults):
         raise Refused(faults)
     return [
         scenario["title"]
-        for name in found.result.ids
-        for scenario in loads(_read(client, name).content).get("scenarios", [])
+        for name in iris.listed_ids(found)
+        for scenario in iris.content_of(_read(client, name)).get("scenarios", [])
         if used in scenario.get("uses", [])
     ]

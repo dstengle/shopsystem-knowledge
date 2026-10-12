@@ -1,7 +1,8 @@
 """The spec renderer: a shop's spec, published from the shop and, through it, the capabilities linking to it and the
 capabilities its constraints are tested in. It reads through the contract alone and writes nothing; this one gives `spec/index.md`, the capabilities' pages, the decisions' ledger and records and the feature files."""
-from kb.content import loads
 from kb.contract import kb_pb2
+
+from shop_knowledge import iris
 
 from shop_knowledge.renderers import (
     gherkin, names, shop_capabilities, source, spec_capabilities, spec_decisions, spec_faults, spec_index)
@@ -15,7 +16,7 @@ def render(client, name: str) -> Rendered:
     if faults := source.refusal(read, "spec", "shop"):
         return refused(faults)
     shop = read.result
-    content = loads(shop.content)
+    content = iris.content_of(shop)
     ordered, faults = shop_capabilities.of(client, shop.id)
     if faults:
         return refused(faults)
@@ -54,7 +55,7 @@ def _capabilities(client, ordered: list[kb_pb2.Artifact], tested: list[str]):
 
 
 def _described(capability: kb_pb2.Artifact) -> spec_index.Capability:
-    content = loads(capability.content)
+    content = iris.content_of(capability)
     return spec_index.Capability(names.from_title(capability.title), content["gist"], content["status"] == "deprecated")
 
 
@@ -63,11 +64,11 @@ def _formulating(client, capabilities: list[kb_pb2.Artifact]):
     search or read that was refused."""
     found = {}
     for capability in capabilities:
-        listed = client.List(kb_pb2.ListRequest(kind="feature", fields={"formulates": capability.id}, form=kb_pb2.ListRequest.IDS))
+        listed = client.List(iris.ids_request("feature", {"formulates": iris.from_kb(capability.id)}))
         if faults := list(listed.refusal.faults):
             return {}, faults
         found[capability.id] = []
-        for id in listed.result.ids:
+        for id in iris.listed_ids(listed):
             read = source.whole(client, id)
             if faults := source.faults(read):
                 return {}, faults
@@ -80,9 +81,9 @@ def _pages(capabilities: list[kb_pb2.Artifact], formulating: dict[str, list[kb_p
     files = {}
     for capability in capabilities:
         name = names.from_title(capability.title)
-        content = loads(capability.content)
+        content = iris.content_of(capability)
         features = formulating[capability.id]
         if features:
-            files[f"features/{name}.feature"] = gherkin.feature_file(name, features[0], content["narrator"], loads(features[0].content))
+            files[f"features/{name}.feature"] = gherkin.feature_file(name, features[0], content["narrator"], iris.content_of(features[0]))
         files[f"spec/capabilities/{name}.md"] = spec_capabilities.page(capability, content, f"features/{name}.feature" if features else None)
     return files

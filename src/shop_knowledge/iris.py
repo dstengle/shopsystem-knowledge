@@ -5,6 +5,7 @@ signature; an answer's kind and version as the user sees them; and whether an id
 every one is the identity. It knows the shop's types by name, from bootstrap, and never a type's fields."""
 import re
 
+from kb.content import loads
 from kb.contract import kb_pb2
 
 from shop_knowledge import bootstrap
@@ -36,6 +37,22 @@ def of_types() -> dict:
     return of_kind(TYPE_OF_TYPES)
 
 
+def ids_request(kind: str, fields: dict[str, str] | None = None) -> kb_pb2.ListRequest:
+    """A List of the ids of the artifacts of the kind a user names, those whose fields hold the names given."""
+    return kb_pb2.ListRequest(**of_kind(kind), fields={key: to_kb(value) for key, value in (fields or {}).items()},
+                              form=kb_pb2.ListRequest.IDS)
+
+
+def listed_ids(response: kb_pb2.ListResponse) -> list[str]:
+    """The ids a List answered with, as the user's names."""
+    return [from_kb(each) for each in response.result.ids]
+
+
+def holds_type(client, name: str) -> bool:
+    """Whether the store holds the type a user names by its name alone, by kb's answer naming the types it holds."""
+    return type_id(name) in {to_kb(each) for each in listed_ids(client.List(ids_request(TYPE_OF_TYPES)))}
+
+
 def create_fields(client, kind: str, title: str, name: str = "") -> dict:
     """The fields of a CreateRequest besides title, content and signature, for an artifact of the kind, with the
     title it is given and the name, where the user or the shop gives one. The client is what the type's current
@@ -58,6 +75,11 @@ def _item_fields(client, kind: str, key: str, title: str) -> dict:
 def _kind(kind: str) -> str:
     """The kind a user names, as kb's request fields name it."""
     return kind
+
+
+def content_of(artifact: kb_pb2.Artifact):
+    """An artifact's content as the user reads it."""
+    return content_from_kb(loads(artifact.content))
 
 
 def content_to_kb(content):

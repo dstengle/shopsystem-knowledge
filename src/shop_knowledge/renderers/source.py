@@ -3,10 +3,12 @@ is made from, and its name without its kind. kb's answer comes back as it is; `r
 the read's own refusal first, then, only once it was read, whether its type is the one the render is made from."""
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
+
 
 def whole(client, name: str, depth: int = 0) -> kb_pb2.ReadResponse:
     """The artifact read whole, its links followed as many steps as depth says; at 0 they are left as names."""
-    request = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=name), whole=kb_pb2.ReadRequest.Whole(depth=depth))
+    request = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=iris.to_kb(name)), whole=kb_pb2.ReadRequest.Whole(depth=depth))
     return client.Read(request)
 
 
@@ -21,9 +23,10 @@ def refusal(read: kb_pb2.ReadResponse, kind: str, made_from: str) -> list[kb_pb2
     if read.WhichOneof("outcome") == "refusal":
         return faults(read)
     artifact = read.result
-    if artifact.kind == made_from:
+    shown = iris.shown_kind(artifact)
+    if shown == made_from:
         return []
-    message = f"{_a(kind)} is made from {_a(made_from)}; this one is {_a(artifact.kind)}"
+    message = f"{_a(kind)} is made from {_a(made_from)}; this one is {_a(shown)}"
     return [kb_pb2.Fault(artifact=artifact.id, rule="renderer-type", message=message)]
 
 

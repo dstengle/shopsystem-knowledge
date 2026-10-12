@@ -3,9 +3,9 @@ the scenarios whose `uses` names a capability outside the `depends_on` of the ca
 reads through the contract alone and gives one fault for each scenario and capability. It runs beside kb's own
 check and never takes its answer away: where the store holds no `feature` type it finds nothing, and what it cannot
 read, or what does not fit its type, it passes over, since kb's check reports that itself."""
-from kb.content import loads
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
 from shop_knowledge.renderers import source
 
 RULE = "uses-not-depended-on"
@@ -14,11 +14,11 @@ RULE = "uses-not-depended-on"
 def of(client) -> list[kb_pb2.Fault]:
     """A fault for each scenario, in every feature of the knowledge base, that uses a capability its own does not
     depend on; none where the store holds no `feature` type."""
-    if not _holds_features(client):
+    if not iris.holds_type(client, "feature"):
         return []
-    listed = client.List(kb_pb2.ListRequest(kind="feature", form=kb_pb2.ListRequest.IDS))
+    listed = client.List(iris.ids_request("feature"))
     found = []
-    for id in listed.result.ids:
+    for id in iris.listed_ids(listed):
         feature = _read(client, id)
         formulates = _fields(feature).get("formulates")
         capability = _read(client, formulates) if isinstance(formulates, str) else None
@@ -39,12 +39,6 @@ def undepended(feature: kb_pb2.Artifact, depends_on: list[str]) -> list[kb_pb2.F
     ]
 
 
-def _holds_features(client) -> bool:
-    """Whether the store holds the `feature` type, by kb's answer naming the types it holds."""
-    listed = client.List(kb_pb2.ListRequest(kind="schema", form=kb_pb2.ListRequest.IDS))
-    return "schema/feature" in listed.result.ids
-
-
 def _read(client, name: str) -> kb_pb2.Artifact | None:
     """The artifact read whole, or None where kb refused to read it."""
     read = source.whole(client, name)
@@ -52,7 +46,7 @@ def _read(client, name: str) -> kb_pb2.Artifact | None:
 
 
 def _fields(artifact: kb_pb2.Artifact | None) -> dict:
-    content = loads(artifact.content) if artifact else None
+    content = iris.content_of(artifact) if artifact else None
     return content if isinstance(content, dict) else {}
 
 

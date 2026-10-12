@@ -3,9 +3,9 @@ scenario formulates and those more than one does. It reads through the contract 
 scenario is never a refusal. Its refusals are raised as `refusal.Refused`, kb's own passed on."""
 from collections import Counter
 
-from kb.content import loads
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import shop_capabilities, source
 
@@ -14,8 +14,9 @@ def _refusal(read: kb_pb2.ReadResponse) -> list[kb_pb2.Fault]:
     """What stops a coverage: kb's own refusal of the read, else the artifact's not being a shop."""
     if read.WhichOneof("outcome") == "refusal":
         return source.faults(read)
-    if read.result.kind != "shop":
-        return [kb_pb2.Fault(artifact=read.result.id, rule="coverage-of-a-shop", message=f"{read.result.id} is a {read.result.kind}, not a shop")]
+    if (kind := iris.shown_kind(read.result)) != "shop":
+        name = iris.from_kb(read.result.id)
+        return [kb_pb2.Fault(artifact=read.result.id, rule="coverage-of-a-shop", message=f"{name} is a {kind}, not a shop")]
     return []
 
 
@@ -46,18 +47,18 @@ def _read(client, name: str) -> kb_pb2.Artifact:
 def _lines(held: kb_pb2.Artifact) -> list[dict]:
     """Each Behaviour line of the capability, in the order it holds them."""
     return [
-        {"link": f"{held.id}#behaviour/{line['id']}", "capability": held.title, "line": line["title"]}
-        for line in loads(held.content).get("behaviour", [])
+        {"link": f"{iris.from_kb(held.id)}#behaviour/{line['id']}", "capability": held.title, "line": line["title"]}
+        for line in iris.content_of(held).get("behaviour", [])
     ]
 
 
 def _formulating(client) -> Counter:
     """How many scenarios formulate each link, over every feature the knowledge base holds, whichever shop's."""
-    found = client.List(kb_pb2.ListRequest(kind="feature", form=kb_pb2.ListRequest.IDS))
+    found = client.List(iris.ids_request("feature"))
     if faults := list(found.refusal.faults):
         raise Refused(faults)
     return Counter(
         scenario["formulates"]
-        for name in found.result.ids
-        for scenario in loads(_read(client, name).content).get("scenarios", [])
+        for name in iris.listed_ids(found)
+        for scenario in iris.content_of(_read(client, name)).get("scenarios", [])
     )
