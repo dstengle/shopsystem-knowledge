@@ -108,7 +108,7 @@ only.
 - Unknown: none
 - Needs: none
 - Lands: 8 production, 0 test
-- Status: planned
+- Status: green
 
 ## Slice 83: kb pinned at v0.9.0
 - Kind: enabling
@@ -277,3 +277,5 @@ only.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 14305f1 in 32 s
 - 2026-10-12 slice 82.1 green. Someone can now: change kb's pin with the page renderers (markdown, skill, diagram, agent) reading only source.Mapped, built through iris.py. Surprised by: nothing; limits' fault artifact is sent back through iris.to_kb since cli's printer maps it. Open questions: none. Next: slice 82.2 (spec family takes source.Mapped via source.mapped(artifact)).
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 7597f6b in 31 s
+- 2026-10-12 slice 82.2 green. Someone can now: change iris.py alone and the spec renderer, its faults and the consistency check follow, ids going to kb through to_kb once. Surprised by: coverage.py and dependencies.py read shop_capabilities.of, so it keeps a raw-artifact twin beside mapped_of; they move in a later slice. Open questions: none. Next: slice 83.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 0136ffa in 32 s
