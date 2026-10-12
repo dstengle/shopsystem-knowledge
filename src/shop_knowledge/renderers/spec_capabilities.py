@@ -1,15 +1,13 @@
 """A capability's page, `spec/capabilities/<name>.md`, laid out from the capability's content: its frontmatter, its
 title, its Purpose, its Behaviour, its other sections, then what it does not yet do."""
 from kb.content import dumps
-from kb.contract import kb_pb2
-
-from shop_knowledge.renderers import published_from, sections
+from shop_knowledge.renderers import published_from, sections, source
 
 
-def page(capability: kb_pb2.Artifact, content: dict, formulated_as: str | None) -> str:
+def page(capability: source.Mapped, formulated_as: str | None) -> str:
     """The capability as a file: the frontmatter first, naming the feature file only where a feature formulates it, then
     the published-from line."""
-    id, title = capability.id, capability.title
+    id, title, content = capability.id, capability.title, capability.content
     held = content.get("sections", [])
     purpose = [section for section in held if section["title"] == "Purpose"]
     others = [section for section in held if section["title"] != "Purpose"]

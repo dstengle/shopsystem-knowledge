@@ -2,8 +2,6 @@
 `adrs/<number>-<name>.md`. The shop's decisions are those linking to it."""
 from typing import NamedTuple
 
-from kb.contract import kb_pb2
-
 from shop_knowledge import iris
 
 from shop_knowledge.renderers import names, published_from, sections, source
@@ -29,7 +27,7 @@ def padded(number: int) -> str:
     return f"{number:04d}"
 
 
-def files(client, shop: kb_pb2.Artifact):
+def files(client, shop: source.Mapped):
     """The ledger and the records by path, or the faults of the first read that was refused."""
     own, faults = of(client, shop.id)
     if faults:
@@ -60,11 +58,12 @@ def read(client, ids: list[str]):
         read = source.whole(client, id)
         if faults := source.faults(read):
             return [], faults
-        decisions.append(Decision(id, read.result.title, iris.content_of(read.result), revision=read.result.revision))
+        mapped = source.mapped(read.result)
+        decisions.append(Decision(id, mapped.title, mapped.content, revision=mapped.revision))
     return decisions, []
 
 
-def _ledger(shop: kb_pb2.Artifact, decisions: list[Decision]) -> str:
+def _ledger(shop: source.Mapped, decisions: list[Decision]) -> str:
     return "\n\n".join([published_from.markdown(shop.id, shop.revision), "# Decisions", *(_entry(each) for each in decisions)]) + "\n"
 
 

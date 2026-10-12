@@ -27,11 +27,11 @@ def of(client) -> list[kb_pb2.Fault]:
     return found
 
 
-def undepended(feature: kb_pb2.Artifact, depends_on: list[str]) -> list[kb_pb2.Fault]:
+def undepended(feature: source.Mapped, depends_on: list[str]) -> list[kb_pb2.Fault]:
     """A fault for each scenario of the feature and each capability, named once however often its `uses` names it,
     not among `depends_on`; a scenario that does not fit its type is passed over."""
     return [
-        kb_pb2.Fault(artifact=feature.id, place=f"scenarios/{scenario['id']}", rule=RULE,
+        kb_pb2.Fault(artifact=iris.to_kb(feature.id), place=f"scenarios/{scenario['id']}", rule=RULE,
                      message=f"scenario \"{scenario['title']}\" uses {used}, which its capability does not depend on; "
                              "a scenario uses only what its capability depends on")
         for scenario in _scenarios(feature) for used in dict.fromkeys(_names(scenario.get("uses")))
@@ -39,18 +39,18 @@ def undepended(feature: kb_pb2.Artifact, depends_on: list[str]) -> list[kb_pb2.F
     ]
 
 
-def _read(client, name: str) -> kb_pb2.Artifact | None:
+def _read(client, name: str) -> source.Mapped | None:
     """The artifact read whole, or None where kb refused to read it."""
     read = source.whole(client, name)
-    return None if source.faults(read) else read.result
+    return None if source.faults(read) else source.mapped(read.result)
 
 
-def _fields(artifact: kb_pb2.Artifact | None) -> dict:
-    content = iris.content_of(artifact) if artifact else None
+def _fields(artifact: source.Mapped | None) -> dict:
+    content = artifact.content if artifact else None
     return content if isinstance(content, dict) else {}
 
 
-def _scenarios(feature: kb_pb2.Artifact) -> list[dict]:
+def _scenarios(feature: source.Mapped) -> list[dict]:
     """The feature's scenarios that carry the id and title a fault names them by."""
     scenarios = _fields(feature).get("scenarios")
     return [each for each in scenarios if isinstance(each, dict) and isinstance(each.get("id"), str)

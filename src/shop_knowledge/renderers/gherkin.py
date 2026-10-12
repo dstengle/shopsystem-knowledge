@@ -1,14 +1,13 @@
 """The layout of a feature as Gherkin: its fields and its `scenarios` parts as the text of a `.feature` file, in two-space
 indentation. A scenario's `formulates` and `uses` are links the file has no place for, so they are not written."""
 
-from kb.contract import kb_pb2
-
-from shop_knowledge.renderers import published_from
+from shop_knowledge.renderers import published_from, source
 
 
-def feature_file(name: str, feature: kb_pb2.Artifact, narrator: str, content: dict) -> str:
+def feature_file(name: str, feature: source.Mapped, narrator: str) -> str:
     """The feature as a file formulated from the capability's page `name`: its Background where it has steps, then each
     scenario in the order it is held."""
+    content = feature.content
     blocks = [f"{published_from.gherkin(feature.id, feature.revision)}\n# formulated from spec/capabilities/{name}.md\n"
               f"Feature: {feature.title}\n  Narrator: {narrator}"]
     if content.get("background"):

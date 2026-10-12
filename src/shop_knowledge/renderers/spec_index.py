@@ -1,8 +1,6 @@
 """The shop's spec index, `spec/index.md`, laid out from the shop's content: its title, its Purpose, the constraints it
 carries, its capabilities in their order, then its other sections."""
-from kb.contract import kb_pb2
-
-from shop_knowledge.renderers import published_from, sections
+from shop_knowledge.renderers import published_from, sections, source
 
 
 class Capability:
@@ -12,8 +10,9 @@ class Capability:
         self.name, self.gist, self.deprecated = name, gist, deprecated
 
 
-def page(shop: kb_pb2.Artifact, content: dict, capabilities: dict[str, Capability], order: list[str]) -> str:
+def page(shop: source.Mapped, capabilities: dict[str, Capability], order: list[str]) -> str:
     """The index as markdown, the capabilities by the names they are published under, those of `order` listed in it."""
+    content = shop.content
     held = content.get("sections", [])
     purpose = [section for section in held if section["title"] == "Purpose"]
     others = [section for section in held if section["title"] != "Purpose"]

@@ -3,14 +3,16 @@ inconsistently. Each check gives its faults in plain words, naming what is at fa
 once, so nothing is written (rule 6) until the shop is put right. All run before any page is laid out."""
 from collections import defaultdict
 
-from kb.content import loads
 from kb.contract import kb_pb2
 
-from shop_knowledge import consistency
+from shop_knowledge import consistency, iris
 from shop_knowledge.renderers import names, shop_capabilities, source, spec_decisions
 
 
-def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]):
+Mapped = source.Mapped
+
+
+def check(client, shop: Mapped, ordered: list[Mapped], formulating: dict[str, list[Mapped]]):
     """The faults of the capabilities linking to the shop, the features formulating them, and the decisions
     linking to the shop; or the faults of the read that could not be made."""
     own, faults = spec_decisions.of(client, shop.id)
@@ -34,7 +36,7 @@ def check(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact], formula
 
 
 def _fault(artifact: str, rule: str, message: str) -> kb_pb2.Fault:
-    return kb_pb2.Fault(artifact=artifact, rule=rule, message=message)
+    return kb_pb2.Fault(artifact=iris.to_kb(artifact), rule=rule, message=message)
 
 
 def _grouped(pairs: list[tuple[str, str]]) -> list[tuple[str, list[str]]]:
@@ -56,33 +58,33 @@ def _numbered(decisions: list[spec_decisions.Decision]) -> list[kb_pb2.Fault]:
             for key, ids in _grouped(pairs)]
 
 
-def _ordered(capabilities: list[kb_pb2.Artifact]) -> list[kb_pb2.Fault]:
+def _ordered(capabilities: list[Mapped]) -> list[kb_pb2.Fault]:
     """A fault for each order that more than one capability carries, orders equal where they compare equal."""
-    pairs = [(each.id, str(shop_capabilities.position(loads(each.content)["order"]))) for each in capabilities]
+    pairs = [(each.id, str(shop_capabilities.position(each.content["order"]))) for each in capabilities]
     return [_fault(ids[0], "order-places-one-capability", f"carries an order, and an order places one capability; {' and '.join(ids[1:])} carries it too")
             for _, ids in _grouped(pairs)]
 
 
-def _borrowed(ordered: list[kb_pb2.Artifact], own: set[str]) -> list[kb_pb2.Fault]:
+def _borrowed(ordered: list[Mapped], own: set[str]) -> list[kb_pb2.Fault]:
     """A fault for each decision a capability rests on that is not one of the shop's own."""
     return [_fault(each.id, "rests-on-its-own-shops-decisions", f"rests on {decision}, a decision of another shop; a capability rests only on its own shop's decisions")
-            for each in ordered for decision in loads(each.content).get("rests_on", []) if decision not in own]
+            for each in ordered for decision in each.content.get("rests_on", []) if decision not in own]
 
 
-def _undepended(ordered: list[kb_pb2.Artifact], formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
+def _undepended(ordered: list[Mapped], formulating: dict[str, list[Mapped]]) -> list[kb_pb2.Fault]:
     """A fault for each scenario whose `uses` names a capability that is not among its capability's `depends_on`."""
     return [fault for capability in ordered for feature in formulating.get(capability.id, [])
-            for fault in consistency.undepended(feature, loads(capability.content).get("depends_on", []))]
+            for fault in consistency.undepended(feature, capability.content.get("depends_on", []))]
 
 
-def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):
+def _retired(client, shop: Mapped, ordered: list[Mapped]):
     """A fault for each published capability whose `depends_on`, and for each constraint of the shop whose
     `tested_in`, names a retired capability, in any shop, each named read whole for its status; or the faults of the
     first read that was refused."""
     asks = [(each.id, "depends-on-a-retired-capability", name, _depends_on_retired)
-            for each in ordered for name in loads(each.content).get("depends_on", [])]
+            for each in ordered for name in each.content.get("depends_on", [])]
     asks += [(shop.id, "tested-in-a-retired-capability", name, _tested_in_retired(constraint["title"]))
-             for constraint in loads(shop.content).get("constraints", []) for name in constraint.get("tested_in", [])]
+             for constraint in shop.content.get("constraints", []) for name in constraint.get("tested_in", [])]
     status = {}
     faults = []
     for artifact, rule, name, message in asks:
@@ -90,7 +92,7 @@ def _retired(client, shop: kb_pb2.Artifact, ordered: list[kb_pb2.Artifact]):
             read = source.whole(client, name)
             if refused := source.faults(read):
                 return [], refused
-            status[name] = loads(read.result.content)["status"]
+            status[name] = source.mapped(read.result).content["status"]
         if status[name] == "retired":
             faults.append(_fault(artifact, rule, message(name)))
     return faults, []
@@ -106,12 +108,12 @@ def _tested_in_retired(title: str):
     return lambda name: f"carries the constraint \"{title}\", tested in {name}, a retired capability; a constraint is tested only in one in use"
 
 
-def _ragged(formulating: dict[str, list[kb_pb2.Artifact]]) -> list[kb_pb2.Fault]:
+def _ragged(formulating: dict[str, list[Mapped]]) -> list[kb_pb2.Fault]:
     """A fault for each scenario, or background, holding a table whose rows are not all as wide as its first."""
     faults = []
     for features in formulating.values():
         for feature in features:
-            content = loads(feature.content)
+            content = feature.content
             holders = [("the background", _tables(content.get("background", []), []))] + [
                 (f"scenario \"{each['title']}\"", _tables(each["steps"], [each["examples"]] if each.get("examples") else []))
                 for each in content.get("scenarios", [])]
