@@ -99,7 +99,7 @@ only.
 - Unknown: whether one mapped artifact can stand for kb's answer in every renderer
 - Needs: none
 - Lands: 7 production, 0 test
-- Status: planned
+- Status: green
 
 ## Slice 82.2: The spec renderer reads mapped artifacts
 - Kind: enabling
@@ -275,3 +275,5 @@ only.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 7d6be27 in 32 s
 - 2026-10-12 slice 82 green. Someone can now: move the pin by changing tests/kb_names.py alone on the test side. Surprised by: session_guard's HistoryRequest has no fields in the code, so the helper only wraps it; test_make_several_changes_at_once.py's HistoryRequest(batch=) is not a locator and stays. Open questions: none. Next: slice 83.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 14305f1 in 32 s
+- 2026-10-12 slice 82.1 green. Someone can now: change kb's pin with the page renderers (markdown, skill, diagram, agent) reading only source.Mapped, built through iris.py. Surprised by: nothing; limits' fault artifact is sent back through iris.to_kb since cli's printer maps it. Open questions: none. Next: slice 82.2 (spec family takes source.Mapped via source.mapped(artifact)).
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 7597f6b in 31 s
