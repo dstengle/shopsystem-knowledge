@@ -54,7 +54,7 @@ only.
 - Unknown: whether the commands' requests and answers can name kinds and ids through one module without a change a user sees
 - Needs: none
 - Lands: 7 production, 0 test
-- Status: planned
+- Status: green
 
 ## Slice 79: The readers reach kb through the seam
 - Kind: enabling
@@ -242,3 +242,7 @@ only.
 - 2026-10-12 Sweep: kb mints the ids (reversed: the client names every artifact at an IRI, kb.v2) -> 13 production places, 13 test places; owned by slices 78-83 (seams and flip, names kept as today meanwhile, shop-knol minting the slug kb minted) and 87-88 (the user names what they create); 0 questions, 0 deferred
 - 2026-10-12 slice 77 green. Someone can now: run the suite and read 37 expected failures of slices 84, 87-91 instead of 37 failures, with --slice <n> for the slice being built. Surprised by: slices 85, 86 and 92 have no test module, so their 24 scenarios are not collected and not expected. Open questions: none. Next: slice 78.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at faad1c9 in 31 s
+- 2026-10-12 slice 78 green. Someone can now: find every kind, id, type-of-types and version field the commands send kb or read back in one module, src/shop_knowledge/iris.py (the identity on kb.v1), so the flip to kb.v2 changes that module for the commands, init, bootstrap, batch and answers.
+  Surprised by: the check's search forbids the field names themselves (kind=, key=, schema_version), so the seam hands back request fields as dicts (of_kind, of_types, create_fields, item_fields) and the printed version as a dict (versioned); ids, not only kinds, were routed through to_kb/from_kb (D2), including journal --artifact, snapshot names and history entries.
+  Open questions: at the flip, the seam must map an empty kind or name (refs/search --type, journal --artifact) to empty; links inside content (a whole read's links, a batch's @key in content) still carry the user's names, which kb.v2 may want as IRIs, and no module owns rewriting them. Next: slice 79.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 333671b in 32 s
