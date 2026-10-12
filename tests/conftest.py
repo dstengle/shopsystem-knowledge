@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 from kb.content import loads
-from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then
 
 import driver
 from driver import knol, start
+import kb_names
 from kb_oracle import kb_answer, printed
 from session_guard import _allowlisted
 from session_guard import *  # noqa: F403  conftest.py alone star-imports this, so pytest sees `pytest_sessionstart` (adrs/0048)
@@ -170,7 +170,7 @@ def _not_refused(result):
 @then(parsers.parse('the answer is rejected because that shop is not there, naming "{shop}"'))
 def _rejected(env, result, held, shop):
     """kb's own refusal of the same read, one line to each fault, and it names the shop."""
-    request = kb_pb2.ReadRequest(locator=kb_pb2.Locator(id=held["shop"]), whole=kb_pb2.ReadRequest.Whole(depth=0))
+    request = kb_names.read_whole_request(held["shop"])
     faults = kb_answer(env, "Read", request).refusal.faults
     assert faults, "kb holds the shop"
     assert result.returncode == 1 and result.stdout == "", result.stdout

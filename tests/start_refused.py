@@ -4,10 +4,10 @@ other does."""
 from pathlib import Path
 
 import pytest
-from kb.contract import kb_pb2
 from pytest_bdd import given, parsers, then
 
 from driver import knol, removed, start, store_in
+import kb_names
 from kb_oracle import kb_answer, kb_refuses_to_start, operator_started, printed
 
 
@@ -135,7 +135,7 @@ def _rejected_as_gone(result):
 def _finding(env, start_in) -> list:
     """kb's own refusal to find a knowledge base from where the user started one, asked with the call init finds it
     by: the names of the types it holds."""
-    asked = kb_pb2.ListRequest(kind="schema", form=kb_pb2.ListRequest.IDS)
+    asked = kb_names.list_of_types()
     return kb_answer(env, "List", asked, cwd=start_in).refusal.faults
 
 

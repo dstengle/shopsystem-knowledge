@@ -7,6 +7,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from decision_fields import decided, shop_of
 from driver import knol, record, start
+import kb_names
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 from batch_writes import *  # noqa: F403  this module alone star-imports it (adrs/0035)
 
@@ -173,7 +174,7 @@ def _kb_refuses_the_batch(env, batch_file):
         content = dict(change["content"])
         title = content.pop("title")
         key = change.get("key", "")
-        items.append(kb_pb2.CreateItem(kind=change["create"], key=key, title=title, content=dumps(content)))
+        items.append(kb_names.create_item(change["create"], title, dumps(content), key))
     request = kb_pb2.BatchCreateRequest(items=items, signature=signature(env, SAYING_WHY))
     return kb_answer(env, "BatchCreate", request).refusal.faults
 
