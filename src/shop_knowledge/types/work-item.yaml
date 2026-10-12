@@ -2,7 +2,7 @@ title: Work item
 version: 1
 schema:
   allOf:
-    - $ref: kb:schema/shop-artifact
+    - $ref: kb:https://missingmass.io/shopsystem/shop-artifact@1
   type: object
   properties:
     title:
@@ -12,7 +12,7 @@ schema:
       items:
         type: string
       ref:
-        targets: [decision]
+        targets: [https://missingmass.io/shopsystem/decision]
         cardinality: many
         parts: false
         on_delete: refuse

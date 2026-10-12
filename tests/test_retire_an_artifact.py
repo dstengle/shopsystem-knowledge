@@ -3,7 +3,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from decision_fields import decided, shop_of
 from driver import knol, record, start
-from kb_names import remove_request
+from kb_names import artifact_name, remove_request
 from kb_oracle import kb_answer, printed, signature
 
 scenarios("retire-an-artifact.feature")
@@ -68,7 +68,7 @@ def _rejected(result, env):
 def _told_what_points_at_it(env, result):
     """One line for the one decision tagged with it, naming that decision, in kb's words."""
     faults = _kb_refuses_to_remove(env)
-    assert [fault.artifact for fault in faults] == [MONTHLY], faults
+    assert [artifact_name(fault.artifact) for fault in faults] == [MONTHLY], faults
     assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
 
 

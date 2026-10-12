@@ -2,7 +2,7 @@ title: Decision
 version: 1
 schema:
   allOf:
-    - $ref: kb:schema/shop-artifact
+    - $ref: kb:https://missingmass.io/shopsystem/shop-artifact@1
   type: object
   properties:
     title:
@@ -20,14 +20,14 @@ schema:
     supersedes:
       type: string
       ref:
-        targets: [decision]
+        targets: [https://missingmass.io/shopsystem/decision]
         cardinality: one
         parts: false
         on_delete: refuse
     shop:
       type: string
       ref:
-        targets: [shop]
+        targets: [https://missingmass.io/shopsystem/shop]
         cardinality: one
         parts: false
         on_delete: refuse
@@ -38,7 +38,7 @@ schema:
       items:
         type: string
       ref:
-        targets: [decision]
+        targets: [https://missingmass.io/shopsystem/decision]
         cardinality: many
         parts: false
         on_delete: refuse

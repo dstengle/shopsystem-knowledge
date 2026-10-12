@@ -123,7 +123,7 @@ def _one_change(env, result):
     # `shop-knol journal` has no batch filter and does not show the batch.
     applied = loads(result.stdout)
     history = kb_answer(env, "History", kb_pb2.HistoryRequest(batch=applied["batch"])).result
-    assert [entry.artifact for entry in history.entries] == [change["id"] for change in applied["results"]]
+    assert [kb_names.artifact_name(entry.artifact) for entry in history.entries] == [change["id"] for change in applied["results"]]
     assert {entry.message for entry in history.entries} == {SAYING_WHY}
 
 

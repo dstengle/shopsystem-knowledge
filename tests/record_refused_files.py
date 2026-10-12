@@ -10,7 +10,7 @@ from pytest_bdd import given, then, when
 
 from decision_fields import decided, shop_of
 from driver import knol
-from kb_names import create_request
+from kb_names import artifact_name, create_request
 from kb_oracle import UNKEPT, kb_answer, printed, refused_as_unkept, signature
 
 SAYING_WHY = "Move price reviews to weekly"
@@ -33,7 +33,7 @@ def _file_missing_a_section(env, tmp_path):
 def _rejected_for_not_fitting(env, result, decision_file):
     """Printed as kb returned it: every fault kb's own answer to the same Create gives, one line each."""
     faults = _kb_refuses_to_create(env, decision_file)
-    assert faults and all(fault.artifact.startswith("decision/") for fault in faults), faults
+    assert faults and all(artifact_name(fault.artifact).startswith("decision/") for fault in faults), faults
     assert sorted(result.stderr.splitlines()) == sorted(printed(fault) for fault in faults), result.stderr
 
 
@@ -52,7 +52,7 @@ def _kb_refuses_to_create(env, decision_file):
 def _told_artifact_and_place(env, result, decision_file):
     """One line, naming the artifact and the place the shop's spec says, in kb's words for the fault there."""
     faults = _kb_refuses_to_create(env, decision_file)
-    assert [(fault.artifact, fault.place) for fault in faults] == [("decision/prices-are-reviewed-monthly", "sections")]
+    assert [(artifact_name(fault.artifact), fault.place) for fault in faults] == [("decision/prices-are-reviewed-monthly", "sections")]
     assert result.stderr.splitlines() == [printed(faults[0])], result.stderr
 
 

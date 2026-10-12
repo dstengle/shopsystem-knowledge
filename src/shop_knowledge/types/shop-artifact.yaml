@@ -12,7 +12,7 @@ schema:
       items:
         type: string
       ref:
-        targets: [tag]
+        targets: [https://missingmass.io/shopsystem/tag]
         cardinality: many
         parts: false
         on_delete: refuse

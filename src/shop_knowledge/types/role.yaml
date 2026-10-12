@@ -2,7 +2,7 @@ title: Role
 version: 1
 schema:
   allOf:
-    - $ref: kb:schema/shop-artifact
+    - $ref: kb:https://missingmass.io/shopsystem/shop-artifact@1
   type: object
   properties:
     title:
