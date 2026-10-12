@@ -4,6 +4,7 @@ its own content, and a create may carry a key that a link anywhere in the set, w
 from kb.content import dumps, text
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
 from shop_knowledge.refusal import Refused
 
 
@@ -24,5 +25,6 @@ def _item(change: dict) -> kb_pb2.CreateItem | kb_pb2.ReplaceItem:
     content = dict(change["content"])
     if "create" in change:
         title = text(content.pop("title", None))
-        return kb_pb2.CreateItem(kind=change["create"], key=change.get("key", ""), title=title, content=dumps(content))
-    return kb_pb2.ReplaceItem(locator=kb_pb2.Locator(id=change["write"]), content=dumps(content))
+        fields = iris.item_fields(change["create"], change.get("key", ""), title)
+        return kb_pb2.CreateItem(**fields, title=title, content=dumps(content))
+    return kb_pb2.ReplaceItem(locator=kb_pb2.Locator(id=iris.to_kb(change["write"])), content=dumps(content))

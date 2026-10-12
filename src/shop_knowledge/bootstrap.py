@@ -4,6 +4,8 @@ from importlib import resources
 from kb.content import dumps, loads
 from kb.contract import kb_pb2
 
+from shop_knowledge import iris
+
 TYPES = (
     "shop-artifact", "tag", "product", "shop", "capability", "decision", "work-item", "feature", "role", "step", "process",
 )
@@ -22,4 +24,5 @@ def load(client, signed: kb_pb2.Signature):
         signature = kb_pb2.Signature(
             role=signed.role, execution=signed.execution, message=f"Define the shop's {title.lower()} type",
         )
-        yield client.Create(kb_pb2.CreateRequest(kind="schema", title=title, content=dumps(content), signature=signature))
+        fields = iris.create_fields(iris.TYPE_OF_TYPES, title, name)
+        yield client.Create(kb_pb2.CreateRequest(**fields, title=title, content=dumps(content), signature=signature))

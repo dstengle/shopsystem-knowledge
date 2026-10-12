@@ -12,7 +12,7 @@ import kb
 from kb.client import connect
 from kb.contract import kb_pb2
 
-from shop_knowledge import bootstrap, kb_requests
+from shop_knowledge import bootstrap, iris, kb_requests
 from shop_knowledge.refusal import Refused
 
 _GONE = "the directory you are working in is gone"
@@ -66,7 +66,7 @@ def _refuse_unless_furnished(listed: kb_pb2.ListResponse, named: str) -> None:
 
 def _kinds(listed: kb_pb2.ListResponse) -> list[str]:
     """The kinds of the types kb's answer to init's List names, besides kb's own."""
-    return [held.removeprefix("schema/") for held in listed.result.ids if held != "schema/schema"]
+    return [iris.type_name(held) for held in listed.result.ids if not iris.is_type_of_types(held)]
 
 
 def _holds_the_shops_types(listed: kb_pb2.ListResponse) -> bool:
@@ -101,7 +101,7 @@ def _reached_at(client, root: Path) -> bool:
 
 def _empty(listed: kb_pb2.ListResponse) -> bool:
     """Whether kb's answer to init's List names no type but kb's own."""
-    return listed.WhichOneof("outcome") == "result" and list(listed.result.ids) == ["schema/schema"]
+    return listed.WhichOneof("outcome") == "result" and [iris.is_type_of_types(held) for held in listed.result.ids] == [True]
 
 
 def _started(root: Path, signature: kb_pb2.Signature) -> None:
