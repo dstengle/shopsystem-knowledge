@@ -101,7 +101,8 @@ def _reached_at(client, root: Path) -> bool:
 
 def _empty(listed: kb_pb2.ListResponse) -> bool:
     """Whether kb's answer to init's List names no type but kb's own."""
-    return listed.WhichOneof("outcome") == "result" and [iris.is_type_of_types(held) for held in listed.result.ids] == [True]
+    held = listed.result.ids
+    return listed.WhichOneof("outcome") == "result" and len(held) == 1 and iris.is_type_of_types(held[0])
 
 
 def _started(root: Path, signature: kb_pb2.Signature) -> None:

@@ -14,23 +14,27 @@ def init_request() -> kb_pb2.ListRequest:
     return kb_pb2.ListRequest(**iris.of_types(), form=kb_pb2.ListRequest.IDS)
 
 
-def create_request(args, document: dict) -> kb_pb2.CreateRequest:
-    """The title is split off the content, since kb takes it as a field of its own."""
+def create_request(args, document: dict, client) -> kb_pb2.CreateRequest:
+    """The title is split off the content, since kb takes it as a field of its own; the client is the seam's to ask
+    kb what the request must say of the type."""
     content = dict(document)
     title = text(content.pop("title", None))
     return kb_pb2.CreateRequest(
-        **iris.create_fields(args.type, title), title=title, content=dumps(content), signature=args.by["signature"],
+        **iris.create_fields(client, args.type, title), title=title, content=dumps(iris.content_to_kb(content)),
+        signature=args.by["signature"],
     )
 
 
 def write_request(args, document: dict) -> kb_pb2.ReplaceRequest:
     return kb_pb2.ReplaceRequest(
-        locator=_locator(args.locator), content=dumps(document), signature=args.by["signature"],
+        locator=_locator(args.locator), content=dumps(iris.content_to_kb(document)), signature=args.by["signature"],
     )
 
 
 def append_request(args, document: dict) -> kb_pb2.AddRequest:
-    return kb_pb2.AddRequest(locator=_locator(args.locator), content=dumps(document), signature=args.by["signature"])
+    return kb_pb2.AddRequest(
+        locator=_locator(args.locator), content=dumps(iris.content_to_kb(document)), signature=args.by["signature"],
+    )
 
 
 def delete_request(args) -> kb_pb2.RemoveRequest:
@@ -62,9 +66,9 @@ def validate_request(args) -> kb_pb2.CheckRequest:
     return kb_pb2.CheckRequest()
 
 
-def apply_request(args, document: dict) -> kb_pb2.BatchCreateRequest | kb_pb2.BatchReplaceRequest:
-    """One set of creates, or one set of writes, as the batch's changes are."""
-    items = batch.items(document, named(args.source))
+def apply_request(args, document: dict, client) -> kb_pb2.BatchCreateRequest | kb_pb2.BatchReplaceRequest:
+    """One set of creates, or one set of writes, as the batch's changes are; the client as `create_request`'s."""
+    items = batch.items(document, named(args.source), client)
     if all(isinstance(item, kb_pb2.CreateItem) for item in items):
         return kb_pb2.BatchCreateRequest(items=items, signature=args.by["signature"])
     return kb_pb2.BatchReplaceRequest(items=items, signature=args.by["signature"])

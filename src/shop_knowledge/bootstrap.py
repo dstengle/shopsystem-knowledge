@@ -24,5 +24,5 @@ def load(client, signed: kb_pb2.Signature):
         signature = kb_pb2.Signature(
             role=signed.role, execution=signed.execution, message=f"Define the shop's {title.lower()} type",
         )
-        fields = iris.create_fields(iris.TYPE_OF_TYPES, title, name)
+        fields = iris.create_fields(client, iris.TYPE_OF_TYPES, title, name)
         yield client.Create(kb_pb2.CreateRequest(**fields, title=title, content=dumps(content), signature=signature))

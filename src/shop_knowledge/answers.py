@@ -39,11 +39,11 @@ def glance(response: kb_pb2.Artifact) -> dict:
     """A summary read as the user is shown it: identity, the fields the type shows, stubs, parts and inbound counts."""
     return {
         **_identity(response),
-        **loads(response.content),
+        **iris.content_from_kb(loads(response.content)),
         "references": [
             {
                 "field": stub.field, "id": iris.from_kb(stub.id), "type": iris.shown_kind(stub), "title": stub.title,
-                **loads(stub.fields),
+                **iris.content_from_kb(loads(stub.fields)),
             }
             for stub in response.references
         ],
@@ -56,12 +56,12 @@ def glance(response: kb_pb2.Artifact) -> dict:
 
 def whole(response: kb_pb2.Artifact) -> dict:
     """A whole read as the user is shown it: the identity, then the content as kb gives it."""
-    return {**_identity(response), **loads(response.content)}
+    return {**_identity(response), **iris.content_from_kb(loads(response.content))}
 
 
 def section(response: kb_pb2.Artifact) -> dict:
     """A section read as the user is shown it: the section as kb gives it, and nothing else."""
-    return loads(response.content)
+    return iris.content_from_kb(loads(response.content))
 
 
 def applied(response: kb_pb2.BatchCreated | kb_pb2.BatchReplaced) -> dict:
@@ -101,7 +101,10 @@ def recorded(response: kb_pb2.Recorded) -> dict:
 def listed(response: kb_pb2.Listed) -> list:
     """What a list gives back: one entry for each artifact, its name, type and title, then the fields the type shows."""
     return [
-        {"id": iris.from_kb(stub.id), "type": iris.shown_kind(stub), "title": stub.title, **loads(stub.fields)}
+        {
+            "id": iris.from_kb(stub.id), "type": iris.shown_kind(stub), "title": stub.title,
+            **iris.content_from_kb(loads(stub.fields)),
+        }
         for stub in response.stubs
     ]
 
@@ -113,7 +116,7 @@ def reached(response: kb_pb2.Followed) -> list:
         {
             "id": iris.from_kb(found.stub.id), "type": iris.shown_kind(found.stub), "title": found.stub.title,
             "via": found.stub.field,
-            **loads(found.stub.fields),
+            **iris.content_from_kb(loads(found.stub.fields)),
             "route": [{"field": hop.field, "id": iris.from_kb(hop.id)} for hop in found.route],
         }
         for found in response.reached

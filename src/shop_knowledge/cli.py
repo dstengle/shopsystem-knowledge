@@ -11,7 +11,9 @@ from kb.client import connect
 from kb.content import dumps
 from kb.contract import kb_pb2
 
-from shop_knowledge import answers, arguments, bootstrap, consistency, coverage, dependencies, document, init, kb_requests, published
+from shop_knowledge import (
+    answers, arguments, bootstrap, consistency, coverage, dependencies, document, init, iris, kb_requests, published,
+)
 from shop_knowledge.refusal import Refused
 from shop_knowledge.renderers import RENDERERS
 
@@ -71,7 +73,8 @@ def _show(document: dict | list, as_json: bool = False) -> None:
 def _plain(fault: kb_pb2.Fault) -> str:
     """One fault as a line a person reads: where, then the rule, then what is wrong."""
     message = " ".join(line.strip() for line in fault.message.splitlines())
-    where = f"{fault.artifact} at {fault.place}" if fault.place else fault.artifact
+    artifact = iris.from_kb(fault.artifact)
+    where = f"{artifact} at {fault.place}" if fault.place else artifact
     said = f"{fault.rule}: {message}" if fault.rule else message
     return f"{where}: {said}" if where else said
 
@@ -105,8 +108,9 @@ def _init(args) -> int:
 
 
 def _create(args) -> int:
-    request = kb_requests.create_request(args, document.read(args.source, "content"))
-    response = _answered(_client().Create(request))
+    client = _client()
+    request = kb_requests.create_request(args, document.read(args.source, "content"), client)
+    response = _answered(client.Create(request))
     _show(answers.created(response))
     return 0
 
@@ -153,8 +157,8 @@ def _validate(args) -> int:
 
 
 def _apply(args) -> int:
-    request = kb_requests.apply_request(args, document.read(args.source, "batch"))
     client = _client()
+    request = kb_requests.apply_request(args, document.read(args.source, "batch"), client)
     batched = client.BatchCreate if isinstance(request, kb_pb2.BatchCreateRequest) else client.BatchReplace
     response = _answered(batched(request))
     _show(answers.applied(response))
