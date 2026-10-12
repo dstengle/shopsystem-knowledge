@@ -63,7 +63,7 @@ only.
 - Unknown: none
 - Needs: none
 - Lands: 7 production, 0 test
-- Status: planned
+- Status: green
 
 ## Slice 80: A test seam for what tests hand kb, first group
 - Kind: enabling
@@ -248,3 +248,5 @@ only.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 333671b in 32 s
 - 2026-10-12 slice 78 fix round 1: content sent and shown, a printed fault's artifact and a Create's or batch item's type version (through the client it is handed) now go through iris.py, the identity on kb.v1; kb's refusal messages printed verbatim (rulings in the batch's progress.md). Open question: the round-trip invariant (from_kb(to_kb(n)) == n, to_kb('') == '', of_kind('') every kind) has no test module that fits; for the branch review.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at b9a30ac in 33 s
+- 2026-10-12 slice 79 green. Someone can now: change kb's pin by changing iris.py alone for the readers' Lists, kinds and content. Surprised by: nothing. Open questions: renderers outside the seven (spec_faults, diagram, skill, markdown, agent, spec_capabilities) read ids and content raw. Next: slice 80.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 9bdcac1 in 33 s
