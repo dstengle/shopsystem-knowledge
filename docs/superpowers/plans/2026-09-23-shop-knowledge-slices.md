@@ -233,6 +233,11 @@ only.
 - 2026-10-08 A file publishing would write over but cannot write fails partway, earlier files staying written (predates batch 18). Repro: an existing spec/index.md chmod 444, render spec: earlier files written, then Permission denied. (from batch 18's branch review)
 - 2026-10-08 spec_faults.py reads a constraint's title and a capability's status without a guard; only a store damaged outside the contract reaches it. (from batch 18's fix-wave re-review)
 - 2026-10-12 list --where sends a link field's value as the user wrote it, not as kb's IRI, so on kb.v2 a name never matches: kb_requests.list_request builds fields from args.where without iris.to_kb. Reproduction: a shop shop/corner-shop with product: product/grocer; shop-knol list --type shop --where product=product/grocer --ids prints [], exit 0; the same with --where product=https://missingmass.io/shopsystem/product/missingmass.io/shopsystem/shop-knowledge/grocer prints shop/corner-shop. No scenario lists by a link field (slice 83's probe).
+- 2026-10-12 A batch prose value that is exactly @<key> is rewritten to the keyed create's IRI (iris.py:110). Repro: a batch create whose purpose body is '@d1' beside a create keyed d1, then read it back. (from slice 83's review)
+- 2026-10-12 A title with no usable name ('!!!', '日本') is refused in kb.v2's IRI-grammar words naming tag/, worse than kb 0.6's 'a title with no slug'. Repro: shop-knol create tag from a file titled '!!!'. Spec question once names are the user's (slice 87). (from slice 83's review)
+- 2026-10-12 Unreachable: iris.created_items' shared-key branch, now that batch.py refuses a key two creates carry first (iris.py:104). (from slice 83's review)
+- 2026-10-12 shop_capabilities.of (raw kb artifacts) kept beside mapped_of for coverage and dependencies; move them to mapped_of and drop of. (from slice 82.2)
+- 2026-10-12 init on a kb 0.6.0 store named as a directory or run inside it says 'a store is never started over another', hiding kb's 'made by an earlier version of kb' (given only through KB_ROOT). Repro: kb 0.6 store at d, shop-knol init d. (slice 83's Review Focus 4)
 
 ## Log
 - 2026-10-07 REQUEST kb: a validate-only mode on BatchCreate and BatchReplace, checking a batch as it would land and landing nothing (adrs/0053; spec/capabilities/make-several-changes-at-once.md Not yet). No slice of batch 16 waits on it.
