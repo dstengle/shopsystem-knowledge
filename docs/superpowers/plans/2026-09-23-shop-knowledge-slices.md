@@ -81,7 +81,7 @@ only.
 - Unknown: none
 - Needs: none
 - Lands: 0 production, 4 test
-- Status: planned
+- Status: green
 
 ## Slice 82: The test seam, third group
 - Kind: enabling
@@ -271,3 +271,5 @@ only.
 - 2026-10-12 slice 80 green. Someone can now: change what kb_oracle, record_refused_files and spec_attempt hand kb or read from its messages by changing tests/kb_names.py alone. Surprised by: nothing. Open questions: none. Next: slice 81.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 3ce6003 in 32 s
 - 2026-10-12 Probe: searches for ids and content read from kb answers outside iris.py (.superpowers/scout/batch19/task-79.1.md) -> 12 production modules (source and four page renderers; the spec family and consistency), 0 test; cut as slices 82.1 and 82.2 before the flip
+- 2026-10-12 slice 81 green. Someone can now: change the pin with start, batch and conftest requests going through tests/kb_names.py. Surprised by: start_not_empty.py was already done by slice 80. Open questions: none. Next: slice 82.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 7d6be27 in 32 s
