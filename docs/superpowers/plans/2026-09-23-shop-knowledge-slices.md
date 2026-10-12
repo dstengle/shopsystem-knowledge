@@ -45,7 +45,7 @@ only.
 - Unknown: none
 - Needs: the scenarios of slices 84-92 tagged
 - Lands: 0 production, 2 test
-- Status: planned
+- Status: green
 
 ## Slice 78: One seam builds kb's requests for the commands
 - Kind: enabling
@@ -240,3 +240,5 @@ only.
 - 2026-10-12 Probe: kb 0.6.0 mints a name from a title by lowercasing and hyphenating runs of non-alphanumerics, numbering a taken one -2, -3 (run, .superpowers/scout/kbv2/seam.md); no scenario at HEAD asserts a numbered name (the -2 scenario was rewritten as a refusal)
 - 2026-10-12 Probe: searches for the kb.v1 forms by module (seam.md) -> production: 6 commands-and-answers modules plus the seam, and 7 reading modules; tests: 10 modules hand kb a request or read its fields, plus the test seam; the stand-in spells no v1 field
 - 2026-10-12 Sweep: kb mints the ids (reversed: the client names every artifact at an IRI, kb.v2) -> 13 production places, 13 test places; owned by slices 78-83 (seams and flip, names kept as today meanwhile, shop-knol minting the slug kb minted) and 87-88 (the user names what they create); 0 questions, 0 deferred
+- 2026-10-12 slice 77 green. Someone can now: run the suite and read 37 expected failures of slices 84, 87-91 instead of 37 failures, with --slice <n> for the slice being built. Surprised by: slices 85, 86 and 92 have no test module, so their 24 scenarios are not collected and not expected. Open questions: none. Next: slice 78.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at faad1c9 in 31 s
