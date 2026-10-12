@@ -73,8 +73,13 @@ def of_types() -> dict:
 
 def ids_request(kind: str, fields: dict[str, str] | None = None) -> kb_pb2.ListRequest:
     """A List of the ids of the artifacts of the kind a user names, those whose fields hold the names given."""
-    return kb_pb2.ListRequest(**of_kind(kind), fields={key: to_kb(value) for key, value in (fields or {}).items()},
-                              form=kb_pb2.ListRequest.IDS)
+    return kb_pb2.ListRequest(**of_kind(kind), fields=fields_to_kb(fields or {}), form=kb_pb2.ListRequest.IDS)
+
+
+def fields_to_kb(fields: dict[str, str]) -> dict[str, str]:
+    """A List's field values as kb is sent them: a value naming one of the shop's artifacts or types, or a part of
+    one, as kb's id for it, as content is sent; any other value as it is."""
+    return {key: _to_kb_linked(value) for key, value in fields.items()}
 
 
 def listed_ids(response: kb_pb2.ListResponse) -> list[str]:
@@ -97,11 +102,11 @@ def create_fields(client, kind: str, title: str, name: str = "") -> dict:
 def created_items(client, creates: list[tuple[str, str, str, dict]]) -> list[tuple[dict, dict]]:
     """For each create of a batch, given as its kind, its key (empty where it has none), its title and its content:
     the CreateItem's fields besides title and content, and the content as kb is sent it, every link written
-    `@<key>` naming the IRI the one create carrying that key is given; a key no create, or more than one, carries is
-    sent as written, for kb to refuse."""
+    `@<key>` naming the IRI the create carrying that key is given (batch.py has refused a key two creates carry);
+    a key no create carries is sent as written, for kb to refuse."""
     fields = [create_fields(client, kind, title) for kind, _, title, _ in creates]
     keys = [key for _, key, _, _ in creates]
-    keyed = {key: made["id"] for key, made in zip(keys, fields) if key and keys.count(key) == 1}
+    keyed = {key: made["id"] for key, made in zip(keys, fields) if key}
     return [
         (made, _each_string(content_to_kb(content), lambda value: _resolved(value, keyed)))
         for made, (_, _, _, content) in zip(fields, creates)

@@ -1,6 +1,7 @@
 """A capability's page, `spec/capabilities/<name>.md`, laid out from the capability's content: its frontmatter, its
 title, its Purpose, its Behaviour, its other sections, then what it does not yet do."""
 from kb.content import dumps
+
 from shop_knowledge.renderers import published_from, sections, source
 
 

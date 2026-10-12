@@ -1,3 +1,4 @@
+from kb.content import loads
 from pytest_bdd import given, scenarios, then, when
 
 from decision_fields import decided, shop_of
@@ -63,3 +64,13 @@ def _three_names(shown, recorded):
     assert isinstance(shown, list)
     assert sorted(shown) == sorted(recorded["ids"].values())
     assert all(isinstance(name, str) for name in shown)
+
+
+def test_listing_by_a_link_field_shows_the_artifacts_linking_there(env, shop, tmp_path):
+    """No scenario lists by a field holding a link (branch review of batch 19, I1): the Behaviour line "asking for
+    those whose field holds a given value, the user is shown only the artifacts that match" holds when the value is a
+    name the user writes as `<kind>/<name>`."""
+    recorded = _three_decisions(env, shop, tmp_path)
+    result = knol(env, "list", "--type", "decision", "--where", f"supersedes={recorded['superseded']}", "--ids")
+    assert result.returncode == 0, result.stderr
+    assert loads(result.stdout) == [recorded["ids"]["Price reviews happen weekly"]]

@@ -14,7 +14,7 @@ class Mapped(NamedTuple):
     id: str
     kind: str
     title: str
-    revision: str
+    revision: int
     content: dict
     version: int
 

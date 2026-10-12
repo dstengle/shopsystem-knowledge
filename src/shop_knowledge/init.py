@@ -4,8 +4,8 @@ other than the shop's types is refused as not empty, naming what it holds; one t
 through KB_ROOT elsewhere, reached through a server (named by its address) or named, as already holding the shop's
 knowledge; one named that sits inside a knowledge base but holds none of its own, as kb refuses starting one there.
 Every refusal is raised as `Refused`, a kb answer's through the caller's `answered`; nothing here prints."""
-from collections.abc import Callable
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 import kb

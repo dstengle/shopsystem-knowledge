@@ -83,7 +83,7 @@ def journal_request(args) -> kb_pb2.HistoryRequest:
 def list_request(args) -> kb_pb2.ListRequest:
     fields = dict(where.partition("=")[::2] for where in args.where)
     form = kb_pb2.ListRequest.IDS if args.ids else kb_pb2.ListRequest.STUBS
-    return kb_pb2.ListRequest(**iris.of_kind(args.type), fields=fields, form=form)
+    return kb_pb2.ListRequest(**iris.of_kind(args.type), fields=iris.fields_to_kb(fields), form=form)
 
 
 def refs_request(args) -> kb_pb2.FollowRequest:

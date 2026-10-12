@@ -8,7 +8,6 @@ from kb.contract import kb_pb2
 from shop_knowledge import consistency, iris
 from shop_knowledge.renderers import names, shop_capabilities, source, spec_decisions
 
-
 Mapped = source.Mapped
 
 

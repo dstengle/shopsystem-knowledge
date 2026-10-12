@@ -3,7 +3,6 @@
 from typing import NamedTuple
 
 from shop_knowledge import iris
-
 from shop_knowledge.renderers import names, published_from, sections, source
 
 

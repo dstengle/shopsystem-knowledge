@@ -14,7 +14,7 @@ from session_guard import _allowlisted
 from session_guard import *  # noqa: F403  conftest.py alone star-imports this, so pytest sees `pytest_sessionstart` (adrs/0048)
 from served_store import *  # noqa: F403  conftest.py alone star-imports this (adrs/0048)
 from store_not_found import *  # noqa: F403  conftest.py alone star-imports this (adrs/0048)
-from slice_expectations import *  # noqa: F401,F403  conftest.py alone star-imports this: a slice not green in the plan is expected to fail
+from slice_expectations import *  # noqa: F403  conftest.py alone star-imports this: a slice not green in the plan is expected to fail
 
 
 def pytest_configure(config):

@@ -235,5 +235,6 @@ Cut during execution: slice 79's implementer found renderers reading kb's ids an
 - `tests/start_refused.py:139`: the oracle's List must be the call shop-knol makes; kept through the helper (Task 5).
 - Every test asserting a `schema/<x>` or `<kind>/<name>` printed name: kept, by D1.
 - None other found by the scouts; any other test going red is a stop, reported with its failure.
+- Added by the controller's ruling of 2026-10-12 after the hand-back: `tests/test_make_several_changes_at_once.py::_rejected_for_a_key_carried_twice` (make-several-changes-at-once / Two creates carrying the same key leave the shop untouched) compares with shop-knol's own line naming the key, not kb's answer: kb.v2 has no batch key, and shop-knol refuses a key two creates carry before asking kb.
 
 **Verify:** the Check; then Review Focus 1 to 5 probed by hand and recorded in the checkpoint; then `-m slice-84` to see whether slice 84's scenario went green (noted in the slice plan as credited to 83 if it did).
