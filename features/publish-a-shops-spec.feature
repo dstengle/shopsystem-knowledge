@@ -12,6 +12,7 @@ Feature: Publish a shop's spec
     Then that directory holds `spec/index.md` from the shop
     And the shop's knowledge base is unchanged
 
+  @slice-89
   Scenario: The user publishes the spec of a shop holding a "Mechanisms every command shares" section
     Pins that the mechanisms every command shares reach the published index, kept with the constraints the shop carries.
     Given the shop holds a "Mechanisms every command shares" section
@@ -25,6 +26,7 @@ Feature: Publish a shop's spec
     When the user publishes the shop's spec into a directory
     Then that directory holds `spec/capabilities/<name>.md` for each capability linking to the shop whose status is active or deprecated
 
+  @slice-89
   Scenario: The user publishes a shop's spec and a capability's page holds its "Implementation, may change" section
     Pins that how a capability is done today reaches its published page beside what it does.
     Given one of the shop's capabilities holds an "Implementation, may change" section
@@ -88,6 +90,7 @@ Feature: Publish a shop's spec
     And that directory holds no feature file for it
     And the index does not list it
 
+  @slice-91
   Scenario: The user publishes a shop's spec and a capability's file is named from the name in its IRI
     Pins that a capability's page and its feature's file both take the capability's own name, never one made from its title, so either can be found from the other.
     Given one of the shop's capabilities named "tail-the-log" in its IRI, titled "Read the log's tail", and a feature formulating it
@@ -95,6 +98,7 @@ Feature: Publish a shop's spec
     Then that directory holds `spec/capabilities/tail-the-log.md` for that capability
     And that directory holds `features/tail-the-log.feature` for the feature formulating it
 
+  @slice-91
   Scenario Outline: The user publishes a shop's spec and a decision's record is named from its number and the name in its IRI
     Pins that a decision's record sorts by its number, padded to four digits and never cut short, and carries the decision's own name, never one made from its title.
     Given one of the shop's decisions numbered <number>, named "<name>" in its IRI, titled "<title>"
@@ -131,6 +135,7 @@ Feature: Publish a shop's spec
     When the user publishes the shop's spec into a directory
     Then every entry in the ledger is a decision the knowledge base holds
 
+  @slice-91
   Scenario Outline: The user publishes a shop's spec into a directory holding files published earlier, and those this publish does not write are deleted
     Pins that a published file nothing published now stands behind leaves the repository, and that deleting reaches nothing outside the three published directories.
     Given a directory holding <stale file>, published earlier from <stale artifact>
@@ -159,6 +164,7 @@ Feature: Publish a shop's spec
       | `features/notes.feature`     |
       | `adrs/notes.md`              |
 
+  @slice-91
   Scenario: Publishing is refused when two of the shop's capabilities would be published under one file name
     Pins that one capability's file never overwrites another's when two carry one name in different contexts, and that a refused publish leaves the directory exactly as it found it.
     Given two capabilities linking to the shop, each with an order of its own, both named "read-the-log" in their IRIs, one in the shop's own context and the other in another context of the same product
@@ -168,6 +174,7 @@ Feature: Publish a shop's spec
     And nothing is written to the directory
     And `adrs/0099-old-rule.md` is still in that directory
 
+  @slice-91
   Scenario: Publishing is refused when two of the shop's decisions would be published under one file name
     Pins that one decision's record never overwrites another's when two carry one number and one name in different contexts, and that a refused publish leaves the directory exactly as it found it.
     Given two decisions linking to the shop, both numbered 7, both named "keep-the-log" in their IRIs, one in the shop's own context and the other in another context of the same product
@@ -294,6 +301,7 @@ Feature: Publish a shop's spec
       | `features/old-cache.feature`     |
       | `adrs/0098-old-cache.md`         |
 
+  @slice-91
   Scenario Outline: Publishing is refused when an artifact the shop's spec would publish carries a link to an artifact the knowledge base does not hold
     Pins that no published file, a feature file as much as a page, ever links to what the knowledge base does not hold, and that a refused publish leaves the directory exactly as it found it.
     Given <artifact> carries a link to an artifact the knowledge base does not hold

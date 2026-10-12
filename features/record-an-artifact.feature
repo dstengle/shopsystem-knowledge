@@ -5,7 +5,7 @@ Feature: Record an artifact
   Background:
     Given a shop knowledge base holding the shop's types
 
-  @slice-1
+  @slice-87
   Scenario: The user records a file as a decision under a name of their choosing
     Pins that the name a decision is recorded under is the one the user chose, and that the shop reads it back by that name from its first version.
     Given a decision in a file, with a title, a purpose, a rationale and the decision it supersedes
@@ -14,6 +14,7 @@ Feature: Record an artifact
     And the shop reads the decision back by that name
     And the decision is at its first version
 
+  @slice-87
   Scenario: The user records an artifact naming some of its parts
     Pins that a part the user names keeps that name, so it can be found by it later.
     Given an artifact in a file with several parts
@@ -50,6 +51,7 @@ Feature: Record an artifact
     When the user records that file as a decision without a message
     Then the decision is rejected because every change must carry a message
 
+  @slice-87
   Scenario: An artifact recorded without a name is refused
     Pins that the shop never names an artifact on the user's behalf: a record with no name enters nothing.
     Given a decision in a file
@@ -57,6 +59,7 @@ Feature: Record an artifact
     Then the decision is rejected because every artifact is named by the user
     And the shop's knowledge base is unchanged
 
+  @slice-87
   Scenario: An artifact recorded under a name the shop already holds is refused
     Pins that a name already taken is never reused or altered: the record is refused, the taken name is given back, and what was held stays as it was.
     Given a decision the shop holds under a name
@@ -75,14 +78,14 @@ Feature: Record an artifact
     And the user is told which artifact and which place in it is at fault
     And the command reports failure to whatever ran it
 
-  @slice-1.17
+  @slice-87
   Scenario: The user records a file whose title is written as a date
     Pins that the shop reads files the strict way, so a title that happens to look like a date stays the text that was written.
     Given a decision in a file whose title is written "2026-09-24"
     When the user records that file as a decision under a name of their choosing, saying which role they are and why
     Then the shop reads the title back as the text that was written, not as a date
 
-  @slice-1.17
+  @slice-87
   Scenario: The user records a file whose title is written as a yes
     Pins the same strict reading for the other trap, a title that looks like a yes or a no.
     Given a decision in a file whose title is written "yes"

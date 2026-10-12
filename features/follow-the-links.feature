@@ -13,6 +13,7 @@ Feature: Follow the links
     When the user follows the links out of the decision
     Then the user sees the older decision and the decision's shop
 
+  @slice-90
   Scenario: The user follows the links out of a decision holding a link to something the knowledge base does not hold
     Pins that a link to nothing is still shown when following links out, marked so the reader can tell it lands on nothing the knowledge base holds.
     Given the decision also holds a link to an artifact the knowledge base does not hold

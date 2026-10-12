@@ -38,6 +38,141 @@ its place by its unknown among the slices not yet begun, and those slices
 are renumbered and their tags rewritten to match, within this repository
 only.
 
+## Slice 77: Expected failures for slices not yet built
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected
+- Observable: The suite reads green while the portable-knowledge scenarios wait for their slices
+- Unknown: none
+- Needs: the scenarios of slices 84-92 tagged
+- Lands: 0 production, 2 test
+- Status: planned
+
+## Slice 78: One seam builds kb's requests for the commands
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected; a search over the command, batch, init, bootstrap and answer modules finds no request field naming a kind, no schema_version and no schema/ id outside the seam
+- Observable: Every command reaches kb's kind, id and type fields through one module, so moving to kb.v2 changes that module
+- Unknown: whether the commands' requests and answers can name kinds and ids through one module without a change a user sees
+- Needs: none
+- Lands: 7 production, 0 test
+- Status: planned
+
+## Slice 79: The readers reach kb through the seam
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected; a search over src/ finds a List by kind, a read of an answer's kind and a schema/ id only in the seam
+- Observable: coverage, dependencies, the consistency check and the renderers find artifacts by kind through the seam
+- Unknown: none
+- Needs: none
+- Lands: 7 production, 0 test
+- Status: planned
+
+## Slice 80: A test seam for what tests hand kb, first group
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected; a search shows the oracle, the refused-files steps and the spec attempt build no kb request naming a kind or id directly
+- Observable: Tests that ask kb directly do so through one helper
+- Unknown: whether one helper can stand for every request a test hands kb
+- Needs: none
+- Lands: 0 production, 4 test
+- Status: planned
+
+## Slice 81: The test seam, second group
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected; a search shows the start steps, the batch steps and conftest build no kb request naming a kind or id directly
+- Observable: Start and batch steps ask kb through the test seam
+- Unknown: none
+- Needs: none
+- Lands: 0 production, 4 test
+- Status: planned
+
+## Slice 82: The test seam, third group
+- Kind: enabling
+- Check: `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected; a search over tests/ finds kind, schema_version, key and schema/ ids handed to kb only in the test seam
+- Observable: No test outside the seam spells a kb.v1 form
+- Unknown: none
+- Needs: none
+- Lands: 0 production, 4 test
+- Status: planned
+
+## Slice 83: kb pinned at v0.9.0
+- Kind: enabling
+- Check: `.venv/bin/python -c "import kb.contract.kb_pb2 as m; print(m.DESCRIPTOR.package)"` -> kb.v2; `.venv/bin/python -m pytest -q` -> 202 passed, 0 failed, 37 expected (fewer expected where a scenario goes green, credited here); a search over src/ and tests/ finds no kb.v1 field
+- Observable: shop-knol works against kb.v2 with every name the user sees unchanged
+- Unknown: whether everything the suite passes on kb.v1 passes on kb.v2 through the two seams alone
+- Needs: the shop's types written as kb.v2 type artifacts
+- Lands: 3 production, 2 test
+- Status: planned
+
+## Slice 84: The shop's types at their IRIs
+- Kind: capability
+- Scenarios: start-a-knowledge-base / The user starts a knowledge base and each of the shop's types is held at its own IRI, its current version at that version's IRI
+- Observable: init furnishes each of the shop's types at https://missingmass.io/shopsystem/<type>, its version at <type>@<n>
+- Unknown: how bootstrap names a type and its version IRI where kb.v2 asks the client to
+- Needs: none
+- Status: planned
+
+## Slice 85: Names shown short
+- Kind: capability
+- Scenarios: name-an-artifact / Whenever shop-knol shows the user the name of an artifact, it is shown short, in a JSON answer as in a YAML one; name-an-artifact / Whenever shop-knol shows the user the name of a shop or a product, it is shown short, in a JSON answer as in a YAML one; name-an-artifact / Whenever shop-knol shows the user a type beside an artifact, it is shown by its name and the version that artifact names, in a JSON answer as in a YAML one; name-an-artifact / Whenever shop-knol shows the user a type on its own, it is shown by its name and its current version, in a JSON answer as in a YAML one
+- Observable: Every answer shows IRIs shortened by the shop's prefixes
+- Unknown: whether one module can shorten every IRI every answer prints
+- Needs: none
+- Status: planned
+
+## Slice 86: Names taken short, full or in a context
+- Kind: capability
+- Scenarios: name-an-artifact / The user names an artifact by its short IRI, whatever context it is in; name-an-artifact / The user names an artifact by its full IRI, whatever context it is in; name-an-artifact / Where SHOP_CONTEXT names a context, the user names an artifact by its name alone; name-an-artifact / Where SHOP_CONTEXT names a context, the user names an artifact by its type and its name; name-an-artifact / Where SHOP_CONTEXT names a context, a name alone carried by artifacts of more than one type in it is refused; name-an-artifact / A name that is neither a short nor a full IRI, while SHOP_CONTEXT is not set, is refused; name-an-artifact / A name that is neither a short nor a full IRI, while SHOP_CONTEXT is set empty, is refused
+- Observable: A user names an artifact short, full, or by name within SHOP_CONTEXT
+- Unknown: how a bare name is resolved against SHOP_CONTEXT when more than one type may carry it
+- Needs: none
+- Status: planned
+
+## Slice 87: The user names what they record
+- Kind: capability
+- Scenarios: record-an-artifact / The user records a file as a decision under a name of their choosing; record-an-artifact / The user records an artifact naming some of its parts; record-an-artifact / An artifact recorded without a name is refused; record-an-artifact / An artifact recorded under a name the shop already holds is refused; record-an-artifact / The user records a file whose title is written as a date; record-an-artifact / The user records a file whose title is written as a yes; use-the-shops-types / The user records an artifact holding parts without naming them
+- Observable: create takes the artifact's name and its parts' names, and no longer mints one from a title
+- Unknown: how a part named by the user and a part left unnamed reach kb.v2's create
+- Needs: none
+- Status: planned
+
+## Slice 88: A batch names what it creates
+- Kind: capability
+- Scenarios: make-several-changes-at-once / The user applies a batch of creates, saying who they are and why; make-several-changes-at-once / The user applies a batch of creates naming some of their parts; make-several-changes-at-once / The user applies a batch of creates in which a link names the IRI one of its creates carries; make-several-changes-at-once / A create in a batch carrying no name leaves the shop untouched; make-several-changes-at-once / A create in a batch carrying a name the shop already holds leaves the shop untouched; make-several-changes-at-once / Two creates in a batch carrying one name leave the shop untouched
+- Observable: apply carries each create's name, and links in a batch name IRIs
+- Unknown: whether a batch's names are refused whole before kb is asked or by kb's own refusal
+- Needs: none
+- Status: planned
+
+## Slice 89: The types' second versions
+- Kind: capability
+- Scenarios: use-the-shops-types / The user records a capability with an "Implementation, may change" section; use-the-shops-types / The user records a shop with a "Mechanisms every command shares" section; publish-a-shops-spec / The user publishes a shop's spec and a capability's page holds its "Implementation, may change" section; publish-a-shops-spec / The user publishes the spec of a shop holding a "Mechanisms every command shares" section
+- Observable: A capability holds an Implementation section and a shop a mechanisms section, each published
+- Unknown: how a type's second version is furnished beside its first
+- Needs: none
+- Status: planned
+
+## Slice 90: Placeholders marked and checked
+- Kind: capability
+- Scenarios: read-an-artifact / The user reads a decision holding a link to something the knowledge base does not hold; read-an-artifact / The user reads the whole decision holding a link to something the knowledge base does not hold; read-an-artifact / The user reads a decision with the things it points at filled in, and one of its links lands on something the knowledge base does not hold; follow-the-links / The user follows the links out of a decision holding a link to something the knowledge base does not hold; check-the-knowledge-base / The user checks a knowledge base where an artifact links to an artifact the knowledge base does not hold
+- Observable: read and refs mark a link to nothing held; validate fails on it
+- Unknown: how kb's placeholders become a mark in a read and a fault in a check
+- Needs: none
+- Status: planned
+
+## Slice 91: Published files named from IRIs
+- Kind: capability
+- Scenarios: publish-a-shops-spec / The user publishes a shop's spec and a capability's file is named from the name in its IRI; publish-a-shops-spec / The user publishes a shop's spec and a decision's record is named from its number and the name in its IRI; publish-a-shops-spec / The user publishes a shop's spec into a directory holding files published earlier, and those this publish does not write are deleted; publish-a-shops-spec / Publishing is refused when two of the shop's capabilities would be published under one file name; publish-a-shops-spec / Publishing is refused when two of the shop's decisions would be published under one file name; publish-a-shops-spec / Publishing is refused when an artifact the shop's spec would publish carries a link to an artifact the knowledge base does not hold
+- Observable: render spec names every page from the name in its artifact's IRI and refuses a link to nothing held
+- Unknown: whether names from IRIs replace names from titles everywhere the spec renderer names a file
+- Needs: none
+- Status: planned
+
+## Slice 92: Export the knowledge base
+- Kind: capability
+- Scenarios: export-the-knowledge-base / The user exports the knowledge base into an empty directory; export-the-knowledge-base / The user exports one context into an empty directory; export-the-knowledge-base / The user exports the whole knowledge base and is shown its position; export-the-knowledge-base / The user exports one context and is shown the knowledge base's position, not the context's last change; export-the-knowledge-base / Exporting into a directory that is not empty is refused
+- Observable: shop-knol export writes kb's streamed export, whole or by context, into an empty directory
+- Unknown: how kb's streamed export is written to files and its position shown
+- Needs: none
+- Status: planned
+
 ## Satisfied by existing behaviour
 
 - none
@@ -97,3 +232,11 @@ only.
 - 2026-10-10 REQUEST kb: portable knowledge, ten changes to kb's capabilities (backup and restore; ids as IRIs under their type, chosen by the client; type versions as IRIs; placeholders, reported and never failed by kb; export over the contract, streamed, with its position; import into any store), in docs/superpowers/specs/2026-10-10-requests-to-kb-portable-knowledge.md (kb adrs/0022-0030; adrs/0070-0075). For a kb session. Migrating a markdown spec into kb (adrs/0070) and exporting after every change (adrs/0071, 0075) wait on it.
 - 2026-10-10 Formulated: portable knowledge (docs/superpowers/specs/2026-10-10-portable-knowledge-design.md), spec at 0120676, 9a29999, c5a55fc, 4c4598c, features at the next commit; questions after the person's own answers settled under their delegation (adrs/0083). Suite: 202 passed, 37 failed, every failure a new, changed or rewritten scenario. Slicing waits for kb.v2 (REQUEST kb, 2026-10-10): nothing here can go green before the pin bump.
 - 2026-10-10 For slicing: the existing When steps that record or apply without naming (record-an-artifact, make-several-changes-at-once) are kept as approved; their step definitions supply a name, as they supply a role and a message.
+- 2026-10-12 Probe: tools -> coverage 7.16.2, pytest-cov 7.1.0, jedi 0.20.0, ast-grep 0.50.0, ruff 0.17.0, vulture 2.16, import-linter 2.15, hypothesis 6.169.0
+- 2026-10-12 Suite: 202 passed, 37 failed at f0c4eb1 in 34 s; failing: the portable-knowledge scenarios formulated 2026-10-10 (no --slice option yet)
+- 2026-10-12 Probe: git ls-remote --tags shopsystem-kb -> v0.9.0 (2026-10-11), contract kb.v2, portable knowledge; the REQUEST kb of 2026-10-10 released
+- 2026-10-12 Probe: suite in a scratch copy with kb 0.9.0 installed -> 8 passed, 231 failed; ~224 die at bootstrap's CreateRequest(kind=...) (field removed in kb.v2); none of the 37 goes green (.superpowers/scout/kbv2/pin-bump.md)
+- 2026-10-12 Probe: searches for kb.v1 forms (kind=, .kind, schema_version, key, schema/ ids, CreateItem, ListRequest) -> 13 production, 25 test: over the budget; the bump is cut as expand, migrate, contract (one kb installed, so the seams expand on kb 0.6.0 and one slice flips them)
+- 2026-10-12 Probe: kb 0.6.0 mints a name from a title by lowercasing and hyphenating runs of non-alphanumerics, numbering a taken one -2, -3 (run, .superpowers/scout/kbv2/seam.md); no scenario at HEAD asserts a numbered name (the -2 scenario was rewritten as a refusal)
+- 2026-10-12 Probe: searches for the kb.v1 forms by module (seam.md) -> production: 6 commands-and-answers modules plus the seam, and 7 reading modules; tests: 10 modules hand kb a request or read its fields, plus the test seam; the stand-in spells no v1 field
+- 2026-10-12 Sweep: kb mints the ids (reversed: the client names every artifact at an IRI, kb.v2) -> 13 production places, 13 test places; owned by slices 78-83 (seams and flip, names kept as today meanwhile, shop-knol minting the slug kb minted) and 87-88 (the user names what they create); 0 questions, 0 deferred

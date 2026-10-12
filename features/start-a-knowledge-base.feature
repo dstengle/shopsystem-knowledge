@@ -10,6 +10,7 @@ Feature: Start a knowledge base
     Then the shop can hold products, shops, capabilities, decisions, features, work items, roles, processes, steps and tags
     And the user defines nothing of their own before recording the first one
 
+  @slice-84
   Scenario: The user starts a knowledge base and each of the shop's types is held at its own IRI, its current version at that version's IRI
     Pins that a freshly started knowledge base names every one of the shop's types, and the version of it in force, by IRIs of their own, so anything recorded later can point at a type and at the version it was made under.
     Given the user is working in an empty directory for the shop's knowledge

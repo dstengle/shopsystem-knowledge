@@ -75,6 +75,7 @@ Feature: Check the knowledge base
       | the shop        |
       | the other shop  |
 
+  @slice-90
   Scenario: The user checks a knowledge base where an artifact links to an artifact the knowledge base does not hold
     Pins that a link to something missing is laid at the door of the artifact that holds the link, where the user can fix it, and that it makes the shop unsound.
     Given a shop knowledge base where a capability depends on a capability the knowledge base does not hold

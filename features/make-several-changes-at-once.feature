@@ -13,6 +13,7 @@ Feature: Make several changes at once
     Then both changes are in the shop
     And the shop's history shows them as one change
 
+  @slice-88
   Scenario: The user applies a batch of creates, saying who they are and why
     Pins that the user names what a batch makes: every new artifact lands under the name its own create carries, not one the shop chooses.
     Given a batch that records a decision and a work item, each create carrying a name of the user's choosing
@@ -20,12 +21,14 @@ Feature: Make several changes at once
     Then the shop reads the decision back by the name its create carries
     And the shop reads the work item back by the name its create carries
 
+  @slice-88
   Scenario: The user applies a batch of creates naming some of their parts
     Pins that naming a part works in a batch as it does in a single record: a part the user named keeps that name once the batch lands.
     Given a batch that records a decision and a work item, the work item naming some of its parts
     When the user applies the batch, saying who they are and why
     Then each part the work item named is known by the name the user gave it
 
+  @slice-88
   Scenario: The user applies a batch of creates in which a link names the IRI one of its creates carries
     Pins that new artifacts in one batch can point at each other by the names the user gave them, without a key.
     Given a batch that records a decision under a name of the user's choosing, and a work item whose link names the IRI the decision's create carries
@@ -53,6 +56,7 @@ Feature: Make several changes at once
       | before |
       | after  |
 
+  @slice-88
   Scenario: A create in a batch carrying no name leaves the shop untouched
     Pins that the shop never names an artifact on the user's behalf: one unnamed create refuses the whole batch.
     Given a batch that records a decision and a work item, the work item's create carrying no name
@@ -60,6 +64,7 @@ Feature: Make several changes at once
     Then the batch is rejected because every artifact is named by the user
     And none of the changes are in the shop
 
+  @slice-88
   Scenario: A create in a batch carrying a name the shop already holds leaves the shop untouched
     Pins that a batch cannot land an artifact on top of one already recorded: the taken name is refused, named, and nothing in the batch lands.
     Given a batch that records a decision and a work item, the work item's create carrying the name of the work item the shop holds
@@ -67,6 +72,7 @@ Feature: Make several changes at once
     Then the batch is rejected because that name is taken, naming it
     And none of the changes are in the shop
 
+  @slice-88
   Scenario: Two creates in a batch carrying one name leave the shop untouched
     Pins that a name is taken within the batch as well as in the shop: two creates claiming one name are refused, the name given, and neither lands.
     Given a batch that records two decisions, both creates carrying the same name
