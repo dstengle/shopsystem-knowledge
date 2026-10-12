@@ -72,7 +72,7 @@ only.
 - Unknown: whether one helper can stand for every request a test hands kb
 - Needs: none
 - Lands: 0 production, 4 test
-- Status: planned
+- Status: green
 
 ## Slice 81: The test seam, second group
 - Kind: enabling
@@ -250,3 +250,5 @@ only.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at b9a30ac in 33 s
 - 2026-10-12 slice 79 green. Someone can now: change kb's pin by changing iris.py alone for the readers' Lists, kinds and content. Surprised by: nothing. Open questions: renderers outside the seven (spec_faults, diagram, skill, markdown, agent, spec_capabilities) read ids and content raw. Next: slice 80.
 - 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 9bdcac1 in 33 s
+- 2026-10-12 slice 80 green. Someone can now: change what kb_oracle, record_refused_files and spec_attempt hand kb or read from its messages by changing tests/kb_names.py alone. Surprised by: nothing. Open questions: none. Next: slice 81.
+- 2026-10-12 Suite: 202 passed, 0 failed, 37 expected at 3ce6003 in 32 s
