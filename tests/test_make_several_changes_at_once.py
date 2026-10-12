@@ -34,6 +34,10 @@ def held():
     return {}
 
 
+CARRIED_TWICE = "a key names one create in the batch, and two carry this one"
+"""shop-knol's own words for a key two creates of a batch carry."""
+
+
 @given("a shop knowledge base holding the shop's types and a work item")
 def _shop_with_a_work_item(env, shop, tmp_path, held):
     start(env, shop)
@@ -152,8 +156,12 @@ def _rejected_for_a_key_no_create_carries(env, result, batch_file):
 
 
 @then("the batch is rejected because a key names one create in the batch, naming the key")
-def _rejected_for_a_key_carried_twice(env, result, batch_file):
-    _refused_in_kbs_words(env, result, batch_file, KEY)
+def _rejected_for_a_key_carried_twice(result, batch_file):
+    """shop-knol's own words, at the second create's key: kb.v2 carries no key, so kb is not asked."""
+    fault = kb_pb2.Fault(artifact=str(batch_file), place="changes/1/key", message=f"{CARRIED_TWICE}: {KEY}")
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert result.stderr.splitlines() == [printed(fault)], result.stderr
 
 
 def _refused_in_kbs_words(env, result, batch_file, key):
