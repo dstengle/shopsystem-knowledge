@@ -124,6 +124,7 @@ own it.
   worker per core, each scenario still in its own temporary directory). While scenarios are red its last line is
   make's own error; pytest's summary line above it is the answer. When a run's output must be read in order, run it
   serially: `.venv/bin/python -m pytest -q`, which also takes `-m slice-<n>` or a single test id as it is.
+  The slice plugin (`tests/slice_expectations.py`) reads each slice's Status in the slice plan: a scenario of a slice that is not green (planned or blocked) is expected to fail (xfail, strict), and the slice being built is run with `--slice <n>`.
 - The spec is `spec/`: `index.md`, `decisions.md`, and one capability per `features/<name>.feature`. Behaviour comes from `features/`; code is written red-green against a scenario, one at a time, and never adds
   behaviour no scenario asks for.
 - A refactor is an enabling slice: its check is the suite giving the same answer and the structural target met.
